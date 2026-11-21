@@ -153,6 +153,31 @@
   .receipt-list li .t{font-family:var(--mono);font-size:10.5px;color:var(--dim);flex:0 0 auto}
   .receipt-list li b{color:var(--text);font-weight:600}
   .receipt-list .placeholder{color:var(--dim);font-style:normal}
+  /* 动作回执：四态（成功 / 失败 / 暂不支持 / 进行中）必须是四种颜色 */
+  .receipt-list li .r-body{min-width:0;flex:1 1 auto}
+  .receipt-list li .r-state{
+    font-size:10.5px;font-weight:600;border-radius:5px;padding:0 5px;border:1px solid transparent;
+    white-space:nowrap;flex:0 0 auto;
+  }
+  .receipt-list li .r-state.ok{color:var(--ok);background:var(--ok-soft);border-color:rgba(62,207,142,.3)}
+  .receipt-list li .r-state.fail{color:var(--bad);background:var(--bad-soft);border-color:rgba(242,113,122,.3)}
+  .receipt-list li .r-state.unsupported{color:var(--warn);background:var(--warn-soft);border-color:rgba(231,169,78,.3)}
+  .receipt-list li .r-state.pending{color:var(--info);background:var(--info-soft);border-color:rgba(95,179,242,.3)}
+  .receipt-list li .r-text{display:block;color:var(--muted);overflow-wrap:anywhere}
+  .receipt-list li .r-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px;align-items:center}
+  .receipt-list li .r-link{font-size:11px;color:#9fc1ff;text-decoration:underline}
+  .receipt-list li .r-hint{
+    font:inherit;font-size:10.5px;color:#c9d4ff;background:rgba(120,150,255,.12);
+    border:1px solid rgba(120,150,255,.3);border-radius:6px;padding:1px 7px;cursor:pointer;
+  }
+  .receipt-list li .r-hint:hover{background:rgba(120,150,255,.2)}
+  /* 最新报告预览（读最新报告动作的真实返回内容） */
+  .report-meta{font-size:11px;color:var(--dim);overflow-wrap:anywhere}
+  .report-pre{
+    margin:6px 0 0;max-height:320px;overflow:auto;background:#101318;border:1px solid var(--line);
+    border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:11px;line-height:1.55;
+    color:#c6cedd;white-space:pre-wrap;overflow-wrap:anywhere;
+  }
 
   /* ---------- 最近任务 / 文档 ---------- */
   .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 0 4px}
@@ -432,7 +457,7 @@
       <section class="panel" aria-labelledby="actions-h">
         <div class="panel-head">
           <h2 id="actions-h">常用动作</h2>
-          <span class="hint">点击记录演示回执</span>
+          <span class="hint">点击执行真实动作</span>
         </div>
         <ul class="action-list" id="actionList"></ul>
         <div class="receipt">
@@ -442,10 +467,22 @@
             <button class="muted-btn" type="button" id="clearReceipt" disabled>清空</button>
           </div>
           <ul class="receipt-list" id="receiptList" aria-live="polite">
-            <li class="placeholder">还没有动作。点击上方按钮，这里会记录一条本地回执（不会发起真实请求）。</li>
+            <li class="placeholder">还没有动作。点击上方按钮，真实结果（成功 / 失败 / 暂不支持）会记在这里。</li>
           </ul>
         </div>
-        <p class="panel-foot">真实插件里这些动作会回调 DSH 客户端命令；当前是静态原型，回执只记在本页内存里。</p>
+        <p class="panel-foot">动作结果来自真实调用：DSH 客户端服务（新会话）、宿主动作路由 api/action（报告 / 记忆探测）或共享板只读接口（看板）；做不到会写明原因。</p>
+      </section>
+
+      <!-- 读最新报告的真实返回：宿主 api/action('latest-report') 读到的内容（只读、截断 64 KB） -->
+      <section class="panel" id="reportPanel" aria-labelledby="report-h" hidden>
+        <div class="panel-head">
+          <h2 id="report-h">最新报告</h2>
+          <span class="hint report-meta" id="reportMeta"></span>
+          <span class="grow"></span>
+          <button class="muted-btn" type="button" id="closeReport">关闭</button>
+        </div>
+        <pre class="report-pre" id="reportContent"></pre>
+        <p class="panel-foot" id="reportFoot">来自宿主动作路由 api/action · 只读 · 超过 64 KB 只显示前 64 KB</p>
       </section>
     </div>
 
@@ -538,20 +575,16 @@
    * 本页没有任何外部引用：零外链、零第三方脚本、零外部字体。
    * ===================================================================== */
   const MOCK = {
+    /* 6 个常用动作：只有前 5 个可点；重启 DSH 本轮保持禁用（红线）。 */
     actions: [
-      { id: 'new-session', label: '新会话', desc: '打开 DSH 新会话', kbd: 'Ctrl+Alt+N', ico: '＋',
-        intent: 'POST /api/sessions', detail: '新建会话并切到默认工作区' },
-      { id: 'dispatch', label: '派发任务', desc: '把任务卡投给对端会话', kbd: '', ico: '⇢',
-        intent: 'mesh_dispatch(taskId, instanceId)', detail: '选择对端实例与会话后投递' },
-      { id: 'board', label: '打开看板', desc: '等待共享板数据…', kbd: '', ico: '▤',
-        intent: 'GET /task/list', detail: '只读打开共享板任务列表' },
-      { id: 'notes', label: '查记事', desc: 'OpenViking 记忆检索', kbd: '', ico: '⌕',
-        intent: 'POST /api/search', detail: '按关键词检索长期记忆与资源' },
-      { id: 'latest-report', label: '读最新报告', desc: 'mesh-dev/reports 按时间倒序', kbd: '', ico: '▦',
-        intent: 'GET /reports/latest', detail: '打开最近一份交付报告' }
+      { id: 'new-session', label: '新会话', desc: 'DSH 新会话入口（与 Ctrl+Alt+N 同一 API）', kbd: 'Ctrl+Alt+N', ico: '＋' },
+      { id: 'dispatch', label: '派发任务', desc: '面板不能直接调 mesh_* 工具，会给出替代方式', kbd: '', ico: '⇢' },
+      { id: 'board', label: '打开看板', desc: '等待共享板数据…', kbd: '', ico: '▤' },
+      { id: 'notes', label: '查记忆', desc: '探测并打开 OpenViking Studio', kbd: '', ico: '⌕' },
+      { id: 'latest-report', label: '读最新报告', desc: '读取 mesh-0.6-dev/repo/docs 最新 .md', kbd: '', ico: '▦' }
     ],
-    disabledAction: { label: '重启 DSH', desc: '本轮红线：不许重启 / 结束进程', ico: '⟳',
-      reason: '本轮任务明确禁止重启或结束 DSH 进程，因此按钮保持禁用（禁用态示例，不是坏按钮）。' },
+    disabledAction: { label: '重启 DSH', desc: '红线：不由面板重启 DSH', ico: '⟳',
+      reason: '红线：面板不提供重启、结束或接管 DSH 进程的能力，按钮永久禁用。' },
     /* 兜底任务：字段形状与 api/board 的 tasks 一致，只是内容是示例。 */
     tasks: [
       { id: 'mock-task-1', title: '示例任务：核对板服务监听地址', state: 'leased', owner: 'example-owner',
@@ -960,19 +993,42 @@
     $('#dataStamp').textContent = valid.length ? '数据 ' + fmtStamp(new Date(Math.max.apply(null, valid)).toISOString()) : '数据 —';
   }
 
-  /* ---------------- ① 常用动作 ---------------- */
+  /* =====================================================================
+   * ① 常用动作 —— 真实动作
+   *
+   * 三条通道，按「谁有权限」拆开，页面只发动作 id，绝不放任意路径/命令：
+   *   DSH 客户端（panel-action postMessage → lib/client.js 执行）
+   *     new-session      uiWorkspace.startSession()（Ctrl+Alt+N 同一个 API）
+   *     dispatch         面板没有 mesh_* 工具通道 → 如实「暂不支持」+ 草稿替代按钮
+   *     dispatch-draft   uiWorkspace.startSession(undefined,{prompt}) 打开草稿
+   *   宿主 action 路由（同源 POST api/action → lib/actions.js 执行）
+   *     probe-memory     真探测 OpenViking，可达才由本页打开 Studio
+   *     latest-report    真读最新 .md，内容显示在本页「最新报告」
+   *     open-reports-folder  explorer.exe 打开固定目录
+   *   页面本地
+   *     board            用 api/board 已拿到的真实 origin window.open；不可达只给原因
+   *
+   * 回执只有四种状态：成功 / 失败 / 暂不支持 / 进行中；不存在本地假回执。
+   * ===================================================================== */
+  const RECEIPT_STATES = { ok: '成功', fail: '失败', unsupported: '暂不支持', pending: '进行中' };
+  const MAX_RECEIPTS = 8;
+  const CLIENT_ACTION_TIMEOUT_MS = 2500;
+  const ACTION_TIMEOUT_MS = 9000;
   const receipts = [];
+  const pendingClientActions = new Map();
+  let clientActionSeq = 0;
+
   function renderActions() {
     const html = MOCK.actions.map(function (action) {
       return '<li><button class="action" type="button" data-action="' + action.id + '">' +
         '<span class="ico" aria-hidden="true">' + action.ico + '</span>' +
-        '<span class="txt"><b>' + action.label + '</b><span>' + action.desc + '</span></span>' +
+        '<span class="txt"><b>' + action.label + '</b><span>' + esc(action.desc) + '</span></span>' +
         (action.kbd ? '<kbd>' + action.kbd + '</kbd>' : '') +
       '</button></li>';
     }).join('') +
       '<li><button class="action" type="button" disabled aria-describedby="disabledReason">' +
         '<span class="ico" aria-hidden="true">' + MOCK.disabledAction.ico + '</span>' +
-        '<span class="txt"><b>' + MOCK.disabledAction.label + '</b><span id="disabledReason">' + MOCK.disabledAction.desc + '</span></span>' +
+        '<span class="txt"><b>' + MOCK.disabledAction.label + '</b><span id="disabledReason">' + esc(MOCK.disabledAction.desc) + '</span></span>' +
         '<span class="soon">禁用</span>' +
       '</button></li>';
     $('#actionList').innerHTML = html;
@@ -982,44 +1038,319 @@
       fireAction(button.getAttribute('data-action'));
     });
   }
-  /** 「打开看板」的地址来自 api/board 的 source.origin；拿不到就置灰，绝不留假地址。 */
+  /** 「打开看板」的地址来自 api/board 的 source.origin。按钮始终可点：不可达时点一下给出原因回执，不静默置灰。 */
   function renderBoardAction() {
     const button = $('#actionList [data-action="board"]');
     if (!button) return;
     const desc = button.querySelector('.txt span');
     const board = state.board;
     if (board.kind === 'real' && board.data.source && board.data.source.origin) {
-      button.disabled = false;
-      button.removeAttribute('aria-disabled');
       desc.textContent = '共享板 ' + board.data.source.origin;
+    } else if (board.kind === 'unconfigured') {
+      desc.textContent = '板未配置（点击查看原因）';
+    } else if (board.kind === 'mock') {
+      desc.textContent = '板不可达（点击查看原因）';
     } else {
-      button.disabled = true;
-      button.setAttribute('aria-disabled', 'true');
-      desc.textContent = board.kind === 'unconfigured' ? '板未配置' : (board.kind === 'mock' ? '板不可达' : '等待共享板数据…');
+      desc.textContent = '等待共享板数据…';
     }
   }
+  function actionById(id) {
+    return MOCK.actions.filter(function (item) { return item.id === id; })[0] || null;
+  }
+  function actionLabel(id) {
+    const action = actionById(id);
+    if (action) return action.label;
+    if (id === 'open-reports-folder') return '打开报告目录';
+    if (id === 'restart-dsh') return '重启 DSH';
+    return String(id || '动作');
+  }
+  function clockTime() {
+    const now = new Date();
+    return pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+  }
+
+  function addReceipt(id, state, text, hint) {
+    const receipt = {
+      id: 'action-' + Date.now() + '-' + receipts.length,
+      time: clockTime(),
+      label: actionLabel(id),
+      state: state,
+      text: text,
+      hint: hint || null,
+      link: null
+    };
+    receipts.unshift(receipt);
+    if (receipts.length > MAX_RECEIPTS) receipts.length = MAX_RECEIPTS;
+    renderReceipts();
+    return receipt;
+  }
+  function updateReceipt(receipt, result) {
+    const ok = !!(result && result.ok === true);
+    receipt.state = ok ? 'ok' : (result && result.unsupported === true ? 'unsupported' : 'fail');
+    receipt.text = ok ? String(result.detail || '成功') : String((result && result.reason) || '失败（无原因）');
+    receipt.hint = result && result.hint ? result.hint : null;
+    receipt.link = result && result.link ? result.link : null;
+    renderReceipts();
+    return receipt;
+  }
+  /** 回执列表：全部用 DOM 构建 + textContent，动态 URL 只进 href（不拼 HTML）。 */
   function renderReceipts() {
     const list = $('#receiptList');
+    list.innerHTML = '';
     if (!receipts.length) {
-      list.innerHTML = '<li class="placeholder">还没有动作。点击上方按钮，这里会记录一条本地回执（不会发起真实请求）。</li>';
+      const placeholder = document.createElement('li');
+      placeholder.className = 'placeholder';
+      placeholder.textContent = '还没有动作。点击上方按钮，真实结果（成功 / 失败 / 暂不支持）会记在这里。';
+      list.appendChild(placeholder);
     } else {
-      list.innerHTML = receipts.map(function (receipt) {
-        return '<li><span class="t">' + receipt.time + '</span><span><b>' + receipt.label + '</b> · 演示回执：将调用 <code>' +
-          receipt.intent + '</code>（未发送请求）</span></li>';
-      }).join('');
+      receipts.forEach(function (receipt) {
+        const li = document.createElement('li');
+        const time = document.createElement('span');
+        time.className = 't';
+        time.textContent = receipt.time;
+        li.appendChild(time);
+        const body = document.createElement('span');
+        body.className = 'r-body';
+        const label = document.createElement('b');
+        label.textContent = receipt.label;
+        body.appendChild(label);
+        body.appendChild(document.createTextNode(' '));
+        const state = document.createElement('span');
+        state.className = 'r-state ' + receipt.state;
+        state.textContent = RECEIPT_STATES[receipt.state] || receipt.state;
+        body.appendChild(state);
+        const text = document.createElement('span');
+        text.className = 'r-text';
+        text.textContent = receipt.text;
+        body.appendChild(text);
+        if (receipt.hint || receipt.link) {
+          const row = document.createElement('span');
+          row.className = 'r-actions';
+          if (receipt.hint && receipt.hint.action) {
+            const hint = document.createElement('button');
+            hint.type = 'button';
+            hint.className = 'r-hint';
+            hint.setAttribute('data-hint-action', receipt.hint.action);
+            hint.textContent = receipt.hint.label || actionLabel(receipt.hint.action);
+            hint.addEventListener('click', function () { fireAction(receipt.hint.action); });
+            row.appendChild(hint);
+          }
+          if (receipt.link && typeof receipt.link.href === 'string') {
+            const link = document.createElement('a');
+            link.className = 'r-link';
+            link.href = receipt.link.href;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = receipt.link.label || '手动打开';
+            row.appendChild(link);
+          }
+          body.appendChild(row);
+        }
+        li.appendChild(body);
+        list.appendChild(li);
+      });
     }
     $('#clearReceipt').disabled = receipts.length === 0;
   }
-  function fireAction(id) {
-    const action = MOCK.actions.filter(function (item) { return item.id === id; })[0];
-    if (!action) return;
-    const now = new Date();
-    const time = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
-    receipts.unshift({ time: time, label: action.label, intent: action.intent });
-    if (receipts.length > 5) receipts.length = 5;
-    renderReceipts();
-    toast(action.label + '：' + action.detail + '（演示，未发送）');
+
+  /** 打开新标签页；返回是否真的打开了（弹窗被拦时 false）。 */
+  function openExternal(url) {
+    try {
+      const opened = window.open(url, '_blank');
+      if (!opened) return false;
+      try { opened.opener = null; } catch (error) { /* 某些内核只读 */ }
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
+  function parentTargetOrigin() {
+    try {
+      return window.location.origin && window.location.origin !== 'null' ? window.location.origin : '*';
+    } catch (error) {
+      return '*';
+    }
+  }
+
+  /** DSH 客户端动作：postMessage 给父窗口（lib/client.js 收），requestId 等回执；超时如实报。 */
+  function callClient(action) {
+    return new Promise(function (resolvePromise) {
+      if (window.parent === window) {
+        resolvePromise({ ok: false, unsupported: true, code: 'no-host', reason: '当前页面不在 DSH 面板 iframe 里（独立打开），该动作需要 DSH 客户端。' });
+        return;
+      }
+      const requestId = 'req-' + (++clientActionSeq) + '-' + Date.now();
+      const timer = setTimeout(function () {
+        pendingClientActions.delete(requestId);
+        resolvePromise({ ok: false, unsupported: true, code: 'client-timeout', reason: 'DSH 客户端 2.5 秒内没响应动作（client.js 改动需重启 DSH 后生效）。' });
+      }, CLIENT_ACTION_TIMEOUT_MS);
+      pendingClientActions.set(requestId, { resolve: resolvePromise, timer: timer });
+      try {
+        window.parent.postMessage({ type: 'panel-action', action: action, requestId: requestId }, parentTargetOrigin());
+      } catch (error) {
+        clearTimeout(timer);
+        pendingClientActions.delete(requestId);
+        resolvePromise({ ok: false, code: 'post-failed', reason: '动作消息发送失败：' + shortReason(error) });
+      }
+    });
+  }
+  window.addEventListener('message', function (event) {
+    if (window.parent === window || event.source !== window.parent) return;
+    const data = event.data;
+    if (!data || typeof data !== 'object' || data.type !== 'panel-action-result') return;
+    const requestId = String(data.requestId || '');
+    const pending = pendingClientActions.get(requestId);
+    if (!pending) return;
+    clearTimeout(pending.timer);
+    pendingClientActions.delete(requestId);
+    pending.resolve(data);
+  });
+
+  /** 宿主 action 路由：同源 POST api/action，body 只有白名单动作 id。 */
+  async function postAction(action) {
+    let response;
+    try {
+      response = await fetch('api/action', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify({ action: action }),
+        signal: timeoutSignal(ACTION_TIMEOUT_MS)
+      });
+    } catch (error) {
+      return { ok: false, code: 'action-unreachable', reason: '请求宿主动作路由失败：' + shortReason(error) };
+    }
+    // 老宿主没有 exact handler 路由：POST 会被 prefix resource 的 webserver 直接
+    // 拒成 405（空体），所以先按状态码给出可读原因，再解析 JSON。
+    if (response.status === 405) {
+      return { ok: false, unsupported: true, code: 'action-route-missing', reason: '宿主还没有可用的 api/action 路由（HTTP 405）：新版 Host 需要重启 DSH 后生效。' };
+    }
+    if (response.status === 403) {
+      return { ok: false, code: 'action-forbidden', reason: '宿主拒绝了动作请求（HTTP 403）：来源校验不通过。' };
+    }
+    if (response.status === 413 || response.status === 415) {
+      return { ok: false, code: 'action-rejected', reason: '宿主拒收了动作请求（HTTP ' + response.status + '）：请求体或类型不符合要求。' };
+    }
+    let data = null;
+    try {
+      data = await response.json();
+    } catch (error) {
+      return { ok: false, code: 'action-bad-response', reason: '宿主动作路由返回非 JSON（HTTP ' + response.status + '）' };
+    }
+    if (!data || typeof data !== 'object') {
+      return { ok: false, code: 'action-bad-response', reason: '宿主动作路由返回体不是对象（HTTP ' + response.status + '）' };
+    }
+    if (response.status === 404) {
+      return { ok: false, unsupported: true, code: 'action-route-missing', reason: '宿主还没有 api/action 路由：新版 Host 需要重启 DSH 后生效。' };
+    }
+    return data;
+  }
+
+  /** ① 新会话：交给 DSH 客户端服务（真入口，与 Ctrl+Alt+N 同一个 API）。 */
+  function runNewSession() { return callClient('new-session'); }
+  /** ② 派发任务：面板没有 mesh_* 工具通道，如实返回 + 草稿替代。 */
+  function runDispatch() { return callClient('dispatch'); }
+  /** ②b 替代：打开新会话并填入 mesh_dispatch 提示草稿（草稿不自动发送）。 */
+  function runDispatchDraft() { return callClient('dispatch-draft'); }
+  /** ③ 打开看板：真实 origin 来自 api/board；不可达只给原因，不静默。 */
+  function runOpenBoard() {
+    const board = state.board;
+    if (board.kind === 'real' && board.data && board.data.source && typeof board.data.source.origin === 'string') {
+      const origin = board.data.source.origin;
+      if (openExternal(origin)) return { ok: true, detail: '已在新标签页打开共享板 ' + origin + '（只读任务接口）' };
+      return { ok: false, code: 'popup-blocked', reason: '浏览器拦截了新窗口，未能打开 ' + origin, link: { href: origin, label: '手动打开共享板' } };
+    }
+    if (board.kind === 'unconfigured') {
+      return { ok: false, unsupported: true, code: 'board-not-configured', reason: '共享板未配置：profile 里给 dsh-html-panel 加 config.board.endpoint 后看板才有地址。' };
+    }
+    if (board.kind === 'mock') {
+      return { ok: false, code: 'board-unreachable', reason: '共享板不可达：' + (board.reason || 'api/board 未给出原因') };
+    }
+    return { ok: false, code: 'board-loading', reason: '共享板数据还没载入完成，稍后再点。' };
+  }
+  /** ④ 查记忆：先让宿主真探测 OpenViking，可达才打开，不可达回原因。 */
+  async function runOpenMemory() {
+    const probe = await postAction('probe-memory');
+    if (!probe || probe.ok !== true) {
+      return {
+        ok: false,
+        unsupported: !!(probe && probe.code === 'action-route-missing'),
+        code: (probe && probe.code) || 'memory-unreachable',
+        reason: (probe && probe.reason) || 'OpenViking 探测失败'
+      };
+    }
+    const url = probe.url;
+    if (openExternal(url)) {
+      return { ok: true, detail: '已在新标签页打开 OpenViking Studio（' + probe.origin + '，探测 ' + probe.latencyMs + 'ms）' };
+    }
+    return { ok: false, code: 'popup-blocked', reason: '浏览器拦截了新窗口，未能打开 ' + url, link: { href: url, label: '手动打开 OpenViking Studio' } };
+  }
+  /** ⑤ 读最新报告：宿主真读文件，内容显示在本页（不依赖 .md 默认打开方式）。 */
+  async function runLatestReport() {
+    const result = await postAction('latest-report');
+    if (!result || result.ok !== true) {
+      return {
+        ok: false,
+        unsupported: !!(result && result.code === 'action-route-missing'),
+        code: (result && result.code) || 'report-failed',
+        reason: (result && result.reason) || '读取最新报告失败'
+      };
+    }
+    showReport(result);
+    const file = result.file || {};
+    const suffix = result.truncated === true ? '，仅显示前 64 KB' : '';
+    return {
+      ok: true,
+      detail: '已读取 ' + (file.name || '报告') + '（' + fmtBytes(file.size) + '，更新于 ' + fmtMs(file.mtime) + suffix + '），内容显示在下方「最新报告」',
+      hint: { action: 'open-reports-folder', label: '在资源管理器中打开报告目录' }
+    };
+  }
+  /** ⑤b 回执里的二级动作：在资源管理器打开固定报告目录。 */
+  function runOpenReportsFolder() { return postAction('open-reports-folder'); }
+  /** 重启 DSH：红线，永久禁用；这里只是兜底（正常点不到）。 */
+  function runRestart() {
+    return { ok: false, unsupported: true, code: 'red-line', reason: '红线：面板不允许重启、结束或接管 DSH 进程。' };
+  }
+  const ACTION_RUNNERS = {
+    'new-session': runNewSession,
+    'dispatch': runDispatch,
+    'dispatch-draft': runDispatchDraft,
+    'board': runOpenBoard,
+    'notes': runOpenMemory,
+    'latest-report': runLatestReport,
+    'open-reports-folder': runOpenReportsFolder,
+    'restart-dsh': runRestart
+  };
+
+  /** 报告预览：把宿主读到的真实内容渲染到 #reportPanel。 */
+  function showReport(result) {
+    const panel = $('#reportPanel');
+    if (!panel) return;
+    const file = result.file || {};
+    $('#reportMeta').textContent = (file.name || '报告') + ' · ' + (file.mtime ? fmtMs(file.mtime) : '—') + ' · ' + fmtBytes(file.size) + (result.truncated === true ? ' · 截断' : '');
+    $('#reportContent').textContent = typeof result.content === 'string' ? result.content : '';
+    panel.hidden = false;
+    if (typeof panel.scrollIntoView === 'function') panel.scrollIntoView({ block: 'nearest' });
+  }
+  function receiptMessage(result) {
+    if (!result) return '无结果';
+    if (result.ok === true) return String(result.detail || '成功');
+    return String(result.reason || '失败（未给出原因）');
+  }
+  async function fireAction(id) {
+    if (!id || !ACTION_RUNNERS[id]) return;
+    const receipt = addReceipt(id, 'pending', '执行中…');
+    let result;
+    try {
+      result = await ACTION_RUNNERS[id]();
+    } catch (error) {
+      result = { ok: false, code: 'action-exception', reason: '动作异常：' + shortReason(error) };
+    }
+    updateReceipt(receipt, result);
+    const stateText = result && result.ok === true ? '成功' : (result && result.unsupported === true ? '暂不支持' : '失败');
+    toast(actionLabel(id) + '：' + stateText + ' · ' + receiptMessage(result).slice(0, 60));
+  }
+  $('#closeReport').addEventListener('click', function () { $('#reportPanel').hidden = true; });
   $('#clearReceipt').addEventListener('click', function () {
     receipts.length = 0;
     renderReceipts();

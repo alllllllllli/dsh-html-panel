@@ -47,7 +47,7 @@
         },
         "events": {
           "count": 8,
-          "firstTime": "14:09:28",
+          "firstTime": "15:05:34",
           "firstKind": "task.created",
           "firstText": "演示事件正文 1",
           "firstMeta": "任务 t-leased · 节点 lead",
@@ -112,7 +112,7 @@
       },
       "interactions": {
         "receipts": 1,
-        "receiptText": "14:10:31新会话 · 演示回执：将调用 POST /api/sessions（未发送请求）",
+        "receiptText": "15:06:36新会话 暂不支持当前页面不在 DSH 面板 iframe 里（独立打开），该动作需要 DSH 客户端。",
         "todoLabel": "确认 pc-ky614 隧道 13087 端口",
         "checkedPersisted": true,
         "storeHasItems": true,
@@ -174,7 +174,7 @@
         },
         "events": {
           "count": 8,
-          "firstTime": "14:09:01",
+          "firstTime": "15:05:06",
           "firstKind": "task.created",
           "firstText": "示例事件正文 1（mock 兜底数据，不是真实事件）",
           "firstMeta": "任务 mock-task-1 · 节点 example-owner",
@@ -212,8 +212,8 @@
           "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 13:50:00）"
         },
         "boardAction": {
-          "disabled": true,
-          "desc": "板不可达"
+          "disabled": false,
+          "desc": "板不可达（点击查看原因）"
         },
         "layout": {
           "scrollWidth": 1440,
@@ -308,8 +308,8 @@
           "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 13:50:00）"
         },
         "boardAction": {
-          "disabled": true,
-          "desc": "板未配置"
+          "disabled": false,
+          "desc": "板未配置（点击查看原因）"
         },
         "layout": {
           "scrollWidth": 1440,
@@ -476,7 +476,7 @@
         },
         "events": {
           "count": 8,
-          "firstTime": "14:09:28",
+          "firstTime": "15:05:34",
           "firstKind": "task.created",
           "firstText": "演示事件正文 1",
           "firstMeta": "任务 t-leased · 节点 lead",
@@ -578,7 +578,7 @@
         },
         "events": {
           "count": 8,
-          "firstTime": "14:09:28",
+          "firstTime": "15:05:34",
           "firstKind": "task.created",
           "firstText": "演示事件正文 1",
           "firstMeta": "任务 t-leased · 节点 lead",
@@ -638,7 +638,7 @@
         "x": 0,
         "y": 0,
         "width": 900,
-        "height": 1405,
+        "height": 1422,
         "scale": 1
       }
     },
@@ -688,7 +688,7 @@
         },
         "events": {
           "count": 8,
-          "firstTime": "14:09:28",
+          "firstTime": "15:05:34",
           "firstKind": "task.created",
           "firstText": "演示事件正文 1",
           "firstMeta": "任务 t-leased · 节点 lead",
@@ -748,7 +748,7 @@
           "cluster": "interconnect 0/4 up",
           "board": "板 在线 · 37ms",
           "tasks": "板上 6 任务",
-          "stale": "数据过期 · 14:11:02 / 共享板：timeout · 连共享板超时（4000ms）：http://172.24.112.14:13090"
+          "stale": "数据过期 · 15:07:08 / 共享板：timeout · 连共享板超时（4000ms）：http://172.24.112.14:13090"
         },
         "meta": {
           "self": "实例 pc-ky614",
@@ -783,7 +783,7 @@
         },
         "events": {
           "count": 8,
-          "firstTime": "14:09:28",
+          "firstTime": "15:05:34",
           "firstKind": "task.created",
           "firstText": "演示事件正文 1",
           "firstMeta": "任务 t-leased · 节点 lead",
@@ -828,7 +828,7 @@
           "scrollWidth": 1440,
           "innerWidth": 1440,
           "topbarVisible": true,
-          "topbarText": "\n  \n    ◈\n    \n      工作台\n      DSH · 快捷启动页\n    \n  \n  \n  \n    \n      interconnect 0/4 up\n    \n    \n      板 在线 · 37ms\n    \n    \n      板上 6 任务\n    \n    \n      数据过期 · 14:11:02 / 共享板：timeout · 连共享板超时（4000ms）：http://172.24.112.14:13090\n    \n  \n"
+          "topbarText": "\n  \n    ◈\n    \n      工作台\n      DSH · 快捷启动页\n    \n  \n  \n  \n    \n      interconnect 0/4 up\n    \n    \n      板 在线 · 37ms\n    \n    \n      板上 6 任务\n    \n    \n      数据过期 · 15:07:08 / 共享板：timeout · 连共享板超时（4000ms）：http://172.24.112.14:13090\n    \n  \n"
         },
         "tabs": {
           "tasksSelected": "true",

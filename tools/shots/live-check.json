@@ -1,0 +1,74 @@
+{
+  "url": "http://127.0.0.1:51539/dsh-html-panel/index.html",
+  "ready": true,
+  "page": {
+    "readyText": "实例 pc-ky614",
+    "boardLine": "板 http://172.24.112.11:13090",
+    "chips": "\n    \n      interconnect 1/4 up\n    \n    \n      板 在线 · 38ms\n    \n    \n      板上 20 任务\n    \n    \n      \n    \n  ",
+    "hostLine": "Living-Dream · win32 · CPU 12 核 · 开机 9 小时",
+    "buttons": [
+      {
+        "label": "新会话",
+        "disabled": false,
+        "action": "new-session"
+      },
+      {
+        "label": "派发任务",
+        "disabled": false,
+        "action": "dispatch"
+      },
+      {
+        "label": "打开看板",
+        "disabled": false,
+        "action": "board"
+      },
+      {
+        "label": "查记忆",
+        "disabled": false,
+        "action": "notes"
+      },
+      {
+        "label": "读最新报告",
+        "disabled": false,
+        "action": "latest-report"
+      },
+      {
+        "label": "重启 DSH",
+        "disabled": true,
+        "action": null
+      }
+    ],
+    "errors": []
+  },
+  "receipts": {
+    "board": {
+      "state": "成功",
+      "text": "已在新标签页打开共享板 http://172.24.112.11:13090（只读任务接口）"
+    },
+    "notes": {
+      "state": "暂不支持",
+      "text": "宿主还没有可用的 api/action 路由（HTTP 405）：新版 Host 需要重启 DSH 后生效。"
+    },
+    "latest-report": {
+      "state": "暂不支持",
+      "text": "宿主还没有可用的 api/action 路由（HTTP 405）：新版 Host 需要重启 DSH 后生效。"
+    },
+    "new-session": {
+      "state": "暂不支持",
+      "text": "当前页面不在 DSH 面板 iframe 里（独立打开），该动作需要 DSH 客户端。"
+    },
+    "dispatch": {
+      "state": "暂不支持",
+      "text": "当前页面不在 DSH 面板 iframe 里（独立打开），该动作需要 DSH 客户端。"
+    }
+  },
+  "popups": [],
+  "errors": [],
+  "popupTargets": [
+    "http://172.24.112.11:13090/",
+    "edge://sync-confirmation-dialog/"
+  ],
+  "finalErrors": [],
+  "runtimeErrors": [],
+  "shot": "tools/shots/shot-actions-07-live-dsh-page.png"
+}

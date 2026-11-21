@@ -1,15 +1,15 @@
 {
   "file": "public/index.html",
-  "bytes": 74933,
-  "sha256": "130870454874f6c710408fa9c418ce0052452015c9d2be4a24dd46bb45fe198b",
-  "checks": 99,
+  "bytes": 91681,
+  "sha256": "ba448f024e566b9a2216879fb74504470e2f67a2f06a0e0439246d85cadcd7a7",
+  "checks": 116,
   "failed": 0,
   "pass": true,
   "results": [
     {
       "name": "文件存在且非空",
       "ok": true,
-      "detail": "74933 B"
+      "detail": "91681 B"
     },
     {
       "name": "无 UTF-8 BOM",
@@ -94,7 +94,7 @@
     {
       "name": "fetch 只有同源相对路径",
       "ok": true,
-      "detail": "共 1 处 fetch，无字面量外链"
+      "detail": "共 2 处 fetch，无字面量外链"
     },
     {
       "name": "三个同源路由都读了",
@@ -129,7 +129,7 @@
     {
       "name": "CSS 花括号配平",
       "ok": true,
-      "detail": "195 { / 195 }"
+      "detail": "208 { / 208 }"
     },
     {
       "name": "内联 JS 语法可解析",
@@ -362,7 +362,92 @@
       "detail": ""
     },
     {
-      "name": "拿不到板来源时置灰",
+      "name": "看板动作不可达时不置灰（点击给原因）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "没有本地假回执文案",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "回执四种状态齐全",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "回执四态 CSS 类齐全",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "动作按钮都由动作白名单驱动",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "新会话走 DSH 客户端消息",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "客户端动作有超时与独立打开说明",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "客户端无响应回执写明超时原因",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "派发任务不伪造：写明替代方式",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "宿主动作路由走同源 POST",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "宿主动作三件套在页面用到",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "宿主路由缺失/失败有可读原因",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "看板不可达回执带原因",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "报告预览面板齐全",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "报告内容只用 textContent 渲染",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "二级动作按钮（回执内）走 DOM 构建",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "重启 DSH 仍禁用且写明红线",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "动作面板脚注说明真实通道",
       "ok": true,
       "detail": ""
     },
@@ -459,7 +544,7 @@
     {
       "name": "页面 id 不重复",
       "ok": true,
-      "detail": "65 个静态 id"
+      "detail": "71 个静态 id"
     },
     {
       "name": "localStorage 待办键存在",

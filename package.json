@@ -1,8 +1,8 @@
 {
   "name": "dsh-html-panel",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "A sidebar row that opens a standalone HTML page (public/index.html) served by this plugin's own Host route and shown in an iframe; the page reads real cluster, shared-board and local-host data from same-origin read-only routes.",
+  "description": "A sidebar row that opens a standalone HTML page (public/index.html) served by this plugin's own Host route and shown in an iframe; the page reads real cluster, shared-board and local-host data from same-origin read-only routes, and its action buttons run real work through the DSH client services (new session / draft) and a whitelisted Host action route (OpenViking probe, latest report, reports folder).",
   "type": "module",
   "icon": "./icon.svg",
   "main": "lib/index.js",
@@ -16,6 +16,7 @@
   "files": [
     "lib/index.js",
     "lib/client.js",
+    "lib/actions.js",
     "lib/cluster.js",
     "lib/board.js",
     "lib/boardmap.js",

@@ -195,25 +195,36 @@ async function startFakeBoard(options = {}) {
 
 /**
  * 挂载真的 `apply()`。
+ *
+ * v0.3.0 起 `apply()` 注册两条路由：prefix resource（public/ 与三个只读 api）
+ * 和 exact raw handler（POST api/action）。假 ctx 两个都要收下，HTTP 风格的测试
+ * 只使用 prefix 的 resource（动作端点在 actions.test.mjs 里单独测）。
  * @param {object} config 插件行 config
- * @returns {{resource: Function, registration: object}}
+ * @returns {{resource: Function, actionHandler: Function, registration: object,
+ *   registrations: object[]}}
  */
 function mount(config = {}) {
   let resource = null
-  let registration = null
+  let actionHandler = null
+  const registrations = []
   const ctx = {
     effect(fn) { return fn() },
     webServer: {
       register(optionsIn) {
-        registration = optionsIn
-        resource = optionsIn.resource
-        return () => { resource = null }
+        registrations.push(optionsIn)
+        if (typeof optionsIn.resource === 'function') resource = optionsIn.resource
+        if (typeof optionsIn.handler === 'function') actionHandler = optionsIn.handler
+        return () => {
+          if (optionsIn.resource === resource) resource = null
+          if (optionsIn.handler === actionHandler) actionHandler = null
+        }
       },
     },
   }
   apply(ctx, config)
-  assert.equal(typeof resource, 'function', 'apply 必须注册一个 route 函数')
-  return { resource, registration }
+  assert.equal(typeof resource, 'function', 'apply 必须注册一个 prefix resource 路由')
+  assert.equal(typeof actionHandler, 'function', 'apply 必须注册 POST api/action 的 handler 路由')
+  return { resource, actionHandler, registrations, registration: registrations[0] }
 }
 
 /** 把 Fetch 风格 route 接到 node:http 上，用真 fetch 打。 */
@@ -616,9 +627,14 @@ test('路由：api/board 与 api/host 的 HEAD 同头无体；POST 是 405 JSON 
 
 /* ─────────────────────────── F. 注册声明 ─────────────────────────── */
 
-test('inject 仍是 webServer + interconnect；注册的是同一个 prefix 路由', () => {
+test('inject 仍是 webServer + interconnect；注册 prefix resource + exact action handler', () => {
   assert.deepEqual(inject, ['webServer', 'interconnect'])
   const host = mount({})
   assert.equal(host.registration.kind, 'prefix')
   assert.equal(host.registration.path, ROUTE_PREFIX)
+  const actionRoute = host.registrations[1]
+  assert.equal(actionRoute.kind, 'exact')
+  assert.equal(actionRoute.path, ROUTE_PREFIX + '/api/action')
+  assert.equal(typeof actionRoute.handler, 'function')
+  assert.equal(actionRoute.resource, undefined)
 })

@@ -15,7 +15,7 @@
  *                          → chip/日期行/五态/证据数/事件流/磁盘内存/板健康 + V4 交互 + 截图
  *   2. board-unreachable   板返回结构化 timeout 错误 → 任务/事件标「mock 兜底 · 原因」、
  *                          本机小部件仍是真值（模块隔离）+ 截图
- *   3. board-unconfigured  configured:false → 「板未配置」空态、看板动作置灰 + 截图
+ *   3. board-unconfigured  configured:false → 「板未配置」空态、看板动作可点但如实标注原因 + 截图
  *   4. board-empty         板在线但 0 任务 0 事件 → 「板上暂无任务」「暂无事件」+ 截图
  *   5. cluster-down-404    api/cluster 404 → 只有拓扑回落 mock，任务仍是真实数据
  *   6. narrow-900          900 宽：scrollWidth==innerWidth、面板不溢出 + 截图
@@ -661,8 +661,8 @@ async function main() {
         eq(view.chips.tasks, '任务 mock 兜底', `${scenario.name}: 任务 chip mock 兜底`)
         eq(view.tasks.count, 6, `${scenario.name}: 兜底任务仍渲染 6 条（已标注）`)
         includes(view.tasks.firstTitle, '示例任务', `${scenario.name}: 兜底任务标题明确是示例`)
-        eq(view.boardAction.disabled, true, `${scenario.name}: 看板动作置灰`)
-        eq(view.boardAction.desc, '板不可达', `${scenario.name}: 置灰原因`)
+        eq(view.boardAction.disabled, false, `${scenario.name}: 看板动作不可达时仍可点（点后给原因）`)
+        eq(view.boardAction.desc, '板不可达（点击查看原因）', `${scenario.name}: 看板动作如实标注不可达`)
         eq(view.host.boardHealthSrc, '板 不可达', `${scenario.name}: 板健康不可达`)
         includes(view.meta.widgetsHint, '本机 · 只读', `${scenario.name}: 本机数据不受板故障影响`)
         eq(view.chips.cluster, 'interconnect 0/4 up', `${scenario.name}: 链路数据不受板故障影响`)
@@ -678,8 +678,8 @@ async function main() {
         includes(view.tasks.emptyText, '板未配置', `${scenario.name}: 空态说明原因`)
         eq(view.events.emptyHidden, false, `${scenario.name}: 事件空态`)
         includes(view.events.emptyText, '板未配置', `${scenario.name}: 事件空态说明原因`)
-        eq(view.boardAction.disabled, true, `${scenario.name}: 看板动作置灰`)
-        eq(view.boardAction.desc, '板未配置', `${scenario.name}: 置灰文案`)
+        eq(view.boardAction.disabled, false, `${scenario.name}: 板未配置时仍可点（点后给原因）`)
+        eq(view.boardAction.desc, '板未配置（点击查看原因）', `${scenario.name}: 看板动作标注未配置`)
         eq(view.host.boardHealthSrc, '板 未配置', `${scenario.name}: 板健康未配置`)
         eq(view.meta.board, '板 未配置', `${scenario.name}: 日期行板来源`)
       }
@@ -748,9 +748,11 @@ async function main() {
         const clock2 = await evaluate("document.querySelector('#clock').textContent")
         ok(clock1 !== clock2, 'V4: 时钟走秒', `${clock1} -> ${clock2}`)
 
-        const interact = await evaluate(`(() => {
+        const interact = await evaluate(`(async () => {
           const out = {};
           document.querySelector('#actionList [data-action="new-session"]').click();
+          // 动作是异步的：等一拍让独立页的「暂不支持」回执落定再读
+          await new Promise(function (resolve) { setTimeout(resolve, 120); });
           out.receipts = document.querySelectorAll('#receiptList li').length;
           out.receiptText = document.querySelector('#receiptList li').textContent;
           const cb = document.querySelector('#todoList input[type="checkbox"]:not(:checked)');
@@ -779,7 +781,7 @@ async function main() {
           return out;
         })()`)
         report.scenarios[report.scenarios.length - 1].interactions = interact
-        ok(interact.receipts >= 1 && String(interact.receiptText).includes('演示回执'), 'V4: 动作回执出现')
+        ok(interact.receipts >= 1 && String(interact.receiptText).includes('暂不支持'), 'V4: 动作回执出现（独立页如实暂不支持）')
         ok(interact.storeHasItems && interact.checkedPersisted, 'V4: 待办勾选写入 localStorage')
         ok(interact.eventsTabOpen && interact.tasksTabHidden, 'V4: 标签页切换到事件流')
         eq(interact.eventRows, 8, 'V4: 事件流行数')

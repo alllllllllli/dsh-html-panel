@@ -31,12 +31,17 @@ const DIRTY_ORIGIN = 'http://user:pass@127.0.0.1:13080/some/path?token=abc#frag'
 
 /**
  * 假 ctx + 假 webServer：只捕获 route 函数，不起网络。
+ *
+ * v0.3.0 起 `apply()` 注册两条路由（prefix resource + exact action handler），
+ * 这里两个都收下；读 API 的测试只用 prefix 的 resource。
  * @param {{interconnect?: unknown}} [options]
- * @returns {{resource: Function, registration: object, effects: string[]}}
+ * @returns {{resource: Function, actionHandler: Function, registration: object,
+ *   registrations: object[], effects: string[]}}
  */
 function mount(options = {}) {
   let resource = null
-  let registration = null
+  let actionHandler = null
+  const registrations = []
   const effects = []
   const ctx = {
     effect(fn, label) {
@@ -45,16 +50,21 @@ function mount(options = {}) {
     },
     webServer: {
       register(optionsIn) {
-        registration = optionsIn
-        resource = optionsIn.resource
-        return () => { resource = null }
+        registrations.push(optionsIn)
+        if (typeof optionsIn.resource === 'function') resource = optionsIn.resource
+        if (typeof optionsIn.handler === 'function') actionHandler = optionsIn.handler
+        return () => {
+          if (optionsIn.resource === resource) resource = null
+          if (optionsIn.handler === actionHandler) actionHandler = null
+        }
       },
     },
   }
   if ('interconnect' in options) ctx.interconnect = options.interconnect
   apply(ctx, {})
-  assert.equal(typeof resource, 'function', 'apply 必须注册一个 route 函数')
-  return { resource, registration, effects }
+  assert.equal(typeof resource, 'function', 'apply 必须注册一个 prefix resource 路由')
+  assert.equal(typeof actionHandler, 'function', 'apply 必须注册 POST api/action 的 handler 路由')
+  return { resource, actionHandler, registrations, registration: registrations[0], effects }
 }
 
 /**
@@ -361,12 +371,17 @@ test('路由：静态文件路径不退化，编码遍历仍被挡住', async ()
 
 /* ─────────────────────────── D. 注册与声明 ─────────────────────────── */
 
-test('inject 同时声明 webServer 与 interconnect；注册的是 prefix 路由', () => {
+test('inject 同时声明 webServer 与 interconnect；注册 prefix + exact action handler', () => {
   assert.deepEqual(inject, ['webServer', 'interconnect'])
   const host = mount({ interconnect: stubInterconnect() })
   assert.equal(host.registration.kind, 'prefix')
   assert.equal(host.registration.path, ROUTE_PREFIX)
   assert.equal(host.registration.path, '/dsh-html-panel')
-  assert.equal(host.effects.length, 1)
+  const actionRoute = host.registrations[1]
+  assert.equal(actionRoute.kind, 'exact')
+  assert.equal(actionRoute.path, '/dsh-html-panel/api/action')
+  assert.equal(typeof actionRoute.handler, 'function')
+  assert.equal(host.effects.length, 2)
   assert.match(host.effects[0], /dsh-html-panel/)
+  assert.match(host.effects[1], /dsh-html-panel/)
 })

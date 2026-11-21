@@ -1,0 +1,355 @@
+{
+  "page": "public/index.html",
+  "scenarios": [
+    {
+      "name": "standalone-real",
+      "initial": {
+        "ready": true,
+        "hint": {
+          "actions": "点击执行真实动作",
+          "foot": "动作结果来自真实调用：DSH 客户端服务（新会话）、宿主动作路由 api/action（报告 / 记忆探测）或共享板只读接口（看板）；做不到会写明原因。"
+        },
+        "buttons": [
+          {
+            "label": "新会话",
+            "disabled": false,
+            "action": "new-session"
+          },
+          {
+            "label": "派发任务",
+            "disabled": false,
+            "action": "dispatch"
+          },
+          {
+            "label": "打开看板",
+            "disabled": false,
+            "action": "board"
+          },
+          {
+            "label": "查记忆",
+            "disabled": false,
+            "action": "notes"
+          },
+          {
+            "label": "读最新报告",
+            "disabled": false,
+            "action": "latest-report"
+          },
+          {
+            "label": "重启 DSH",
+            "disabled": true,
+            "action": null
+          }
+        ],
+        "disabledCount": 1,
+        "receipts": [],
+        "receiptCount": 0,
+        "demoText": false,
+        "report": {
+          "visible": false,
+          "meta": "",
+          "content": ""
+        },
+        "pageErrors": [],
+        "layout": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440
+        }
+      },
+      "shot": "tools/shots/shot-actions-01-standalone-real.png"
+    },
+    {
+      "name": "standalone-unreachable",
+      "initial": {
+        "ready": true,
+        "hint": {
+          "actions": "点击执行真实动作",
+          "foot": "动作结果来自真实调用：DSH 客户端服务（新会话）、宿主动作路由 api/action（报告 / 记忆探测）或共享板只读接口（看板）；做不到会写明原因。"
+        },
+        "buttons": [
+          {
+            "label": "新会话",
+            "disabled": false,
+            "action": "new-session"
+          },
+          {
+            "label": "派发任务",
+            "disabled": false,
+            "action": "dispatch"
+          },
+          {
+            "label": "打开看板",
+            "disabled": false,
+            "action": "board"
+          },
+          {
+            "label": "查记忆",
+            "disabled": false,
+            "action": "notes"
+          },
+          {
+            "label": "读最新报告",
+            "disabled": false,
+            "action": "latest-report"
+          },
+          {
+            "label": "重启 DSH",
+            "disabled": true,
+            "action": null
+          }
+        ],
+        "disabledCount": 1,
+        "receipts": [],
+        "receiptCount": 0,
+        "demoText": false,
+        "report": {
+          "visible": false,
+          "meta": "",
+          "content": ""
+        },
+        "pageErrors": [],
+        "layout": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440
+        }
+      },
+      "shot": "tools/shots/shot-actions-02-standalone-unreachable.png"
+    },
+    {
+      "name": "standalone-old-host",
+      "initial": {
+        "ready": true,
+        "hint": {
+          "actions": "点击执行真实动作",
+          "foot": "动作结果来自真实调用：DSH 客户端服务（新会话）、宿主动作路由 api/action（报告 / 记忆探测）或共享板只读接口（看板）；做不到会写明原因。"
+        },
+        "buttons": [
+          {
+            "label": "新会话",
+            "disabled": false,
+            "action": "new-session"
+          },
+          {
+            "label": "派发任务",
+            "disabled": false,
+            "action": "dispatch"
+          },
+          {
+            "label": "打开看板",
+            "disabled": false,
+            "action": "board"
+          },
+          {
+            "label": "查记忆",
+            "disabled": false,
+            "action": "notes"
+          },
+          {
+            "label": "读最新报告",
+            "disabled": false,
+            "action": "latest-report"
+          },
+          {
+            "label": "重启 DSH",
+            "disabled": true,
+            "action": null
+          }
+        ],
+        "disabledCount": 1,
+        "receipts": [],
+        "receiptCount": 0,
+        "demoText": false,
+        "report": {
+          "visible": false,
+          "meta": "",
+          "content": ""
+        },
+        "pageErrors": [],
+        "layout": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440
+        }
+      },
+      "shot": "tools/shots/shot-actions-03-old-host.png"
+    },
+    {
+      "name": "harness-client",
+      "initial": {
+        "ready": true,
+        "hint": {
+          "actions": "点击执行真实动作",
+          "foot": "动作结果来自真实调用：DSH 客户端服务（新会话）、宿主动作路由 api/action（报告 / 记忆探测）或共享板只读接口（看板）；做不到会写明原因。"
+        },
+        "buttons": [
+          {
+            "label": "新会话",
+            "disabled": false,
+            "action": "new-session"
+          },
+          {
+            "label": "派发任务",
+            "disabled": false,
+            "action": "dispatch"
+          },
+          {
+            "label": "打开看板",
+            "disabled": false,
+            "action": "board"
+          },
+          {
+            "label": "查记忆",
+            "disabled": false,
+            "action": "notes"
+          },
+          {
+            "label": "读最新报告",
+            "disabled": false,
+            "action": "latest-report"
+          },
+          {
+            "label": "重启 DSH",
+            "disabled": true,
+            "action": null
+          }
+        ],
+        "disabledCount": 1,
+        "receipts": [],
+        "receiptCount": 0,
+        "demoText": false,
+        "report": {
+          "visible": false,
+          "meta": "",
+          "content": ""
+        },
+        "pageErrors": [],
+        "layout": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440
+        }
+      },
+      "shot": "tools/shots/shot-actions-04-harness-client.png"
+    },
+    {
+      "name": "harness-silent",
+      "initial": {
+        "ready": true,
+        "hint": {
+          "actions": "点击执行真实动作",
+          "foot": "动作结果来自真实调用：DSH 客户端服务（新会话）、宿主动作路由 api/action（报告 / 记忆探测）或共享板只读接口（看板）；做不到会写明原因。"
+        },
+        "buttons": [
+          {
+            "label": "新会话",
+            "disabled": false,
+            "action": "new-session"
+          },
+          {
+            "label": "派发任务",
+            "disabled": false,
+            "action": "dispatch"
+          },
+          {
+            "label": "打开看板",
+            "disabled": false,
+            "action": "board"
+          },
+          {
+            "label": "查记忆",
+            "disabled": false,
+            "action": "notes"
+          },
+          {
+            "label": "读最新报告",
+            "disabled": false,
+            "action": "latest-report"
+          },
+          {
+            "label": "重启 DSH",
+            "disabled": true,
+            "action": null
+          }
+        ],
+        "disabledCount": 1,
+        "receipts": [],
+        "receiptCount": 0,
+        "demoText": false,
+        "report": {
+          "visible": false,
+          "meta": "",
+          "content": ""
+        },
+        "pageErrors": [],
+        "layout": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440
+        }
+      },
+      "shot": "tools/shots/shot-actions-05-harness-silent.png"
+    },
+    {
+      "name": "board-unconfigured",
+      "initial": {
+        "ready": true,
+        "hint": {
+          "actions": "点击执行真实动作",
+          "foot": "动作结果来自真实调用：DSH 客户端服务（新会话）、宿主动作路由 api/action（报告 / 记忆探测）或共享板只读接口（看板）；做不到会写明原因。"
+        },
+        "buttons": [
+          {
+            "label": "新会话",
+            "disabled": false,
+            "action": "new-session"
+          },
+          {
+            "label": "派发任务",
+            "disabled": false,
+            "action": "dispatch"
+          },
+          {
+            "label": "打开看板",
+            "disabled": false,
+            "action": "board"
+          },
+          {
+            "label": "查记忆",
+            "disabled": false,
+            "action": "notes"
+          },
+          {
+            "label": "读最新报告",
+            "disabled": false,
+            "action": "latest-report"
+          },
+          {
+            "label": "重启 DSH",
+            "disabled": true,
+            "action": null
+          }
+        ],
+        "disabledCount": 1,
+        "receipts": [],
+        "receiptCount": 0,
+        "demoText": false,
+        "report": {
+          "visible": false,
+          "meta": "",
+          "content": ""
+        },
+        "pageErrors": [],
+        "layout": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440
+        }
+      },
+      "shot": "tools/shots/shot-actions-06-board-unconfigured.png"
+    }
+  ],
+  "checks": {
+    "scenarios": 6,
+    "assertionsPassed": 124,
+    "assertionsFailed": 0,
+    "pageErrors": 0
+  },
+  "pageErrors": [],
+  "ok": true
+}

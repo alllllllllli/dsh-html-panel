@@ -193,7 +193,26 @@ check('30 秒静默轮询', /const POLL_MS = 30000/.test(html) && /setInterval\(
 check('页面隐藏时跳过轮询', /document\.hidden/.test(html))
 check('接口请求有超时控制', /AbortSignal\.timeout/.test(html))
 check('常用动作的看板地址动态化', /function renderBoardAction\(/.test(html) && /data-action="board"/.test(html) && /source\.origin/.test(html))
-check('拿不到板来源时置灰', /button\.disabled = true/.test(html) && html.includes('板未配置'))
+check('看板动作不可达时不置灰（点击给原因）', html.includes('板不可达（点击查看原因）') && html.includes('板未配置（点击查看原因）') && !/button\.disabled = true/.test(html))
+
+/* ---------- 10b. 动作真实化（v0.3.0） ---------- */
+check('没有本地假回执文案', !html.includes('演示') && !html.includes('未发送'))
+check('回执四种状态齐全', /RECEIPT_STATES = \{ ok: '成功', fail: '失败', unsupported: '暂不支持', pending: '进行中' \}/.test(html))
+check('回执四态 CSS 类齐全', ['ok', 'fail', 'unsupported', 'pending'].every(s => new RegExp('\\.r-state\\.' + s + '\\{').test(html)))
+check('动作按钮都由动作白名单驱动', /const ACTION_RUNNERS = \{/.test(html) && ['new-session', 'dispatch', 'board', 'notes', 'latest-report'].every(id => new RegExp("'" + id + "': run").test(html)))
+check('新会话走 DSH 客户端消息', /window\.parent\.postMessage\(\{ type: 'panel-action'/.test(html) && /panel-action-result/.test(html) && /requestId/.test(html))
+check('客户端动作有超时与独立打开说明', /CLIENT_ACTION_TIMEOUT_MS = 2500/.test(html) && html.includes('client.js 改动需重启 DSH 后生效') && html.includes('当前页面不在 DSH 面板 iframe 里'))
+check('客户端无响应回执写明超时原因', html.includes('client-timeout') && html.includes('DSH 客户端 2.5 秒内没响应动作'))
+check('派发任务不伪造：写明替代方式', html.includes('面板不能直接调 mesh_* 工具') && html.includes('dispatch-draft'))
+check('宿主动作路由走同源 POST', /fetch\('api\/action'/.test(html) && /method: 'POST'/.test(html) && /JSON\.stringify\(\{ action: action \}\)/.test(html))
+check('宿主动作三件套在页面用到', ['probe-memory', 'latest-report', 'open-reports-folder'].every(id => html.includes(id)))
+check('宿主路由缺失/失败有可读原因', html.includes('action-route-missing') && html.includes('action-unreachable') && html.includes('action-bad-response'))
+check('看板不可达回执带原因', /board-unreachable/.test(html) && /board\.reason/.test(html))
+check('报告预览面板齐全', ['reportPanel', 'reportMeta', 'reportContent', 'closeReport'].every(id => html.includes('id="' + id + '"')))
+check('报告内容只用 textContent 渲染', /reportContent'\)\.textContent =/.test(html))
+check('二级动作按钮（回执内）走 DOM 构建', /data-hint-action/.test(html) && /r-link/.test(html))
+check('重启 DSH 仍禁用且写明红线', /disabled aria-describedby="disabledReason"/.test(html) && html.includes('红线：不由面板重启 DSH') && /runRestart/.test(html))
+check('动作面板脚注说明真实通道', html.includes('宿主动作路由 api/action') && html.includes('DSH 客户端服务'))
 
 /* ---------- 11. 拓扑（v5 能力不退化） ---------- */
 check('mock 兜底视图存在（mockView）', /function mockView\(\)/.test(html))

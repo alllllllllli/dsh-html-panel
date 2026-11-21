@@ -4,14 +4,21 @@ Sidebar row → main-area panel → the **V6 工作台 + 集群拓扑** page: a 
 (clock, actions, receipts, recent board tasks, event stream, local widgets, todos) with an
 inline-SVG cluster topology on top.
 
-Version **0.2.0** — the first release where the page is fed by **three real, read-only,
-same-origin routes** instead of mock data:
+Version **0.3.0** — the page's six 「常用动作」 buttons are no longer a static prototype:
+each one either **really does the work** (new session, open board, open OpenViking Studio,
+read the latest report, open the reports folder) or answers **「暂不支持：原因」** with a
+human reason. There is no local fake receipt any more. The Host side gains one write path,
+`POST /dsh-html-panel/api/action`, which accepts **only whitelisted action ids** (never a
+path, command or URL) — see **Action buttons**.
+
+The page is still fed by **three real, read-only, same-origin routes**:
 
 | Route | Data |
 |---|---|
 | `GET /dsh-html-panel/api/cluster` | this instance's live interconnect links (`ctx.interconnect`) |
 | `GET /dsh-html-panel/api/board` | the shared board's tasks / events / health (`dsh-team-mesh` HTTP service, token header) |
 | `GET /dsh-html-panel/api/host` | the local machine's memory / CPU / disks (`node:os` + `fs.statfs`) |
+| `POST /dsh-html-panel/api/action` | whitelisted real action: `probe-memory` / `latest-report` / `open-reports-folder` |
 
 Every module falls back to its own clearly-labelled mock only when its source fails on the
 first load; a later poll failure keeps the last good data and only adds a
@@ -20,23 +27,27 @@ first load; a later poll failure keeps the last good data and only adds a
 The page is a real file: `public/index.html`. The Host half serves that directory at
 `/dsh-html-panel/`, and the browser half iframes `/dsh-html-panel/index.html` into the main
 panel. Editing the HTML and refreshing the GUI is the whole edit loop — no client rebuild,
-no repackage. **A new Host route, however, only exists after DSH restarts.**
+no repackage. **A new Host route, a changed browser-half bundle, and any new action config
+only take effect after DSH restarts** (the shell loads plugin client bundles from an
+immutable boot-time batch; `dsh-client-modules/src/index.ts` §`bundleResource`).
 
 The page has **no external references**: inline CSS and JS, no CDN, no external fonts,
-icons or images, no third-party scripts. The only network requests are the three
-same-origin relative paths above.
+icons or images, no third-party scripts. The only page-originated requests are the
+same-origin relative paths above; the two URLs the page opens in a new tab (shared board,
+OpenViking Studio) come from the Host at click time — they are never written into the page.
 
 ## Layout
 
 | Path | Half | Role |
 |---|---|---|
-| `lib/index.js` | Host (node) | Registers the `prefix` route `/dsh-html-panel` → `public/`, `no-store`, traversal-guarded. Dispatches the three `api/…` child paths, keeps the legacy `snapshot.json` child path. Declares `inject: ['webServer', 'interconnect']`; a missing interconnect is tolerated (the cluster route answers `interconnect: false`). |
+| `lib/index.js` | Host (node) | Registers the `prefix` route `/dsh-html-panel` → `public/`, `no-store`, traversal-guarded. Dispatches the three read-only `api/…` child paths, keeps the legacy `snapshot.json` child path. Also registers the **exact raw handler** `POST /dsh-html-panel/api/action` (a `resource` route would turn POST into 405 before our code runs) and owns that endpoint's request envelope. Declares `inject: ['webServer', 'interconnect']`; a missing interconnect is tolerated (the cluster route answers `interconnect: false`). |
+| `lib/actions.js` | Host (node) | The action layer behind `POST api/action`: normalizes `config.actions.memory.url` / `config.actions.reports.dir` (defaults: `http://172.24.112.11:1933/`, `%USERPROFILE%\mesh-0.6-dev\repo\docs`), probes OpenViking, finds/reads the newest `.md` (64 KiB cap, truncation flagged), and spawns `explorer.exe` with an argv array for the fixed reports directory. Failure is always `{ok:false, code, reason}`; every side effect is injectable, so the tests never touch the desktop. |
 | `lib/cluster.js` | Host (node) | Pure functions behind `api/cluster`: `buildCluster(interconnect)` turns `peers()` / `selfSender()` into the JSON contract, `sanitizeOrigin()` reduces an origin to `host[:port]`. No I/O, no dependencies, never throws. |
 | `lib/board.js` | Host (node) | Reader behind `api/board`: parses `config.board`, calls the board's read-only routes with `x-team-token`, maps tasks/events, keeps a 3 s in-process cache, and folds every failure into a structured JSON body (never throws, never echoes the token). |
 | `lib/boardmap.js` | Host (node) | Pure mapping shared by `lib/board.js` (HTTP board) and `tools/mesh-snapshot.mjs` (offline SQLite board): lifecycle → five-state mapping, acceptance line splitting, event text extraction, task/event shaping. One implementation, two callers. |
 | `lib/host.js` | Host (node) | Builds `api/host` from `node:os` + `fs.statfs` (C:/D: on Windows). Zero external dependencies; a failed `statfs` turns that disk's numbers into `null` instead of throwing. |
-| `lib/client.js` | Browser | Registers `sidebar.panellist` (`id: dsh-html-panel`, icon + label) and the keyed `main` panel with the same key. On each iframe `load` it still fetches the **legacy** snapshot and `postMessage`s it in; the V6 page ignores that message. |
-| `public/index.html` | Page | The panel: V6 quick workbench + inline-SVG cluster topology. Cluster from `api/cluster`, tasks/events from `api/board`, widgets from `api/host`; labelled `MOCK` fallback per module. |
+| `lib/client.js` | Browser | Registers `sidebar.panellist` (`id: dsh-html-panel`, icon + label) and the keyed `main` panel with the same key. On each iframe `load` it still fetches the **legacy** snapshot and `postMessage`s it in; the V6 page ignores that message. It also **bridges the DSH-side actions**: a `{type:'panel-action', action, requestId}` message is accepted only from this panel's own iframe, checked against a local whitelist, run through the real client services (`ctx.get('uiWorkspace').startSession(...)`), and answered with `{type:'panel-action-result'}`. It never touches the filesystem or spawns anything. |
+| `public/index.html` | Page | The panel: V6 quick workbench + inline-SVG cluster topology. Cluster from `api/cluster`, tasks/events from `api/board`, widgets from `api/host`; labelled `MOCK` fallback per module. Buttons send `panel-action` to the parent window, POST `api/action` for Host work, or open the real board/Studio URL; receipts are rendered as 成功 / 失败 / 暂不支持 / 进行中. |
 | `public/index.placeholder.html` | Page | The original 186-byte placeholder, kept only as a rollback copy. |
 | `cordis.patch.yml` | Bundle | Inserts the plugin row into the profile roster. Board config lives in the profile's patch layer, not here. |
 | `locale/{en,zh}.json` | Display | Plugin Manager title and description. |
@@ -195,10 +206,9 @@ on failure), and `lib/client.js` forwards that body into the page with `postMess
   text, newest first. Empty → 「暂无事件」.
 - **本机状态 widgets** — disks (used / total, progress bar), memory (used / total / percent),
   board health (last `/health` latency). Header hint 「本机 · 只读」.
-- **Common actions stay a static prototype** (clicking records a local receipt only). The
-  one exception is 「打开看板」: its address is filled from `source.origin` once the board is
-  reachable; when the board is not configured/unreachable the button is disabled and says
-  why. No fake address remains anywhere.
+- **Common actions really run** (see **Action buttons**); receipts show 成功 / 失败 /
+  暂不支持 / 进行中 with the real reason. Nothing says 「演示」/「未发送」. 「重启 DSH」 stays
+  permanently disabled and says 「红线：不由面板重启 DSH」.
 - **Polling**: `setInterval(..., 30000)` silently refreshes all three sources; skipped while
   `document.hidden`. A failed poll keeps the last good render and only sets the stale badge —
   it never falls back to mock mid-session. Mock is used **only** when the first load already
@@ -208,7 +218,103 @@ on failure), and `lib/client.js` forwards that body into the page with `postMess
 - Layout is checked at 1440 and 900 wide (the sidebar iframe case): no horizontal overflow.
 - All dynamic strings from the board are HTML-escaped before rendering (`esc()`).
 
-## Acceptance (this delivery, 2026-11-21)
+## Action buttons (v0.3.0)
+
+Six buttons; five are clickable, 「重启 DSH」 is permanently disabled (red line — the panel
+never restarts, kills or takes over the DSH process).
+
+| # | Button | Real behavior | When it cannot work | Needs DSH restart? |
+|---|---|---|---|---|
+| 1 | 新会话 (Ctrl+Alt+N) | Calls the **same API the shortcut binds**: `ctx.get('uiWorkspace').startSession()` (client half). Panel switches to the conversation view; no arguments, host default workspace/preset. | No `uiWorkspace` service → 「暂不支持：当前 DSH 客户端没有提供 uiWorkspace.startSession…请用 Ctrl+Alt+N」. Old client bundle (message timeout 2.5 s) → 「暂不支持：DSH 客户端 2.5 秒内没响应动作（client.js 改动需重启 DSH 后生效）」. | client bundle, yes |
+| 2 | 派发任务 | **Never fakes dispatch.** The panel has no `mesh_*` tool channel (tool registry is agent-scoped), so it answers 「暂不支持：面板不能直接调用 mesh_* 任务工具…」 and offers a real fallback button: 在新会话草稿里填入 mesh_dispatch 提示 — which opens a real new session with an unsent draft prompt (`startSession(undefined,{prompt,whenDraftExists:'append'})`). | always unsupported for direct dispatch, by design | client bundle, yes |
+| 3 | 打开看板 | Reads the board origin from the already-fetched `api/board` (`source.origin`) and `window.open`s it in a new tab. | Board unconfigured → 「暂不支持：共享板未配置…」; unreachable → 「失败：共享板不可达：<api/board 的结构化原因>」; popup blocked → reason + a clickable 手动打开 link. Button is **never silently disabled**: clicking always produces a receipt. | no (page-only) |
+| 4 | 查记忆 | Host `POST api/action {action:'probe-memory'}` really GETs the configured OpenViking Studio origin (1.5 s timeout, redirects not followed). Reachable → the page opens that URL in a new tab and the receipt includes origin + latency. | Unreachable/timeout/HTTP error → 「失败：OpenViking 不可达（origin）：连接被拒绝（ECONNREFUSED）/ 超时 / HTTP n」; old host without the route → 「暂不支持：宿主还没有 api/action 路由…」. No tab is opened on failure. | Host route, yes |
+| 5 | 读最新报告 | Host `POST api/action {action:'latest-report'}` stats the configured reports directory, picks the newest `*.md` by mtime, reads it (64 KiB cap, truncation flagged) and returns metadata + content; the page renders the content in a 「最新报告」 panel. Receipt also offers 「在资源管理器中打开报告目录」 (`open-reports-folder`, `spawn('explorer.exe',[fixedDir])`). | Directory missing / no `.md` / read error → 「失败：报告目录不存在 / 没有 .md 文件 / 报告读取失败：name（code）」. Old host → 暂不支持 as above. | Host route, yes |
+| 6 | 重启 DSH | disabled forever. Tooltip/description: 「红线：不由面板重启 DSH」. `runRestart()` exists only as an unreachable fallback returning 「暂不支持：红线…」. | — | — |
+
+**Protocol** (page ↔ browser half): the page posts `{type:'panel-action', action, requestId}`
+to `window.parent`; the browser half accepts it only when `event.source === this panel's
+iframe.contentWindow`, checks `action` against `['new-session','dispatch','dispatch-draft']`,
+and replies `{type:'panel-action-result', requestId, action, at, ok, code?, reason?, detail?,
+hint?}`. The page matches `requestId` and falls back to an honest timeout after 2.5 s.
+
+**Protocol** (page ↔ Host): `POST api/action` with `content-type: application/json` and a
+body of exactly `{"action":"<whitelisted id>"}`. Rejections, in order: non-POST → 405
+(`Allow: POST`); `Origin` present but not this Host → 403; non-JSON content type → 415; body
+> 4 KiB → 413; invalid JSON/object → 400; unknown action id → 400. Business failures answer
+200 with `{ok:false, code, reason}` (same contract style as the read routes). Unexpected
+throws answer a generic 500 — **no stack, no token, no echoed path**.
+
+**Security boundary**: the request carries an action id only. Paths/URLs/programs are fixed
+server-side (`config.actions.memory.url`, `config.actions.reports.dir`, built-in defaults);
+the report file is resolved inside that directory and re-checked for escape; Explorer is
+spawned with an argv array (never a shell string); no CORS headers are added. The browser
+half never receives filesystem or process power — it can only call the two DSH client
+services named above.
+
+**Configuration** (optional; the defaults are the mcloud OpenViking Studio and
+`%USERPROFILE%\mesh-0.6-dev\repo\docs`, so an existing panel keeps working without change):
+
+```yaml
+- id: dsh-html-panel
+  config:
+    board:
+      endpoint: 'http://172.24.112.14:13090'
+      token: '<boardToken>'
+      timeoutMs: 4000
+    actions:
+      memory:
+        url: 'http://172.24.112.11:1933/'   # OpenViking Studio origin (http/https, no credentials)
+      reports:
+        dir: 'C:\Users\ky614\mesh-0.6-dev\repo\docs'   # absolute; newest *.md is read
+```
+
+Changing this config, the browser half or any Host route needs a DSH restart; a page-only
+change is visible after a GUI refresh.
+
+## Acceptance v0.3.0 (this delivery, 2026-11-21)
+
+Run on the Windows workstation, Node 24.19.0, headless Edge over CDP. This round's commands
+and full numbers are in `tools/report-actions.md`; machine-readable logs in
+`tools/shots/cdp-actions-report.json`.
+
+| # | Claim | Result |
+|---|---|---|
+| A1 | `node --test tools/actions.test.mjs` (14 host cases): config normalization/defaults/credential rejection, whitelist, probe ok/timeout/refused/HTTP-error, newest `.md` selection, 64 KiB truncation, `explorer.exe` argv (`[fixedDir]`, no shell), method/origin/media-type/body-size/JSON/action envelope rejections, generic 500 without stack | **pass** |
+| A2 | `node --test tools/client-actions.test.mjs` (8 cases): real `client.js` loaded in a `node:vm` sandbox (not a copy) — unknown ids refused, `new-session` → `uiWorkspace.startSession()` with no args, missing service → 暂不支持 + Ctrl+Alt+N, throwing accessor degraded, `dispatch` never calls a session/tool (hint only), `dispatch-draft` passes the mesh prompt with `whenDraftExists:'append'`, `apply()` mounts both slots + one message listener, browser half has no child-process/fs code | **pass** |
+| A3 | `node tools/check-page.mjs`: 116/116 — plus new checks: no 「演示/未发送」 text, four receipt states + CSS, all five actions wired, same-origin `POST api/action` body shape, timeout/old-host failure strings, report preview ids + `textContent` rendering, disabled restart + red line | **pass** (116/116) |
+| A4 | `node tools/cdp-actions.mjs`: 124 assertions over 6 scenarios — standalone page (real: board opens real origin tab, memory probe opens Studio tab, report content rendered from host fixture, secondary folder action, 6 receipts), board/OV/report unreachable (failures + reasons, no tab, no silent disable), old host 404 (暂不支持 + needs restart), stub parent (新会话/派发任务/草稿替代 over the real `panel-action` protocol), silent parent (2.5 s honest timeout), board unconfigured; every scenario 6 buttons / only restart disabled / no 演示 text / no JS error / same-origin only | **pass** (124/124, page JS errors 0) |
+| A5 | Regression: pre-existing `tools/cdp-live.mjs` (252→253 assertions, updated only where behavior intentionally changed: board button stays clickable, receipt text is real) and the full `node --test tools/*.test.mjs` suite | **pass** |
+| A6 | Two copies (source-of-truth and installed profile copy) byte-identical for every changed file; version `0.2.0 → 0.3.0`; UTF-8 without BOM | **pass** (sha256 in `tools/report-actions.md`) |
+| A7 | Security spot checks: `GET api/action` → 405; foreign `Origin` → 403; `text/plain` → 415; >4 KiB → 413; unknown action → 400; no token in any response/page/log; no CORS headers | **pass** |
+| A8 | Live read-only smoke of the **running, un-restarted DSH** page (headless Edge, `tools/shots/live-check.json` + `shot-actions-07-live-dsh-page.png`): real cluster/board/host data rendered (board source `http://172.24.112.11:13090`, health ok, 20 tasks), 「打开看板」 really opened the live board origin, 「查记忆」/「读最新报告」 answered the honest old-host receipt `暂不支持：宿主还没有可用的 api/action 路由（HTTP 405）：新版 Host 需要重启 DSH 后生效`, page JS errors 0 | **pass** |
+
+**Not verified (stated as such, not as success):**
+
+- The **new Host route and the new browser half were not observed inside the running DSH
+  GUI**: the route needs a DSH restart and this round was forbidden to restart DSH. Evidence
+  that the *page* is live-updated: the running DSH serves `public/index.html` read from disk
+  on every request (`no-store`) — the live page's sha256 equals the source file (`91,681 B`,
+  `ba448f…7a7`), a headless visit rendered real host/board data and produced the honest
+  old-host receipts above. Until the restart the page answers the Host-side buttons with
+  「暂不支持：宿主还没有可用的 api/action 路由（HTTP 405）…」 and the DSH-side buttons with the
+  2.5 s timeout receipt — both are honest, not fake.
+- The environment differs from the original brief: `api/board` now points at
+  `http://172.24.112.11:13090` (mcloud) and is **online** (health ok, 20 tasks, 12 events,
+  TCP true); `172.24.112.14:13090` is still offline. So 看板's success branch was verified
+  against the live board origin as well as the fixture; its unreachable branch is covered by
+  a structured `timeout` fixture.
+- The real OpenViking probe was verified from this machine with HTTP (`172.24.112.11:1933` →
+  200, `OpenViking Studio`) but not through the not-yet-restarted Host route; the CDP run uses
+  fixtures for both directions.
+- The `explorer.exe` spawn path is unit-tested with an injected fake spawn; no real Explorer
+  window was opened by the test run.
+- 「新会话」's DSH-visible effect (conversation opens) was verified against stubs and the
+  first-party API contract (`uiWorkspace.startSession`, same call the Ctrl+Alt+N shortcut
+  binds, `dsh-client-ui-workspace/src/client/shortcuts.ts`), not by clicking the live GUI;
+  the live standalone page correctly reports the "needs the shell iframe" branch.
+
+## Acceptance v0.2.0 (2026-11-21, kept as history)
 
 Run on the Windows workstation with Node 24.19.0 and headless Edge over CDP. The Host routes
 under test are the real `lib/index.js` mounted behind a stub `ctx` and reached over a real
@@ -267,8 +373,9 @@ The profile entry becomes `dsh-html-panel: file:...` and the bundle is selected 
 ```
 
 First activation of a new package needs a DSH restart (a replaced module needs one too). In
-particular, **new Host routes only exist after DSH restarts**; a page edit alone needs
-nothing but a refresh.
+particular, **new Host routes and the changed browser half only exist after DSH restarts**;
+a page edit alone needs nothing but a refresh. Optional action config: see
+**Configuration** in the Action buttons section (defaults work without it).
 
 ## Uninstall / rollback
 
