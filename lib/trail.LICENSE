@@ -1,0 +1,52 @@
+TRAIL — Trace Reasoning and Agentic Issue Localization
+=======================================================
+
+`lib/trail.js` 内嵌的失败分类体系（21 个叶子类目，类目 id 与 TRAIL 原文一致）搬自：
+
+  repository: https://github.com/patronus-ai/trail-benchmark
+  copyright : Copyright (c) 2025 patronus-ai
+  license   : MIT License
+  extracted : 2026-11-21
+  sources   : benchmarking/run_eval.py（get_prompt() 里的 taxonomy 树）
+              benchmarking/calculate_scores.py（all_categories：21 个叶子类目）
+
+本插件只搬了分类体系与类目释义，**没有**搬 TRAIL 的 benchmark 数据、judge prompt 或
+LLM judge 实现（本插件不接任何 LLM / 网络 / 外部 API）。以下为 TRAIL 仓库 LICENSE 原文，
+按 MIT 要求随副本保留版权与许可声明。
+
+-----------------------------------------------------------------------------
+MIT License
+
+Copyright (c) 2025 patronus-ai
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-----------------------------------------------------------------------------
+
+Citation (from TRAIL README):
+
+  @misc{deshpande2025trail,
+        title={TRAIL: Trace Reasoning and Agentic Issue Localization},
+        author={Darshan Deshpande and Varun Gangal and Hersh Mehta and Jitin Krishnan
+                and Anand Kannappan and Rebecca Qian},
+        year={2025},
+        eprint={2505.08638},
+        archivePrefix={arXiv},
+        primaryClass={cs.AI},
+        url={https://arxiv.org/abs/2505.08638},
+  }

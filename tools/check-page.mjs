@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * tools/check-page.mjs —— `public/index.html`（大管家 0.4.0）的静态自检。
+ * tools/check-page.mjs —— `public/index.html`（大管家 0.6.0）的静态自检。
  *
  * 用法: node tools/check-page.mjs [页面文件] [--json <输出文件>]
  *       默认页面是本包的 public/index.html。
@@ -8,7 +8,7 @@
  * 覆盖：
  *   - 单文件 / UTF-8 无 BOM / DOCTYPE / charset / lang；
  *   - **零外部引用**（无 http(s)://、无 <link>、无脚本/图片外链、无 XHR/WS；href 只有站内锚点）；
- *   - 同源只读路由：恰好读 api/cluster · api/board · api/host · api/tiers；写动作只 POST api/action；
+ *   - 同源只读路由：恰好读 api/cluster · api/board · api/host · api/tiers · api/alerts；写动作只 POST api/action；
  *   - 标签基本闭合 / 内联 CSS·JS 各一段 / CSS 花括号配平 / JS 可解析且 'use strict'；
  *   - 改名：标题、品牌、导航都叫「大管家」，页面不再出现「HTML 面板」这个入口名；
  *   - V7 三栏结构与 DSH token（选中态是 DSH 真实灰底，不是绿色）；
@@ -16,6 +16,8 @@
  *   - 右栏派活层级：T0–T3 chip、折叠/选中上级路径/tooltip/900 抽屉、降级 badge、节点文本 esc；
  *   - 共享板五态 / 事件流 / 板状态 badge / 数据过期横幅 / 30 秒轮询（隐藏页跳过）；
  *   - 动作真实通道（客户端 postMessage + 宿主动作路由）/ 四态回执 / 报告预览 / 重启禁用红线；
+ *   - 0.6.0 TRAIL 告警：api/alerts 读取与降级回退、三问第一问「需要你 N 条」、告警卡字段、
+ *     高低优先级分栏、任务卡告警标记与跳转、无告警文案；
  *   - 本机与待办（localStorage）能力不退化；MOCK 只作首次失败兜底且覆盖五态；
  *   - 页面 id 不重复、关键 id 齐全。
  * 检查项任一失败退出码 1。
@@ -258,11 +260,52 @@ check('设备/链路列表接真实字段', /function renderClusterList\(/.test(
 /* ---------- 13. 记忆 / 设置页 ---------- */
 check('记忆页真探测入口', /id="memoryProbe"/.test(html) && /fireAction\('notes'\)/.test(html))
 check('记忆状态文案来自真实回执', /state\.memory = \{ kind: 'ok'/.test(html) && /state\.memory = \{ kind: 'fail'/.test(html))
-check('设置页版本是 0.4.0', /id="setVersion">0\.4\.0</.test(html))
-check('设置页列出四条路由', /api\/cluster · api\/board · api\/host · api\/tiers/.test(html))
+check('设置页版本是 0.6.0', /id="setVersion">0\.6\.0</.test(html) && /setVersion\.textContent = '0\.6\.0'/.test(html))
+check('设置页列出五条只读路由', /api\/cluster · api\/board · api\/host · api\/tiers · api\/alerts/.test(html))
 check('设置页数据源接真实字段', /id="setBoard"/.test(html) && /id="setTiersSource"/.test(html) && /id="setHost"/.test(html))
-check('设置页写明重启要求', /改动（含新增 api\/tiers 路由、侧栏改名）需重启 DSH 后才生效/.test(html))
+check('设置页写明重启要求', /api\/alerts/.test(html) && /official 段/.test(html) && /需重启 DSH 后才生效/.test(html))
 
+/* ---------- 13.5 三问条（0.5.0，官方 docs/005-panel.md） ---------- */
+check('三问条容器在', /id="tqBar"/.test(html) && /aria-label="三问/.test(html))
+for (const [id, text] of [['tqNeeds', '是否需要我'], ['tqHealth', '系统是否健康'], ['tqHistory', '这件事的历史']]) {
+  check('三问项齐：' + text, new RegExp('id="' + id + '"').test(html) && html.includes(text) && new RegExp('id="' + id + 'N"').test(html) && new RegExp('id="' + id + 'List"').test(html))
+}
+check('三问健康态不占位（hidden 默认 + 计数=列表长度）', /id="tqBar"[^>]*hidden/.test(html) && /bar\.hidden = needs \+ health \+ history === 0/.test(html) && /count\.textContent = String\(rows\.length\)/.test(html))
+check('三问每行说「在等谁、要什么」', /class="tq-who">在等 <b>/.test(html) && /class="tq-want">要 /.test(html))
+check('三问第一问只认真实板数据（awaiting/undelivered/stale/官方可认领）', /task\.state === 'awaiting'/.test(html) && /task\.state === 'undelivered'/.test(html) && /task\.state === 'stale'/.test(html) && /task\.ready === true && !task\.ownerName/.test(html))
+check('三问第二问逐行列系统问题（链路/板/投影/本机/层级）', /function tqHealth\(/.test(html) && /官方 Agent Teams 投影/.test(html) && /官方任务板不可用/.test(html))
+check('三问第三问用选中节点或最近任务历史', /function tqHistory\(/.test(html) && /state\.tierSelectedId/.test(html) && /最近任务 /.test(html))
+
+/* ---------- 13.6 官方 TeamTaskView（0.5.0） ---------- */
+check('官方 TeamTaskStatus 中文文案（不直接显示英文）', /const TEAM_STATUS = \{ pending: '待办'/.test(html) && /in_progress: '进行中'/.test(html) && /completed: '已完成'/.test(html) && /deleted: '已取消'/.test(html))
+check('TeamBoard.tsx 的 status→StateDot 映射在', /const TEAM_DOT = \{ pending: 'idle', in_progress: 'ongoing', completed: 'done'/.test(html) && /function teamDot\(/.test(html) && /return 'warning'/.test(html))
+check('StateDot 五态 CSS 在（idle/ongoing/done/warning/error）', ['.sd{', '.sd.ongoing{', '.sd.done{', '.sd.warning{', '.sd.error{'].every(rule => html.includes(rule)))
+check('任务卡片用 TeamTaskView 字段渲染', /officialRows/.test(html) && /blockedByText\(task\)/.test(html) && /writeScopesText\(task\)/.test(html) && /task\.writeScopeWarnings/.test(html) && /就绪：/.test(html))
+check('mesh 缺列如实写（unsupported）', /unsupportedText\(/.test(html) && /数据源不含依赖/.test(html) && /数据源不含写域/.test(html))
+check('报告五态中文口径在', ['进行中', '可接手', '受阻', '失败', '已撤销'].every(t => html.includes(t)))
+check('官方任务板卡片与降级文案在', ['officialCard', 'officialList', 'officialEmpty', 'officialHint', 'officialCount', 'officialLegend'].every(id => html.includes('id="' + id + '"')) && /官方任务板不可用（/.test(html))
+check('官方任务板接 api/board 的 official 段', /board\.data\.official/.test(html) && /official\.available/.test(html) && /official\.tasks/.test(html))
+check('官方任务板不拿 mock 冒充', /board\.kind === 'mock'/.test(html) && /官方任务板不可用（共享板接口整体不可达/.test(html))
+check('设置页显示官方任务板数据源', /id="setOfficial"/.test(html) && /official\.teams/.test(html))
+
+/* ---------- 13.7 官方 subagent 契约（0.5.0） ---------- */
+check('官方 subagent 地址契约字段在', /parentSessionId/.test(html) && /childSessionId/.test(html) && /SUBAGENT_MODE = \{ 'one-shot': '一次性', continuable: '可续聊', unknown: '未知' \}/.test(html))
+check('层级卡片显示 mode 并对齐官方契约', /data-mode=/.test(html) && /data-child-session=/.test(html) && /data-parent-session=/.test(html) && /tipRow\('子会话'/.test(html))
+check('层级数据源显示官方投影可达性', /source\.subagentMode/.test(html) && /契约：官方投影/.test(html))
+
+/* ---------- 13.8 TRAIL 告警（0.6.0） ---------- */
+check('页面读取 api/alerts 且校验响应结构', /fetchJson\('api\/alerts'/.test(html) && /function isAlertsPayload\(/.test(html) && /function loadAlerts\(/.test(html))
+check('告警失败有一致降级（404 需重启 / 保留旧数据）', /state\.alerts = \{ kind: 'missing'/.test(html) && /api\/alerts 路由尚未加载（HTTP 404）/.test(html) && /noteFailure\('alerts'/.test(html))
+check('第一问接告警：高/中 → 「需要你：N 条」', /function renderNeedsAlerts\(/.test(html) && /需要你：/.test(html) && /alertFold/.test(html))
+check('无告警明说「当前没有需要你处理的异常」', /当前没有需要你处理的异常/.test(html) && /alertFoldLow/.test(html) && /不占「需要你」计数/.test(html))
+check('告警卡字段齐全（严重度/类目/为什么/建议/证据）', /function alertCardHtml\(/.test(html) && ['al-sev', 'al-cat', 'al-subject', 'al-why', 'al-fix', 'al-evi'].every(cls => html.includes('class="' + cls)) && /证据：/.test(html) && /建议：/.test(html))
+check('告警三级配色 CSS 在', ['.al-sev.high{', '.al-sev.medium{', '.al-sev.low{', '.alert-card.sev-high{', '.alert-card.sev-medium{', '.alert-card.sev-low{'].every(rule => html.includes(rule)))
+check('任务卡命中告警有小标记且可跳转', /function taskAlertFlags\(/.test(html) && /data-alert-jump/.test(html) && /function jumpToAlert\(/.test(html) && /jumpToAlert\(jump\.getAttribute\('data-alert-jump'\)\)/.test(html))
+check('告警标记/卡片文本都过 esc()', /esc\(alert\.why/.test(html) && /esc\(alert\.suggestion/.test(html) && /esc\(alert\.categoryLabel/.test(html) && /esc\(alert\.subject/.test(html))
+check('告警降级回退旧路径（Host 未重启时行为不变）', /alertsData\(\) !== null \? renderNeedsAlerts\(\) : tqFill\('tqNeeds'/.test(html))
+check('告警接 30 秒轮询 + body.dataset 标记', /loadAlerts\(\);/.test(html) && /setDatasetFlag\('alerts'/.test(html) && /state\.alerts = \{ kind: 'real'/.test(html))
+check('设置页显示告警数据源', /id="setAlerts"/.test(html) && /function alertsSummary\(/.test(html) && /TRAIL 规则 /.test(html))
+check('设置页写清告警路由只读与限制', /api\/alerts（TRAIL 规则，只读）/.test(html) || /api\/alerts/.test(html))
 /* ---------- 14. 本机 / 待办能力不退化 ---------- */
 check('本机小部件接 api/host 真值', /function renderHostModule\(/.test(html) && /host\.data\.memory/.test(html) && /fmtBytes\(/.test(html))
 check('localStorage 待办键存在', /localStorage/.test(html) && /STORE_KEY/.test(html))
@@ -277,7 +320,9 @@ const requiredIds = ['toast', 'chipStale', 'chipStaleText', 'statDevices', 'stat
   'topoEdges', 'topoNodes', 'topoSource', 'topoDot', 'topoSourceText', 'topoStamp', 'topoOthers',
   'tree', 'cntT0', 'cntT1', 'cntT2', 'cntT3', 'tierDegraded', 'hier', 'hierScroll', 'drawerBtn', 'hierClose', 'mask', 'tip',
   'boardBadge', 'boardBadgeText', 'recentHint', 'clusterList', 'memoryProbe', 'memoryState', 'memoryBadge', 'memoryBadgeText',
-  'setVersion', 'setBoard', 'setCluster', 'setHost', 'setTiersSource', 'disabledReason', 'sendBtn', 'prompt', 'drawerCount', 'hhDesc', 'tierHint', 'tierSourceHint']
+  'setVersion', 'setBoard', 'setOfficial', 'setCluster', 'setHost', 'setTiersSource', 'disabledReason', 'sendBtn', 'prompt', 'drawerCount', 'hhDesc', 'tierHint', 'tierSourceHint',
+  'tqBar', 'tqNeeds', 'tqNeedsN', 'tqNeedsList', 'tqHealth', 'tqHealthN', 'tqHealthList', 'tqHistory', 'tqHistoryN', 'tqHistoryList',
+  'officialCard', 'officialList', 'officialEmpty', 'officialHint', 'officialCount', 'officialLegend', 'setAlerts']
 const markupOnly = stripRawText(html)
 const missingIds = requiredIds.filter(id => !new RegExp('id="' + id + '"').test(markupOnly))
 check('关键 id 齐全', missingIds.length === 0, missingIds.join(',') || requiredIds.length + ' 个都在')

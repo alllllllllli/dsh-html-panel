@@ -203,12 +203,14 @@ async function startFakeBoard(options = {}) {
  * @returns {{resource: Function, actionHandler: Function, registration: object,
  *   registrations: object[]}}
  */
-function mount(config = {}) {
+function mount(config = {}, services = {}) {
   let resource = null
   let actionHandler = null
   const registrations = []
   const ctx = {
     effect(fn) { return fn() },
+    /** `apply()` 用 `ctx.get(name)` 懒取 Host 服务；测试按需注入假服务。 */
+    get(name) { return Object.hasOwn(services, name) ? services[name] : null },
     webServer: {
       register(optionsIn) {
         registrations.push(optionsIn)
@@ -361,7 +363,19 @@ test('路由：GET api/board 正常态 —— 契约、health 字段白名单、
       assert.equal(got.headers.get('cache-control'), 'no-store')
 
       const body = got.json
-      assert.deepEqual(Object.keys(body).sort(), ['cached', 'configured', 'events', 'generatedAt', 'health', 'source', 'tasks'])
+      assert.deepEqual(Object.keys(body).sort(), ['cached', 'configured', 'events', 'generatedAt', 'health', 'official', 'source', 'tasks'])
+      // 0.5.0：官方任务板段永远在（拿不到就如实降级），且不编任务
+      assert.equal(body.official.available, false)
+      assert.equal(typeof body.official.reason, 'string')
+      assert.deepEqual(body.official.tasks, [])
+      // mesh 任务同时带旧字段（页面旧代码）与官方 TeamTaskView 字段（0.5.0 新代码）
+      assert.equal(body.tasks[0].source, 'mesh')
+      assert.equal(body.tasks[0].subject, TASK_ROWS[0].title)
+      assert.equal(body.tasks[0].status, 'in_progress')
+      assert.equal(body.tasks[0].ready, false)
+      assert.equal(body.tasks[1].status, 'completed')
+      assert.deepEqual(body.tasks[0].writeScopeWarnings, [])
+      assert.equal(Array.isArray(body.tasks[0].unsupported), true)
       assert.equal(body.configured, true)
       assert.deepEqual(body.source, { origin: board.endpoint })
       assert.deepEqual(Object.keys(body.health).sort(), ['latencyMs', 'ok', 'schema_version', 'service', 'version'])
@@ -627,6 +641,114 @@ test('路由：api/board 与 api/host 的 HEAD 同头无体；POST 是 405 JSON 
 
 /* ─────────────────────────── F. 注册声明 ─────────────────────────── */
 
+/* ─────────────── F. 官方 Agent Teams 投影（0.5.0 新增，只读） ─────────────── */
+
+/** 造官方投影依赖：一个根会话 + 一个 subagent 会话，按 sessionId 给团队 wire view。 */
+function officialServices(teams = {}) {
+  const sessions = [
+    { id: 's-main', header: { version: 4, id: 's-main', createdAt: 1 } },
+    { id: 's-child', header: { version: 4, id: 's-child', createdAt: 2, origin: 'subagent', parentSession: 's-main' } },
+  ]
+  return {
+    sessions: { list: () => sessions },
+    sessionProjections: {
+      snapshot(session) {
+        const team = teams[session.id]
+        const values = { title: '会话 ' + session.id }
+        if (team !== undefined) values.agentTeam = team
+        return { asOfSeq: 1, values }
+      },
+    },
+  }
+}
+
+/** 官方 wire 形状的一条任务视图。 */
+function officialTaskRow(overrides = {}) {
+  return {
+    id: 'task-1', revision: 1, subject: '官方任务：核对写域', description: '只读投影',
+    status: 'pending', blockedBy: [], writeScopes: [], ready: true, writeScopeWarnings: [],
+    ...overrides,
+  }
+}
+
+test('官方任务板：/api/board 同时给 mesh 与 official 两段，各自标 source', async () => {
+  const fake = await startFakeBoard()
+  try {
+    const { resource } = mount(boardConfig(fake.endpoint), officialServices({
+      's-main': { enabled: true, tasks: [officialTaskRow()] },
+      's-child': { enabled: true, tasks: [officialTaskRow({ id: 'task-child' })] },
+    }))
+    await withRouteServer(resource, async (baseUrl) => {
+      const got = await hit(baseUrl, `${ROUTE_PREFIX}/${BOARD_FILE}`)
+      assert.equal(got.status, 200)
+      const body = got.json
+      assert.equal(body.official.available, true)
+      assert.deepEqual(body.official.tasks.map(task => task.id), ['task-1'], 'subagent 会话的团队不并入')
+      assert.equal(body.official.tasks[0].source, 'official')
+      assert.equal(body.official.tasks[0].sessionId, 's-main')
+      assert.equal(body.official.tasks[0].ready, true)
+      // mesh 段不受影响：旧字段 + 新字段并存
+      assert.equal(body.tasks.length, TASK_ROWS.length)
+      assert.equal(body.tasks.every(task => task.source === 'mesh'), true)
+      assert.equal(body.tasks.every(task => typeof task.subject === 'string' && 'state' in task), true)
+    })
+  } finally {
+    await fake.close()
+  }
+})
+
+test('官方任务板：mesh 板不可达时 official 照常给（两条数据源独立降级）', async () => {
+  const { resource } = mount({ board: { endpoint: 'http://127.0.0.1:1', token: 'x', timeoutMs: 1000 } }, officialServices({
+    's-main': { enabled: true, tasks: [officialTaskRow({ id: 'task-live' })] },
+  }))
+  await withRouteServer(resource, async (baseUrl) => {
+    const got = await hit(baseUrl, `${ROUTE_PREFIX}/${BOARD_FILE}`)
+    assert.equal(got.status, 200)
+    assert.equal(got.json.error.code, 'unreachable')
+    assert.deepEqual(got.json.tasks, [])
+    assert.equal(got.json.official.available, true)
+    assert.deepEqual(got.json.official.tasks.map(task => task.id), ['task-live'])
+  })
+})
+
+test('官方任务板：投影服务缺失 → available:false + 原因；页面据此显示不可用而不是空板', async () => {
+  const fake = await startFakeBoard()
+  try {
+    const { resource } = mount(boardConfig(fake.endpoint))
+    await withRouteServer(resource, async (baseUrl) => {
+      const got = await hit(baseUrl, `${ROUTE_PREFIX}/${BOARD_FILE}`)
+      const official = got.json.official
+      assert.equal(official.available, false)
+      assert.match(official.reason, /sessions|sessionProjections/)
+      assert.deepEqual(official.tasks, [])
+      assert.equal(got.text.includes('stack'), false)
+    })
+  } finally {
+    await fake.close()
+  }
+})
+
+test('官方任务板：投影抛错 → available:false（原因带"读取失败"），不把异常文本交给页面', async () => {
+  const fake = await startFakeBoard()
+  const broken = {
+    sessions: { list: () => [{ id: 's-boom', header: { version: 4, id: 's-boom', createdAt: 1 } }] },
+    sessionProjections: {
+      snapshot() { throw new Error('private stack detail') },
+    },
+  }
+  try {
+    const { resource } = mount(boardConfig(fake.endpoint), broken)
+    await withRouteServer(resource, async (baseUrl) => {
+      const got = await hit(baseUrl, `${ROUTE_PREFIX}/${BOARD_FILE}`)
+      assert.equal(got.json.official.available, false)
+      assert.match(got.json.official.reason, /读取失败/)
+      assert.equal(got.text.includes('private stack detail'), false)
+      assert.equal(got.text.includes('stack'), false)
+    })
+  } finally {
+    await fake.close()
+  }
+})
 test('inject 仍是 webServer + interconnect；注册 prefix resource + exact action handler', () => {
   assert.deepEqual(inject, ['webServer', 'interconnect'])
   const host = mount({})

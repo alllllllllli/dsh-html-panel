@@ -1,17 +1,17 @@
 {
-  "generatedAt": "2026-11-21T09:34:50.199Z",
-  "dshUrl": "http://127.0.0.1:53499",
+  "generatedAt": "2026-11-21T11:09:28.999Z",
+  "dshUrl": "http://127.0.0.1:60654",
   "source": {
     "file": "public/index.html",
-    "bytes": 156626,
-    "sha256": "94d080e87b83f6440b47dfaadce37ee4f54e428ed9ef95e554ae468a42d34ee4"
+    "bytes": 179347,
+    "sha256": "5356372fbe0b294dcade9587a7af357cb76072dff75dc635e94733012b99c0d2"
   },
   "page": {
     "path": "/dsh-html-panel/index.html",
     "status": 200,
-    "bytes": 156626,
-    "sha256": "94d080e87b83f6440b47dfaadce37ee4f54e428ed9ef95e554ae468a42d34ee4",
-    "latencyMs": 32,
+    "bytes": 179347,
+    "sha256": "5356372fbe0b294dcade9587a7af357cb76072dff75dc635e94733012b99c0d2",
+    "latencyMs": 36,
     "updated": true
   },
   "routes": [
@@ -19,32 +19,32 @@
       "path": "/dsh-html-panel/api/cluster",
       "status": 200,
       "bytes": 371,
-      "sha256": "7dd58806483a195e01b462683a201020485931d2e862ec66e350bad3962e1de2",
-      "latencyMs": 15
+      "sha256": "6478f140cae68d05c72ffe2e8a8f19786807d9b6aa6084d25afc92f8b38f75d8",
+      "latencyMs": 3
     },
     {
       "path": "/dsh-html-panel/api/board",
       "status": 200,
       "bytes": 27549,
-      "sha256": "ec1fc37f11ee2a6b6166a3702b8f45348af6e63675bb038767e12b2f1f75cd38",
-      "latencyMs": 144
+      "sha256": "e1eeec53f35bf6d38d2859601a793d0272ba8041625083f5bc3c2a2bccf338ae",
+      "latencyMs": 179
     },
     {
       "path": "/dsh-html-panel/api/host",
       "status": 200,
-      "bytes": 482,
-      "sha256": "df328aebe8e3c3d20ebcbf96ad2b725e1504fd9d0afef3e2490c10d563755dc0",
-      "latencyMs": 10
+      "bytes": 480,
+      "sha256": "b0aeaecd21d087f2ce4aeff5ece780fc044a3a227711c0a86f112eb03da7acb7",
+      "latencyMs": 12
     },
     {
       "path": "/dsh-html-panel/api/tiers",
-      "status": 404,
-      "bytes": 32,
-      "sha256": "f6578700f17f2f39cecda3a992f836ad4cd400d583ad6c46cd3b80217402d33d",
-      "latencyMs": 15
+      "status": 200,
+      "bytes": 2331,
+      "sha256": "3653b38bdaa0ad8d53d5afd839c0cd02c8809e0b193056bed91889fa17b9ba0c",
+      "latencyMs": 86
     }
   ],
-  "tiersNote": "404：新版 Host 尚未加载（api/tiers 需重启 DSH 后生效）—— 页面会显示「降级：需重启」",
+  "tiersNote": "200：新路由已生效",
   "expected": {
     "pageUpdated": true,
     "tiers": "404（未重启）或 200（已重启）均可接受，如实记录"

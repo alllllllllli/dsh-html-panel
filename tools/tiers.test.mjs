@@ -556,3 +556,94 @@ test('路由：构建层意外抛错时降级为 200 JSON（不让页面白屏�
     assert.equal(got.text.includes('accessor exploded'), false)
   })
 })
+
+/* ───────────── G. 官方 subagent 契约对齐（0.5.0 新增） ───────────── */
+
+/** 官方投影 stub：按会话给 title / subagent / subagentCatalog。 */
+function projectionsWithOfficial(payload) {
+  return {
+    snapshot(session) {
+      const values = payload[session.id] === undefined ? {} : { ...payload[session.id] }
+      return { asOfSeq: 1, values }
+    },
+  }
+}
+
+test('官方契约：本机节点带 childSessionId/parentSessionId/mode，T1 不冒充 session id', async () => {
+  const body = await buildTiers(happyDeps())
+  const map = byId(body.nodes)
+  const main = map.get('s-main')
+  assert.equal(main.childSessionId, 's-main')
+  assert.equal(main.parentSessionId, null, 'T1 顶层会话没有父会话，不拿树根实例 id 冒充')
+  assert.equal(main.mode, null, 'T1 不是 subagent 对话，mode 不适用')
+  const child = map.get('s-child')
+  assert.equal(child.childSessionId, 's-child')
+  assert.equal(child.parentSessionId, 's-main', 'T2 的 parentSessionId 是 DSH 持久化的直接创建者')
+  assert.equal(child.mode, 'unknown', '官方投影没有 mode 数据时给 unknown，不猜')
+  const grand = map.get('s-grand')
+  assert.equal(grand.parentSessionId, 's-child')
+  // 远端节点的 session id 不属于本机地址契约：不加这三个字段
+  const remote = map.get('server:session-aaa')
+  assert.equal('parentSessionId' in remote, false)
+  assert.equal('childSessionId' in remote, false)
+})
+
+test('官方契约：父会话 subagentCatalog 优先，其次子会话 subagent 投影（mode/label）', async () => {
+  const deps = happyDeps()
+  deps.projections = () => projectionsWithOfficial({
+    's-main': {
+      title: '主控会话',
+      subagentCatalog: [
+        { id: 's-child', createdAt: 1, mode: 'continuable', label: '实现子代理' },
+        { id: 's-child2', createdAt: 2, mode: 'one-shot', label: '第二个子代理' },
+      ],
+    },
+    's-child': {
+      title: '层级交互',
+      subagent: { mode: 'continuable', label: '实现子代理', seq: 1 },
+      subagentCatalog: [{ id: 's-grand', createdAt: 3, mode: 'one-shot' }],
+    },
+  })
+  const body = await buildTiers(deps)
+  const map = byId(body.nodes)
+  assert.equal(map.get('s-child').mode, 'continuable')
+  assert.equal(map.get('s-child2').mode, 'one-shot')
+  assert.equal(map.get('s-grand').mode, 'one-shot')
+  assert.equal(map.get('s-child2').label, '第二个子代理')
+  assert.equal(map.get('s-child2').title, '第二个子代理', '没有标题时官方 label 优先于「子代理 <短 id>」')
+  assert.equal(body.source.subagents.includes('parentSession'), true, '血缘来源仍是 Session header')
+  assert.equal(body.source.subagentMode, 'official-projection')
+  assert.equal(((body.degraded && body.degraded.reason) || '').includes('官方 subagent 投影'), false, '官方数据齐全时不应因投影降级')
+})
+
+test('官方契约：父会话不在活会话里时，用子会话自己的 subagent 投影补 mode', async () => {
+  const deps = happyDeps()
+  // 把 s-main 从会话列表里拿掉，s-child 变孤儿（父会话已结束）
+  deps.sessions = () => sessionsOf([
+    makeSession('s-child', { origin: 'subagent', parent: 's-main', createdAt: 1_700_000_000_200 }),
+  ])
+  deps.agents = () => agentsOf([])
+  deps.projections = () => projectionsWithOfficial({
+    's-child': { subagent: { mode: 'continuable', label: '遗留子代理', seq: 2 } },
+  })
+  const body = await buildTiers(deps)
+  const map = byId(body.nodes)
+  const child = map.get('s-child')
+  assert.equal(child.mode, 'continuable')
+  assert.equal(child.parentSessionId, 's-main', '父会话不活但直接创建者 id 仍是持久化真值')
+  assert.equal(child.title, '遗留子代理')
+})
+
+test('官方契约：投影全失败 → 血缘照旧 + degraded 说明，mode 一律 unknown（不编）', async () => {
+  const deps = happyDeps()
+  deps.projections = () => ({
+    snapshot() { throw new Error('projection exploded') },
+  })
+  const body = await buildTiers(deps)
+  const map = byId(body.nodes)
+  assert.equal(body.nodes.length, 7, '层级节点照旧（血缘来自 Session header）')
+  assert.equal(map.get('s-child').mode, 'unknown')
+  assert.equal(body.source.subagentMode, 'unavailable')
+  assert.match(body.degraded.reason, /官方 subagent 投影读取失败/)
+  assert.equal(JSON.stringify(body).includes('projection exploded'), false, '原始异常文本不进响应')
+})

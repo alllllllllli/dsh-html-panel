@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * tools/cdp-butler.mjs —— 大管家 0.4.0 页面的运行时自检（Edge headless + CDP，零依赖）。
+ * tools/cdp-butler.mjs —— 大管家 0.6.0 页面的运行时自检（Edge headless + CDP，零依赖）。
  *
  * 用内置 HTTP fixture 起一个同源站点，把 `public/index.html` 按插件真实路由
  * `/dsh-html-panel/` 提供出去，并把四条只读路由与 `POST api/action` 换成可控 fixture：
@@ -53,6 +53,17 @@ const HOST_REAL = {
     { mount: 'D:', label: 'D: 数据盘', totalBytes: 1030792151040, freeBytes: 579820584960, ratio: 0.44, error: null }
   ]
 }
+/** 官方 Agent Teams 投影 fixture（0.5.0）：一条可认领 + 一条进行中（带写域告警）。 */
+const OFFICIAL_REAL = {
+  available: true,
+  teams: [{ sessionId: 'session-main', title: '主控会话', enabled: true, taskCount: 2, shownTasks: 2 }],
+  tasks: [
+    { id: 'task-official-1', revision: 1, subject: 'fixture：官方任务可认领', description: 'CDP fixture 官方任务，不是真实任务。', status: 'pending', blockedBy: [], writeScopes: ['lib/panel'], ready: true, writeScopeWarnings: [], source: 'official', sessionId: 'session-main', sessionTitle: '主控会话', teamEnabled: true },
+    { id: 'task-official-2', revision: 2, subject: 'fixture：官方任务写域告警', description: 'CDP fixture 官方任务，不是真实任务。', status: 'in_progress', blockedBy: ['task-official-1'], writeScopes: ['lib/panel/public'], ownerId: 'session-child-1', ownerName: 'fixture-lead/层级交互', ready: false, writeScopeWarnings: ['write scopes overlap with task-official-3'], source: 'official', sessionId: 'session-main', sessionTitle: '主控会话', teamEnabled: true }
+  ],
+  hiddenTasks: 0,
+  truncated: false
+}
 const BOARD_REAL = {
   generatedAt: new Date(NOW).toISOString(),
   configured: true,
@@ -66,6 +77,7 @@ const BOARD_REAL = {
     { id: 't-fixture-5', title: 'fixture：给板服务加观测端点', state: 'stale', owner: 'agent-team:cloud:worker-2', node: 'cloud', evidenceCount: 1, acceptance: [], brief: 'fixture 任务，不是真实任务。', createdAt: NOW - 3600000, updatedAt: NOW - 3000000, lifecycle: 'working', ackState: 'acked' },
     { id: 't-fixture-6', title: 'fixture：已取消的历史任务', state: 'canceled', owner: null, node: null, evidenceCount: 0, acceptance: [], brief: 'fixture 任务，不是真实任务。', createdAt: NOW - 7200000, updatedAt: NOW - 7000000, lifecycle: 'canceled', ackState: 'none' }
   ],
+  official: OFFICIAL_REAL,
   events: Array.from({ length: 8 }, (_, index) => ({
     task: 't-fixture-' + (index + 1),
     at: NOW - (index + 1) * 60000,
@@ -82,6 +94,7 @@ const TIERS_REAL = {
   source: {
     local: 'sessions+agents',
     subagents: 'session-header(origin+parentSession)',
+    subagentMode: 'official-projection',
     remote: [
       { instanceId: 'server', link: 'up', sessions: 2 },
       { instanceId: 's5', link: 'down', sessions: 0 },
@@ -93,10 +106,10 @@ const TIERS_REAL = {
   },
   root: { id: 'pc-ky614', label: '大管家', device: 'pc-ky614', tier: 0, status: 'run', startedAt: new Date(NOW - 3600000).toISOString() },
   nodes: [
-    { id: 'session-main', parentId: 'pc-ky614', tier: 1, kind: 'session', device: 'pc-ky614', title: '主控会话', status: 'run', startedAt: new Date(NOW - 1800000).toISOString() },
-    { id: 'session-child-1', parentId: 'session-main', tier: 2, kind: 'subagent', device: 'pc-ky614', title: '层级交互', status: 'run', startedAt: new Date(NOW - 1200000).toISOString() },
-    { id: 'session-grand-1', parentId: 'session-child-1', tier: 3, kind: 'subagent', device: 'pc-ky614', title: '折叠态走查', status: 'run', startedAt: new Date(NOW - 900000).toISOString() },
-    { id: 'session-child-2', parentId: 'session-main', tier: 2, kind: 'subagent', device: 'pc-ky614', title: '长名字截断样式回归用例集', status: 'queue', startedAt: new Date(NOW - 1100000).toISOString() },
+    { id: 'session-main', parentId: 'pc-ky614', tier: 1, kind: 'session', device: 'pc-ky614', title: '主控会话', status: 'run', startedAt: new Date(NOW - 1800000).toISOString(), childSessionId: 'session-main', parentSessionId: null, mode: null },
+    { id: 'session-child-1', parentId: 'session-main', tier: 2, kind: 'subagent', device: 'pc-ky614', title: '层级交互', status: 'run', startedAt: new Date(NOW - 1200000).toISOString(), childSessionId: 'session-child-1', parentSessionId: 'session-main', mode: 'continuable' },
+    { id: 'session-grand-1', parentId: 'session-child-1', tier: 3, kind: 'subagent', device: 'pc-ky614', title: '折叠态走查', status: 'run', startedAt: new Date(NOW - 900000).toISOString(), childSessionId: 'session-grand-1', parentSessionId: 'session-child-1', mode: 'one-shot' },
+    { id: 'session-child-2', parentId: 'session-main', tier: 2, kind: 'subagent', device: 'pc-ky614', title: '长名字截断样式回归用例集', status: 'queue', startedAt: new Date(NOW - 1100000).toISOString(), childSessionId: 'session-child-2', parentSessionId: 'session-main', mode: 'unknown' },
     { id: 'server:session-aaa', parentId: 'pc-ky614', tier: 1, kind: 'session', device: 'server', title: '查看本机SSH公钥', status: 'idle', startedAt: null },
     { id: 'server:session-r1', parentId: 'server:session-aaa', tier: 2, kind: 'subagent', device: 'server', title: '连线与缩进校对', status: 'done', startedAt: null },
     { id: 'server:session-r2', parentId: 'server:session-aaa', tier: 2, kind: 'subagent', device: 'server', title: '折叠状态回归', status: 'idle', startedAt: null },
@@ -346,6 +359,35 @@ const PAGE_STATE = `(() => {
       pillBoard: txt('#pillBoard'),
       pillHost: txt('#pillHost')
     },
+    tq: {
+      bar: q('#tqBar') ? !q('#tqBar').hidden : false,
+      needs: txt('#tqNeedsN'),
+      health: txt('#tqHealthN'),
+      history: txt('#tqHistoryN'),
+      needsRows: qa('#tqNeedsList .tq-li').length,
+      healthRows: qa('#tqHealthList .tq-li').length,
+      historyRows: qa('#tqHistoryList .tq-li').length,
+      needsText: txt('#tqNeedsList'),
+      healthText: txt('#tqHealthList'),
+      historyText: txt('#tqHistoryList')
+    },
+    official: {
+      rows: qa('#officialList .item').length,
+      empty: q('#officialEmpty') ? !q('#officialEmpty').hidden : false,
+      emptyText: txt('#officialEmpty'),
+      hint: txt('#officialHint'),
+      count: txt('#officialCount'),
+      sourceTags: qa('#officialList .src-tag').map(e => e.textContent.trim()),
+      detailText: txt('#officialList')
+    },
+    taskDots: qa('#taskList .sd').length,
+    modeTags: qa('#tree .mode-tag').map(e => e.textContent.trim()),
+    lineage: qa('#tree .node').slice(0, 4).map(n => ({
+      mode: n.getAttribute('data-mode'),
+      child: n.getAttribute('data-child-session'),
+      parent: n.getAttribute('data-parent-session')
+    })),
+    settingsOfficial: txt('#setOfficial'),
     receipts: qa('#receiptList li').filter(li => li.querySelector('.r-state')).map(li => ({
       label: (li.querySelector('b') || {}).textContent || '',
       state: (li.querySelector('.r-state') || {}).textContent || '',
@@ -501,6 +543,16 @@ async function main() {
     eq('任务导航 badge 是真实任务数', s.chrome.navTasks, '6')
     eq('集群导航 badge 是 up/总数', s.chrome.navCluster, '1/4')
 
+    // 0.5.0：三问条（健康态不占位、计数=列表长度、每行说在等谁/要什么）
+    eq('三问条出现（真实数据里有需要人/系统问题）', s.tq.bar, true)
+    eq('三问计数=列表长度（需要我 3 mesh + 1 官方可认领）', [s.tq.needs, s.tq.needsRows].join('/'), '4/4')
+    // 0.6.0：本 fixture 没有 api/alerts（模拟 Host 未重启），页面按 0.5.0 路径退回，
+    // 同时在「系统是否健康」如实加一行「api/alerts 404 需重启」→ 3 条 down 链路 + 1 = 4。
+    eq('三问计数=列表长度（健康 3 条 down 链路 + api/alerts 未加载）', [s.tq.health, s.tq.healthRows].join('/'), '4/4')
+    eq('三问计数=列表长度（历史 2 行）', [s.tq.history, s.tq.historyRows].join('/'), '2/2')
+    has('三问每行说在等谁/要什么', s.tq.needsText, '在等')
+    has('三问健康行点名 down 对端', s.tq.healthText, 's5')
+
     // 右栏 T0–T3
     eq('右栏节点总数（1+4+6+2）', s.tier.nodes, 13)
     eq('层级计数 chip T0..T3', s.tier.cnt.join(','), '1,4,6,2')
@@ -524,9 +576,22 @@ async function main() {
     eq('板 badge 标真实', s.tasks.badge, 'real')
     has('板 badge 文案', s.tasks.badgeText, '真实 · 共享板')
     eq('任务页待办渲染（localStorage）', s.todoCount, 4)
+    eq('mesh 任务行都带官方 StateDot 状态点', s.taskDots, 6)
+    eq('官方任务板渲染 2 条（只读 official 段）', s.official.rows, 2)
+    eq('官方任务板计数=列表长度', s.official.count, '2')
+    has('官方任务板标只读与团队数', s.official.hint, '只读 · 1 个团队')
+    eq('官方任务行标 source=official', s.official.sourceTags.join(','), '官方,官方')
+    has('官方任务详情带就绪/阻塞依赖/写域告警', s.official.detailText, '阻塞依赖')
+    has('官方任务详情带写域告警原文', s.official.detailText, 'write scopes overlap with task-official-3')
     await click('#tab-events')
     await waitFor('!document.getElementById("panel-events").hidden', 4000, 'events tab')
     await shot('shot-butler-02-tasks-1440.png')
+    // 官方任务板卡片在任务列表下方，单独滚过去补一张
+    await click('#tab-tasks')
+    await evaluate('(() => { const el = document.getElementById("officialCard"); if (el) el.scrollIntoView({ block: "center" }); return true; })()')
+    await sleep(200)
+    await shot('shot-butler-14-official-board-1440.png')
+    await evaluate('(() => { const el = document.querySelector("#page-tasks .page-body"); if (el) el.scrollTop = 0; return true; })()')
 
     // 页面 3：集群
     await selectPage('cluster')
@@ -556,7 +621,8 @@ async function main() {
     await selectPage('settings')
     s = await state()
     eq('设置页可见', s.visiblePages.join(','), 'settings')
-    eq('设置页插件版本 0.4.0', s.settings.version, '0.4.0')
+    eq('设置页插件版本 0.6.0', s.settings.version, '0.6.0')
+    has('设置页官方任务板数据源可见', s.settingsOfficial, '可用 · 2 任务 · 1 个团队')
     has('设置页共享板来源接真实 origin', s.settings.board, '172.24.112.11:13090')
     has('设置页层级来源接真实字符串', s.settings.tiers, 'sessions+agents')
     has('设置页本机来源接真实字段', s.settings.host, 'fixture-pc')
@@ -607,6 +673,10 @@ async function main() {
     // 截图要能看到选中态：再点一次 T2 并保留选中，拍完再取消。
     await evaluate(`(() => { const node = document.querySelector('#tree .node[data-level="T2"]'); if (!node) return false; node.querySelector(':scope > .head').click(); return true; })()`)
     await sleep(150)
+    s = await state()
+    has('选中 T2 后三问历史切到该节点', s.tq.historyText, '层级交互')
+    ck('层级节点带官方 mode 徽标（可续聊/一次性/未知）', s.modeTags.includes('可续聊') && s.modeTags.includes('一次性') && s.modeTags.includes('未知'), s.modeTags.join(','))
+    ck('层级节点带官方血缘字段 childSessionId/parentSessionId', s.lineage.some(n => n.parent === 'session-main' && n.child === 'session-child-1'), JSON.stringify(s.lineage))
     await shot('shot-butler-08-tiers-selected-1440.png')
     await evaluate(`(() => { const node = document.querySelector('#tree .node.sel'); if (node) node.querySelector(':scope > .head').click(); return true; })()`)
 
@@ -663,6 +733,8 @@ async function main() {
     has('拓扑 badge 写明 mock 兜底', s.cluster.text, 'mock 兜底')
     ck('mock 时仍有任务列表（示例数据）', s.tasks.rows === 6, 'rows=' + s.tasks.rows)
     eq('mock 时层级降级但 T0 在', s.tier.nodes, 1)
+    eq('mock 时官方任务板不冒充数据', s.official.rows, 0)
+    has('mock 时官方任务板给不可用原因', s.official.emptyText, '官方任务板不可用')
     await shot('shot-butler-13-mock-fallback-1440.png')
 
     /* ================= 页面 JS 报错收集 ================= */

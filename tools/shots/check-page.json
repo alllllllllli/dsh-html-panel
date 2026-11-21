@@ -1,15 +1,15 @@
 {
   "file": "public/index.html",
-  "bytes": 156626,
-  "sha256": "94d080e87b83f6440b47dfaadce37ee4f54e428ed9ef95e554ae468a42d34ee4",
-  "checks": 139,
+  "bytes": 195559,
+  "sha256": "25f29595e389b45d05102769ab8942d68558398d2f1ed42d64e13ba744c406e4",
+  "checks": 173,
   "failed": 0,
   "pass": true,
   "results": [
     {
       "name": "文件存在且非空",
       "ok": true,
-      "detail": "156626 B"
+      "detail": "195559 B"
     },
     {
       "name": "无 UTF-8 BOM",
@@ -109,12 +109,12 @@
     {
       "name": "四条只读路由都读了",
       "ok": true,
-      "detail": "实际：api/cluster, api/board, api/host, api/tiers"
+      "detail": "实际：api/cluster, api/board, api/host, api/tiers, api/alerts"
     },
     {
       "name": "api 路径都是相对路径",
       "ok": true,
-      "detail": "api/cluster | api/board | api/host | api/tiers"
+      "detail": "api/cluster | api/board | api/host | api/tiers | api/alerts"
     },
     {
       "name": "没有写死任何 api 外部地址",
@@ -144,7 +144,7 @@
     {
       "name": "CSS 花括号配平",
       "ok": true,
-      "detail": "405 { / 405 }"
+      "detail": "461 { / 461 }"
     },
     {
       "name": "内联 JS 语法可解析",
@@ -632,12 +632,12 @@
       "detail": ""
     },
     {
-      "name": "设置页版本是 0.4.0",
+      "name": "设置页版本是 0.6.0",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "设置页列出四条路由",
+      "name": "设置页列出五条只读路由",
       "ok": true,
       "detail": ""
     },
@@ -648,6 +648,176 @@
     },
     {
       "name": "设置页写明重启要求",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "三问条容器在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "三问项齐：是否需要我",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "三问项齐：系统是否健康",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "三问项齐：这件事的历史",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "三问健康态不占位（hidden 默认 + 计数=列表长度）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "三问每行说「在等谁、要什么」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "三问第一问只认真实板数据（awaiting/undelivered/stale/官方可认领）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "三问第二问逐行列系统问题（链路/板/投影/本机/层级）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "三问第三问用选中节点或最近任务历史",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "官方 TeamTaskStatus 中文文案（不直接显示英文）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TeamBoard.tsx 的 status→StateDot 映射在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "StateDot 五态 CSS 在（idle/ongoing/done/warning/error）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "任务卡片用 TeamTaskView 字段渲染",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "mesh 缺列如实写（unsupported）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "报告五态中文口径在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "官方任务板卡片与降级文案在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "官方任务板接 api/board 的 official 段",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "官方任务板不拿 mock 冒充",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "设置页显示官方任务板数据源",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "官方 subagent 地址契约字段在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "层级卡片显示 mode 并对齐官方契约",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "层级数据源显示官方投影可达性",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "页面读取 api/alerts 且校验响应结构",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "告警失败有一致降级（404 需重启 / 保留旧数据）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "第一问接告警：高/中 → 「需要你：N 条」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无告警明说「当前没有需要你处理的异常」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "告警卡字段齐全（严重度/类目/为什么/建议/证据）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "告警三级配色 CSS 在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "任务卡命中告警有小标记且可跳转",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "告警标记/卡片文本都过 esc()",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "告警降级回退旧路径（Host 未重启时行为不变）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "告警接 30 秒轮询 + body.dataset 标记",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "设置页显示告警数据源",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "设置页写清告警路由只读与限制",
       "ok": true,
       "detail": ""
     },
@@ -674,12 +844,12 @@
     {
       "name": "关键 id 齐全",
       "ok": true,
-      "detail": "68 个都在"
+      "detail": "86 个都在"
     },
     {
       "name": "页面 id 不重复",
       "ok": true,
-      "detail": "131 个静态 id"
+      "detail": "153 个静态 id"
     },
     {
       "name": "XSS 防护：动态文本过 esc()",

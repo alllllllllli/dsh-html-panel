@@ -700,6 +700,66 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .degraded[hidden]{display:none}
 #tierSourceHint{margin-top:1px}
 
+/* ---------- 0.5.0：三问条（官方 docs/005-panel.md 信息架构） ---------- */
+.tq-bar{display:flex;flex-direction:column;gap:6px;flex:0 0 auto;padding:10px 20px 0;margin:0}
+.tq-bar[hidden]{display:none}
+.tq-block{display:flex;align-items:flex-start;gap:10px;min-width:0;padding:7px 10px;border-radius:var(--radius-md);background:var(--bg-layer-1);border:1px solid var(--border-l1)}
+.tq-block[hidden]{display:none}
+.tq-block.is-warn{border-color:rgba(245,158,11,.4)}
+.tq-block.is-error{border-color:rgba(242,90,90,.4)}
+.tq-h{flex:0 0 auto;display:flex;align-items:center;gap:6px;margin:0;font-size:12px;line-height:18px;font-weight:500;color:var(--label-secondary);white-space:nowrap}
+.tq-n{font-family:var(--mono);font-size:10.5px;font-weight:400;line-height:16px;padding:0 6px;border-radius:999px;background:var(--bg-layer-2);color:var(--label-tertiary);font-variant-numeric:tabular-nums}
+.tq-ul{flex:1 1 auto;min-width:0;margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px}
+.tq-li{display:flex;flex-wrap:wrap;gap:1px 8px;min-width:0;font-size:12px;line-height:18px;color:var(--label-secondary);overflow-wrap:anywhere}
+.tq-who{color:var(--label-caption);white-space:nowrap}
+.tq-who b{color:var(--label-secondary);font-weight:500;white-space:normal}
+.tq-want{color:var(--label-tertiary)}
+
+/* ---------- 0.6.0：TRAIL 告警卡（三问第一问 + 任务卡片标记） ---------- */
+.al-sev{display:inline-flex;align-items:center;gap:4px;padding:0 7px;border-radius:999px;font-size:10.5px;line-height:17px;font-weight:500;white-space:nowrap;border:1px solid transparent}
+.al-sev.high{color:var(--red);background:rgba(242,90,90,.12);border-color:rgba(242,90,90,.45)}
+.al-sev.medium{color:var(--amber);background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.45)}
+.al-sev.low{color:var(--label-tertiary);background:var(--bg-layer-2);border-color:var(--border-l1)}
+.tq-ok{color:var(--green-soft);white-space:nowrap}
+.tq-warn{color:var(--amber)}
+.alert-fold{width:100%;min-width:0}
+.alert-fold>summary{display:flex;align-items:center;gap:8px;flex-wrap:wrap;cursor:pointer;list-style:none;font-size:12px;line-height:18px;color:var(--label-secondary)}
+.alert-fold>summary::-webkit-details-marker{display:none}
+.alert-fold>summary::before{content:'▸';color:var(--label-caption);font-size:10px;transition:transform .12s ease}
+.alert-fold[open]>summary::before{transform:rotate(90deg)}
+.alert-fold>summary:hover .tq-want{color:var(--label-secondary)}
+.alert-cards{list-style:none;margin:6px 0 2px;padding:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+.alert-card{min-width:0;padding:7px 9px;border-radius:var(--radius-sm);border:1px solid var(--border-l1);background:var(--bg-base);display:flex;flex-direction:column;gap:3px}
+.alert-card.sev-high{border-left:3px solid var(--red)}
+.alert-card.sev-medium{border-left:3px solid var(--amber)}
+.alert-card.sev-low{border-left:3px solid var(--label-dimmed)}
+.alert-card:focus{outline:1px solid rgba(122,170,255,.6);outline-offset:1px}
+.alert-card.al-flash{animation:al-flash 1.2s ease 2}
+@keyframes al-flash{0%,100%{background:var(--bg-base)}45%{background:rgba(122,170,255,.16)}}
+.al-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0}
+.al-cat{font-size:10.5px;line-height:15px;color:var(--label-tertiary);font-family:var(--mono);white-space:nowrap}
+.al-subject{font-size:12px;line-height:18px;color:var(--label-primary);font-weight:500;min-width:0;overflow-wrap:anywhere}
+.al-why{margin:0;font-size:11.5px;line-height:17px;color:var(--label-secondary);overflow-wrap:anywhere}
+.al-fix{margin:0;font-size:11.5px;line-height:17px;color:var(--label-tertiary);overflow-wrap:anywhere}
+.al-evi{margin:0;font-size:10.5px;line-height:16px;color:var(--label-caption);overflow-wrap:anywhere}
+.al-evi .mono{color:var(--label-tertiary)}
+.alert-flag{display:inline-flex;align-items:center;gap:3px;margin-left:7px;padding:0 6px;border-radius:var(--radius-xs);font-size:9.5px;line-height:15px;font-weight:500;cursor:pointer;vertical-align:1px;white-space:nowrap;border:1px solid transparent}
+.alert-flag.sev-high{color:var(--red);background:rgba(242,90,90,.12);border-color:rgba(242,90,90,.45)}
+.alert-flag.sev-medium{color:var(--amber);background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.45)}
+.alert-flag.sev-low{color:var(--label-tertiary);background:var(--bg-layer-2);border-color:var(--border-l1)}
+.alert-flag:hover{filter:brightness(1.25)}
+
+/* ---------- 0.5.0：官方 TeamTaskView 状态点（映射照 TeamBoard.tsx 的 StateDot） ---------- */
+.sd{width:7px;height:7px;border-radius:50%;display:inline-block;flex:0 0 auto;background:rgb(84,85,87)}
+.sd.ongoing{background:var(--accent);box-shadow:0 0 0 3px rgba(122,170,255,.14);animation:pulse 2.6s ease-in-out infinite}
+.sd.done{background:var(--green)}
+.sd.warning{background:var(--amber)}
+.sd.error{background:var(--red)}
+.st-dot{display:inline-block;margin-right:5px;vertical-align:0}
+.src-tag{display:inline-block;margin-left:7px;padding:0 5px;border-radius:var(--radius-xs);border:1px solid var(--border-l1);background:var(--bg-layer-2);color:var(--label-caption);font-family:var(--font);font-size:9.5px;line-height:14px;font-weight:500;vertical-align:1px;white-space:nowrap}
+.src-tag.official{border-color:rgba(122,170,255,.45);background:rgba(122,170,255,.08);color:var(--accent)}
+.mode-tag{display:inline-block;margin-left:6px;padding:0 5px;border-radius:var(--radius-xs);border:1px solid var(--border-l1);background:var(--bg-layer-2);color:var(--label-caption);font-size:9.5px;line-height:14px;vertical-align:1px;white-space:nowrap}
+
 /* ---------- toast ---------- */
 .toast{
   position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(8px);
@@ -797,7 +857,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     <div class="side-foot">
       <div class="sf-1"><i class="dot run" id="sfDot"></i><span id="sfText">本机在线</span><span class="sf-dev" id="sfDev">—</span></div>
       <div class="sf-sub" id="sfSub">链路数据载入中…</div>
-      <div class="sf-ver" id="sfVer">v0.4.0 · 真实数据</div>
+      <div class="sf-ver" id="sfVer">v0.6.0 · 真实数据</div>
     </div>
   </aside>
 
@@ -832,6 +892,22 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           </div>
         </div>
       </header>
+
+      <!-- 三问条（0.5.0）：是否需要我 / 系统是否健康 / 这件事的历史。健康态不占位，整条或整块 hidden。 -->
+      <div class="tq-bar" id="tqBar" aria-label="三问：是否需要我 / 系统是否健康 / 这件事的历史" hidden>
+        <section class="tq-block" id="tqNeeds" aria-labelledby="tqNeedsH" hidden>
+          <h2 class="tq-h" id="tqNeedsH">是否需要我<span class="tq-n" id="tqNeedsN">0</span></h2>
+          <ul class="tq-ul" id="tqNeedsList"></ul>
+        </section>
+        <section class="tq-block" id="tqHealth" aria-labelledby="tqHealthH" hidden>
+          <h2 class="tq-h" id="tqHealthH">系统是否健康<span class="tq-n" id="tqHealthN">0</span></h2>
+          <ul class="tq-ul" id="tqHealthList"></ul>
+        </section>
+        <section class="tq-block" id="tqHistory" aria-labelledby="tqHistoryH" hidden>
+          <h2 class="tq-h" id="tqHistoryH">这件事的历史<span class="tq-n" id="tqHistoryN">0</span></h2>
+          <ul class="tq-ul" id="tqHistoryList"></ul>
+        </section>
+      </div>
 
       <div class="thread" id="thread">
         <div class="thread-inner">
@@ -990,6 +1066,12 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           <ul class="item-list" id="eventList"></ul>
           <p class="empty-hint" id="eventEmpty" hidden>载入中…</p>
         </div>
+        <section class="card" aria-labelledby="official-h" id="officialCard">
+          <div class="card-h"><span id="official-h">官方任务板（只读）</span><span class="count" id="officialCount"></span><span class="grow"></span><span class="muted" id="officialHint">载入中…</span></div>
+          <ul class="item-list" id="officialList"></ul>
+          <p class="empty-hint" id="officialEmpty" hidden>载入中…</p>
+          <p class="store-hint" id="officialLegend">报告五态：进行中 / 可接手 / 受阻 / 失败 / 已撤销（队员报告口径）；状态点照官方 TeamBoard 映射，任务字段对齐官方 TeamTaskView。</p>
+        </section>
         <section class="card" aria-labelledby="todo-h">
           <div class="card-h"><span id="todo-h">待办</span><span class="count" id="todoCount">0 项</span><span class="grow"></span><span class="muted">勾选自动存本机</span></div>
           <form class="todo-form" id="todoForm">
@@ -1076,9 +1158,9 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         <section class="card" aria-labelledby="set-h">
           <div class="card-h"><span id="set-h">版本与路由</span></div>
           <ul class="kv-list">
-            <li><b>插件版本</b><span class="mono" id="setVersion">0.4.0</span></li>
+            <li><b>插件版本</b><span class="mono" id="setVersion">0.6.0</span></li>
             <li><b>页面路由</b><span class="mono">/dsh-html-panel/</span></li>
-            <li><b>只读数据路由</b><span class="mono">api/cluster · api/board · api/host · api/tiers</span></li>
+            <li><b>只读数据路由</b><span class="mono">api/cluster · api/board · api/host · api/tiers · api/alerts</span></li>
             <li><b>写动作路由</b><span class="mono">POST api/action（只收白名单动作 id）</span></li>
           </ul>
         </section>
@@ -1086,14 +1168,16 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           <div class="card-h"><span id="set2-h">当前数据源</span></div>
           <ul class="kv-list">
             <li><b>共享板</b><span id="setBoard">—</span></li>
+            <li><b>官方任务板</b><span id="setOfficial">—</span></li>
             <li><b>链路</b><span id="setCluster">—</span></li>
             <li><b>层级</b><span id="setTiersSource">—</span></li>
+            <li><b>告警</b><span id="setAlerts">—</span></li>
             <li><b>本机</b><span id="setHost">—</span></li>
           </ul>
         </section>
         <section class="card" aria-labelledby="set3-h">
           <div class="card-h"><span id="set3-h">回滚与红线</span></div>
-          <p class="muted">回滚：把 <span class="mono">node_modules/dsh-html-panel</span> 换回 0.3.0 备份后重启 DSH。页面 <span class="mono">public/index.html</span> 的改动刷新即生效；<span class="mono">lib/</span> 改动（含新增 api/tiers 路由、侧栏改名）需重启 DSH 后才生效。</p>
+          <p class="muted">回滚：把 <span class="mono">node_modules/dsh-html-panel</span> 换回 0.5.0 备份后重启 DSH。页面 <span class="mono">public/index.html</span> 的改动刷新即生效；<span class="mono">lib/</span> 改动（0.6.0 新增 <span class="mono">api/alerts</span> 告警路由、0.5.0 的 api/board official 段、api/tiers 官方 subagent 契约字段）需重启 DSH 后才生效。</p>
           <p class="muted" id="disabledReason">红线：不由面板重启 DSH —— 面板不提供重启、结束或接管 DSH 进程的能力，按钮永久禁用。</p>
           <button class="btn" type="button" disabled aria-describedby="disabledReason">重启 DSH（永久禁用）</button>
         </section>
@@ -1143,14 +1227,22 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 'use strict';
 (function () {
   /* =====================================================================
-   * 大管家 · DSH 控制台（0.4.0）
+   * 大管家 · DSH 控制台（0.6.0）
    *
    * 三栏：左导航（5 页）· 中栏（按页切换）· 右栏派活层级（T0–T3）。
+   * 0.6.0：接入 TRAIL 失败分类（MIT，只搬分类体系 + 规则化分类器，未接 LLM judge）：
+   *        新增只读路由 api/alerts；大管家页「是否需要我」由告警驱动
+   *        （高/中 → 「需要你：N 条」可展开告警卡；无 → 「当前没有需要你处理的异常」）；
+   *        任务页命中告警的卡片加可点小标记，点了跳到大管家并展开对应告警卡。
+   * 0.5.0：大管家页顶部「三问」条；任务卡片叠加官方 TeamTaskView 字段；
+   *        api/board 的 official 段（官方 agentTeam 投影，只读，拿不到如实降级）；
+   *        api/tiers 节点补官方 subagent 地址契约（{parentSessionId, childSessionId, mode}）。
    * 真实数据全部来自**同源只读路由**（相对路径 fetch，Host 半 lib/ 实现）：
    *   api/cluster  本实例 interconnect 链路（集群页 / 顶栏 / 左栏底部）
    *   api/board    共享板任务 / 事件 / 健康（任务页）
    *   api/host     本机内存 / CPU / 磁盘（设置页 / composer 状态条）
    *   api/tiers    T0 大管家 → T1 活会话 → T2/T3 子代理（右栏派活层级）
+   *   api/alerts   TRAIL 规则告警（大管家三问第一问 / 任务卡标记 / 设置页）
    * 写动作只有两条真实通道：
    *   panel-action postMessage → lib/client.js（新会话 / 派发草稿）
    *   POST api/action → lib/actions.js（记忆探测 / 最新报告 / 打开报告目录）
@@ -1332,9 +1424,22 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     done: { text: '已完成', cls: 'done' }
   };
   /** 顶部过期 badge 的模块名。 */
-  const MODULE_LABEL = { cluster: '链路', board: '共享板', host: '本机', tiers: '层级' };
+  const MODULE_LABEL = { cluster: '链路', board: '共享板', host: '本机', tiers: '层级', alerts: '告警' };
   /** 派活层级状态 → 文案（与右栏图例一致）。 */
   const TIER_STATUS = { run: '运行中', idle: '空闲', queue: '排队', blocked: '阻塞', done: '已完成' };
+  /** 官方 TeamTaskStatus → 中文文案（页面上不直接出现英文状态值）。 */
+  const TEAM_STATUS = { pending: '待办', in_progress: '进行中', completed: '已完成', deleted: '已取消' };
+  /**
+   * 官方 `TeamBoard.tsx` 的 status→StateDot 映射：
+   *   pending→idle / in_progress→ongoing / completed→done（blocked 用 warning，见 teamDot）。
+   * `deleted` 官方任务板不渲染（wire view 已过滤），本页对 mesh 的 canceled 任务用 error 点标「已取消」，
+   * 方便和"已完成"区分；这是本页自己的补充，不是官方映射。
+   */
+  const TEAM_DOT = { pending: 'idle', in_progress: 'ongoing', completed: 'done', deleted: 'error' };
+  /** 官方 subagent 目录 `mode` → 中文文案（dsh-client-ui-subagent 契约的地址字段）。 */
+  const SUBAGENT_MODE = { 'one-shot': '一次性', continuable: '可续聊', unknown: '未知' };
+  /** 0.6.0：告警严重度 → 中文（页面不直接显示英文 high/medium/low）。 */
+  const ALERT_SEVERITY = { high: '高', medium: '中', low: '低' };
 
   /** 各模块状态：kind ∈ loading | real | mock | unconfigured；reason 只在 mock 时用。 */
   const state = {
@@ -1342,6 +1447,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     board: { kind: 'loading', data: null, reason: '' },
     host: { kind: 'loading', data: null, reason: '' },
     tiers: { kind: 'loading', data: null, reason: '' },
+    alerts: { kind: 'loading', data: null, reason: '' },
     memory: { kind: 'idle' },
     staleReasons: {},
     staleAt: 0,
@@ -1378,6 +1484,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       else btn.removeAttribute('aria-current');
     });
     hideTip();
+    markState(); // 0.6.0：切页后也把当前页同步到 body.dataset（无头自检/调试用）
   }
   function initNav() {
     Array.prototype.forEach.call(document.querySelectorAll('.nav-item[data-page]'), function (btn) {
@@ -1536,6 +1643,42 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     renderChrome();
   }
 
+  /* ---------------- 告警：api/alerts（0.6.0，TRAIL 规则分类器） ---------------- */
+  function isAlertsPayload(data) {
+    return !!data && typeof data === 'object' &&
+      typeof data.generatedAt === 'string' &&
+      !!data.counts && typeof data.counts === 'object' &&
+      typeof data.counts.high === 'number' && typeof data.counts.medium === 'number' && typeof data.counts.low === 'number' &&
+      Array.isArray(data.alerts) &&
+      data.alerts.every(function (alert) {
+        return !!alert && typeof alert === 'object' &&
+          typeof alert.id === 'string' && typeof alert.category === 'string' &&
+          (alert.severity === 'high' || alert.severity === 'medium' || alert.severity === 'low') &&
+          typeof alert.why === 'string' && Array.isArray(alert.evidence) &&
+          typeof alert.suggestion === 'string';
+      });
+  }
+  async function loadAlerts() {
+    try {
+      const data = await fetchJson('api/alerts', 5000);
+      if (!isAlertsPayload(data)) throw new Error('结构不符');
+      state.alerts = { kind: 'real', data: data, reason: '' };
+      noteSuccess('alerts');
+    } catch (error) {
+      const reason = shortReason(error);
+      if (state.alerts.kind === 'real') {
+        noteFailure('alerts', reason);
+        return;
+      }
+      state.alerts = { kind: 'missing', data: null, reason: reason };
+    }
+    // 告警会改「三问第一问」和任务卡标记，两个都要重渲染。
+    renderThreeQuestions();
+    renderTasks();
+    renderChrome();
+    markState();
+  }
+
   /* =====================================================================
    * 渲染：顶栏 / 左栏底部 / 设置页数据源
    * ===================================================================== */
@@ -1562,13 +1705,20 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (board.kind === 'real') {
       const tasks = Array.isArray(board.data.tasks) ? board.data.tasks : [];
       const health = board.data.health;
+      const official = board.data.official;
+      const officialCount = official && official.available === true && Array.isArray(official.tasks) ? official.tasks.length : null;
+      const officialText = official === undefined || official === null
+        ? '官方任务板：接口未返回 official 段（需重启 DSH）'
+        : official.available === true
+          ? '官方任务板 ' + officialCount + ' 任务'
+          : '官方任务板不可用';
       return {
         count: tasks.length,
-        text: '板上 ' + tasks.length + ' 任务',
+        text: '板上 ' + tasks.length + ' 任务' + (officialCount ? ' · 官方 ' + officialCount : ''),
         pill: health && health.ok ? '板 在线 · ' + health.latencyMs + 'ms' : '板 在线',
         badge: '真实 · 共享板',
         badgeKind: 'real',
-        detail: '在线 · ' + (((board.data.source || {}).origin) || 'origin 未给出') + ' · ' + tasks.length + ' 任务'
+        detail: '在线 · ' + (((board.data.source || {}).origin) || 'origin 未给出') + ' · ' + tasks.length + ' 任务 · ' + officialText
       };
     }
     if (board.kind === 'unconfigured') {
@@ -1609,6 +1759,25 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     const reason = tiers.reason || '不可用';
     return /404/.test(reason) ? 'api/tiers 路由尚未加载（HTTP 404）：新版 Host 需重启 DSH' : '降级 · ' + reason;
   }
+  /** 0.6.0：告警数据源的一句话摘要（设置页用）。 */
+  function alertsSummary() {
+    const alerts = state.alerts;
+    if (alerts.kind === 'real') {
+      const data = alerts.data || {};
+      const source = data.source || {};
+      const counts = data.counts || {};
+      const degraded = Array.isArray(data.degraded && data.degraded.reasons) ? data.degraded.reasons.length : 0;
+      return 'TRAIL 规则 ' + (source.rules || '—') + ' 条 · 类目 ' + (source.taxonomy || '—') + ' · 高 ' +
+        (Number.isFinite(counts.high) ? counts.high : '—') + ' / 中 ' + (Number.isFinite(counts.medium) ? counts.medium : '—') +
+        ' / 低 ' + (Number.isFinite(counts.low) ? counts.low : '—') +
+        '（板 ' + (source.board || '—') + ' · 层级 ' + (source.tiers || '—') + (degraded ? ' · 覆盖不完整 ' + degraded + ' 项' : '') + '）';
+    }
+    if (alerts.kind === 'loading') return '载入中…';
+    const reason = alerts.reason || '不可用';
+    return /404/.test(reason)
+      ? 'api/alerts 路由尚未加载（HTTP 404）：新版 Host 需重启 DSH（页面已退回按板状态列「是否需要我」）'
+      : '不可用 · ' + reason;
+  }
   function renderChrome() {
     const cluster = clusterSummary();
     const board = boardSummary();
@@ -1646,9 +1815,23 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (pillHost) pillHost.textContent = host.pill;
 
     const setVersion = $('#setVersion');
-    if (setVersion) setVersion.textContent = '0.4.0';
+    if (setVersion) setVersion.textContent = '0.6.0';
     const setBoard = $('#setBoard');
     if (setBoard) setBoard.textContent = board.detail;
+    const setOfficial = $('#setOfficial');
+    if (setOfficial) {
+      const official = state.board.kind === 'real' && state.board.data ? state.board.data.official : null;
+      if (official && official.available === true) {
+        const teams = Array.isArray(official.teams) ? official.teams : [];
+        const enabled = teams.filter(function (team) { return team.enabled === true; }).length;
+        setOfficial.textContent = '可用 · ' + (Array.isArray(official.tasks) ? official.tasks.length : 0) +
+          ' 任务 · ' + enabled + ' 个团队（只读 agentTeam 投影）' + (official.truncated === true ? ' · 已截断' : '');
+      } else if (official && official.available === false) {
+        setOfficial.textContent = '不可用 · ' + String(official.reason || '原因未给出');
+      } else {
+        setOfficial.textContent = '接口未返回 official 段（新版 Host 需重启 DSH 后生效）';
+      }
+    }
     const setCluster = $('#setCluster');
     if (setCluster) setCluster.textContent = state.cluster.kind === 'real'
       ? 'interconnect 正常 · ' + cluster.detail
@@ -1657,6 +1840,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (setHost) setHost.textContent = host.detail;
     const setTiersSource = $('#setTiersSource');
     if (setTiersSource) setTiersSource.textContent = tiersSummary();
+    const setAlerts = $('#setAlerts');
+    if (setAlerts) setAlerts.textContent = alertsSummary();
 
     const boardBadge = $('#boardBadge');
     const boardBadgeText = $('#boardBadgeText');
@@ -1673,9 +1858,289 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     }
     const clusterHint = $('#clusterHint');
     if (clusterHint) clusterHint.textContent = state.cluster.kind === 'real' ? '数据：api/cluster · 只读' : cluster.detail;
+    renderThreeQuestions();
     markState();
   }
 
+  /* =====================================================================
+   * 大管家页顶部「三问」条（0.5.0，官方 docs/005-panel.md 信息架构）
+   *
+   * 1) 是否需要我   2) 系统是否健康   3) 这件事的历史
+   * 官方原则落到实现：
+   *   - 健康/空态不占位：没有内容就 hidden，三条都空就整条 hidden；
+   *   - 每行说「在等谁、要什么」；
+   *   - 计数 = 列表长度（不是另算的数字）。
+   * 数据只来自已加载的真实接口；不可用就写不可用，不编。
+   * ===================================================================== */
+  function tqFill(blockId, countId, listId, rows) {
+    const block = document.getElementById(blockId);
+    const list = document.getElementById(listId);
+    const count = document.getElementById(countId);
+    if (!block || !list) return 0;
+    if (!rows.length) {
+      block.hidden = true;
+      list.innerHTML = '';
+      if (count) count.textContent = '0';
+      return 0;
+    }
+    block.hidden = false;
+    list.innerHTML = rows.map(function (row) {
+      return '<li class="tq-li"><span class="tq-who">在等 <b>' + esc(row.wait) + '</b></span>' +
+        '<span class="tq-want">要 ' + esc(row.want) + '</span></li>';
+    }).join('');
+    if (count) count.textContent = String(rows.length);
+    return rows.length;
+  }
+
+  /* ---------- 0.6.0：TRAIL 告警（第一问的主渲染路径） ---------- */
+  /** 告警数据（模块真实可用时）；否则 null。 */
+  function alertsData() {
+    const alerts = state.alerts;
+    return alerts.kind === 'real' && alerts.data ? alerts.data : null;
+  }
+  /** 告警卡 DOM id：只留安全字符（同一条告警稳定可寻址，跳转用）。 */
+  function alertDomId(alert) {
+    return 'alert-card-' + String(alert && alert.id ? alert.id : 'unknown').replace(/[^A-Za-z0-9_-]/g, '-');
+  }
+  /** 一条任务命中的告警（subjectId 命中，或在 relatedIds 里）。 */
+  function alertsForTask(taskId) {
+    const data = alertsData();
+    if (!data || typeof taskId !== 'string' || taskId === '') return [];
+    return (Array.isArray(data.alerts) ? data.alerts : []).filter(function (alert) {
+      if (!alert || alert.subjectType !== 'task') return false;
+      if (alert.subjectId === taskId) return true;
+      return Array.isArray(alert.relatedIds) && alert.relatedIds.indexOf(taskId) !== -1;
+    });
+  }
+  /** 官方任务板里「可认领但没负责人」的任务（告警不覆盖官方卡，这里单独补一行）。 */
+  function officialClaimable() {
+    if (state.board.kind !== 'real' || !state.board.data) return [];
+    const official = state.board.data.official;
+    if (!official || official.available !== true || !Array.isArray(official.tasks)) return [];
+    return official.tasks.filter(function (task) {
+      return task && task.status === 'pending' && task.ready === true && !task.ownerName && !task.ownerId;
+    });
+  }
+  /** 告警降级原因（数据源覆盖不完整时给页面看，最多显示 2 条）。 */
+  function alertsCoverageReasons() {
+    const data = alertsData();
+    if (!data || !data.degraded || !Array.isArray(data.degraded.reasons)) return [];
+    return data.degraded.reasons.filter(function (reason) { return typeof reason === 'string' && reason !== ''; });
+  }
+  /** 一条告警 → 告警卡（严重度颜色 + 中文类目 + 为什么 + 建议动作 + 证据字段）。 */
+  function alertCardHtml(alert) {
+    const severity = ALERT_SEVERITY[alert.severity] ? alert.severity : 'low';
+    const evidence = Array.isArray(alert.evidence) ? alert.evidence : [];
+    const evidenceHtml = evidence.length
+      ? evidence.map(function (line) { return '<span class="mono">' + esc(line) + '</span>'; }).join(' · ')
+      : '（接口未给证据字段）';
+    return '<li class="alert-card sev-' + severity + '" id="' + alertDomId(alert) + '" tabindex="-1">' +
+      '<div class="al-top">' +
+        '<span class="al-sev ' + severity + '">' + esc(ALERT_SEVERITY[severity] || severity) + '</span>' +
+        '<span class="al-cat" title="TRAIL 类目 id：' + esc(alert.category) + '">' + esc(alert.categoryLabel || alert.category) + '</span>' +
+        '<span class="al-subject">' + esc(alert.subject || '') + '</span>' +
+      '</div>' +
+      '<p class="al-why">' + esc(alert.why || '') + '</p>' +
+      '<p class="al-fix">建议：' + esc(alert.suggestion || '—') + '</p>' +
+      '<p class="al-evi">证据：' + evidenceHtml + '</p>' +
+    '</li>';
+  }
+  /**
+   * 第一问（告警模式）：高/中 → 「需要你：N 条」可展开告警卡；无 → 明说没有异常；
+   * 低优先级单独折叠，不占「需要你」的计数。返回需要人处理的条数（0 时也占 1 行，
+   * 让整条三问栏出现并显示「当前没有需要你处理的异常」）。
+   */
+  function renderNeedsAlerts() {
+    const block = document.getElementById('tqNeeds');
+    const list = document.getElementById('tqNeedsList');
+    const count = document.getElementById('tqNeedsN');
+    if (!block || !list) return 0;
+    const data = alertsData();
+    const alerts = data && Array.isArray(data.alerts) ? data.alerts : [];
+    const high = alerts.filter(function (alert) { return alert.severity === 'high'; });
+    const medium = alerts.filter(function (alert) { return alert.severity === 'medium'; });
+    const low = alerts.filter(function (alert) { return alert.severity === 'low'; });
+    const actionable = high.length + medium.length;
+    const rows = [];
+    if (actionable > 0) {
+      rows.push('<li class="tq-li">' +
+        '<details class="alert-fold" id="alertFold" open>' +
+          '<summary><span class="al-sev ' + (high.length ? 'high' : 'medium') + '">需要你：' + actionable + ' 条</span>' +
+          '<span class="tq-want">高 ' + high.length + ' · 中 ' + medium.length + ' · 展开/收起告警卡</span></summary>' +
+          '<ul class="alert-cards">' + high.concat(medium).map(alertCardHtml).join('') + '</ul>' +
+        '</details></li>');
+    } else {
+      rows.push('<li class="tq-li"><span class="tq-ok">当前没有需要你处理的异常</span>' +
+        '<span class="tq-want">告警分类器已跑（高 0 · 中 0）</span></li>');
+    }
+    if (low.length > 0) {
+      rows.push('<li class="tq-li">' +
+        '<details class="alert-fold" id="alertFoldLow">' +
+          '<summary><span class="al-sev low">另有 ' + low.length + ' 条低优先级提示</span>' +
+          '<span class="tq-want">不占「需要你」计数 · 展开查看</span></summary>' +
+          '<ul class="alert-cards">' + low.map(alertCardHtml).join('') + '</ul>' +
+        '</details></li>');
+    }
+    const claimable = officialClaimable();
+    if (claimable.length > 0) {
+      rows.push('<li class="tq-li"><span class="tq-who">在等 <b>负责人（官方任务可认领）</b></span>' +
+        '<span class="tq-want">要 认领 ' + claimable.length + ' 条：' + esc(claimable.slice(0, 2).map(function (task) {
+          return task.subject || task.id;
+        }).join('、')) + (claimable.length > 2 ? '…' : '') + '</span></li>');
+    }
+    alertsCoverageReasons().slice(0, 2).forEach(function (reason) {
+      rows.push('<li class="tq-li"><span class="tq-warn">告警覆盖不完整：' + esc(reason) + '</span></li>');
+    });
+    list.innerHTML = rows.join('');
+    block.hidden = false;
+    if (count) count.textContent = String(actionable);
+    return actionable > 0 ? actionable : 1;
+  }
+  /** 从任务卡标记/告警卡跳到告警：切页、展开对应折叠、滚动并闪烁。 */
+  function jumpToAlert(alertKey) {
+    setPage('butler');
+    const card = document.getElementById('alert-card-' + String(alertKey || '').replace(/^alert-card-/, '').replace(/[^A-Za-z0-9_-]/g, '-'));
+    if (!card) {
+      toast('这条告警已不在当前列表里（页面每 30 秒刷新一次告警）');
+      return;
+    }
+    const fold = card.closest ? card.closest('details') : null;
+    if (fold) fold.open = true;
+    setTimeout(function () {
+      try { card.scrollIntoView({ block: 'center' }); } catch (error) { /* 旧内核无 options */ }
+      card.classList.add('al-flash');
+      try { card.focus(); } catch (error) { /* 个别内核只读 */ }
+      setTimeout(function () { card.classList.remove('al-flash'); }, 2600);
+    }, 30);
+  }
+
+  /** 第一问：现在有没有事需要人出手（只认真实板数据）。 */
+  function tqNeeds() {    const rows = [];
+    const board = state.board;
+    const tasks = board.kind === 'real' && board.data && Array.isArray(board.data.tasks) ? board.data.tasks : [];
+    tasks.forEach(function (task) {
+      const name = '「' + (task.title || task.id || '未命名任务') + '」';
+      if (task.state === 'awaiting') rows.push({ wait: task.owner || '派发对象', want: '回执确认（超时可能要重派）：' + name });
+      else if (task.state === 'undelivered') rows.push({ wait: '派发对象', want: '重新派发：' + name });
+      else if (task.state === 'stale') rows.push({ wait: task.owner || '原负责人', want: '接管或重派（租约已过期）：' + name });
+    });
+    const official = board.kind === 'real' && board.data ? board.data.official : null;
+    if (official && official.available === true && Array.isArray(official.tasks)) {
+      official.tasks.forEach(function (task) {
+        if (task.status === 'pending' && task.ready === true && !task.ownerName && !task.ownerId) {
+          rows.push({ wait: '负责人（任务可认领）', want: '认领后开工：「' + (task.subject || task.id) + '」' });
+        }
+      });
+    }
+    return rows;
+  }
+
+  /** 第二问：系统是否健康。健康不占位；每行写清等谁、要什么。 */
+  function tqHealth() {
+    const rows = [];
+    if (state.cluster.kind === 'mock') {
+      rows.push({ wait: 'interconnect 链路', want: '本实例恢复链路（' + shortReason(state.cluster.reason) + '）' });
+    }
+    if (state.cluster.kind === 'real') {
+      const peers = state.cluster.data && Array.isArray(state.cluster.data.peers) ? state.cluster.data.peers : [];
+      peers.forEach(function (peer) {
+        if (peer.link !== 'up') rows.push({ wait: peer.instanceId || '对端实例', want: '链路恢复（当前 down）' });
+      });
+    }
+    if (state.board.kind === 'unconfigured') {
+      rows.push({ wait: 'profile 配置', want: '给 dsh-html-panel 配 config.board.endpoint / token' });
+    }
+    if (state.board.kind === 'mock') {
+      rows.push({ wait: '共享板', want: '恢复可达（' + shortReason(state.board.reason) + '）' });
+    }
+    if (state.board.kind === 'real' && state.board.data) {
+      const health = state.board.data.health;
+      if (health && health.ok !== true) rows.push({ wait: '共享板', want: '健康检查通过（/health 未 ok）' });
+      if (state.board.data.error) {
+        rows.push({ wait: '共享板', want: '正常返回（' + String(state.board.data.error.code || 'error') + '）' });
+      }
+      const official = state.board.data.official;
+      if (official && official.available === false) {
+        rows.push({ wait: '官方 Agent Teams 投影', want: '恢复可读（' + String(official.reason || '原因未给出') + '）' });
+      } else if (official === undefined || official === null) {
+        rows.push({ wait: '新版 Host', want: '重启 DSH 后 /api/board 才有 official 段' });
+      }
+    }
+    if (state.host.kind === 'mock') {
+      rows.push({ wait: '本机信息', want: '恢复可读（' + shortReason(state.host.reason) + '）' });
+    }
+    if (state.tiers.kind === 'missing' || state.tiers.kind === 'mock') {
+      const reason = state.tiers.reason || '不可用';
+      rows.push({
+        wait: 'api/tiers',
+        want: /404/.test(reason) ? '重启 DSH 后路由生效（当前 HTTP 404）' : '恢复可读（' + shortReason(reason) + '）'
+      });
+    }
+    if (state.alerts.kind === 'missing') {
+      const reason = state.alerts.reason || '不可用';
+      rows.push({
+        wait: 'api/alerts（TRAIL 告警）',
+        want: /404/.test(reason) ? '重启 DSH 后路由生效（当前 HTTP 404）' : '恢复可读（' + shortReason(reason) + '）'
+      });
+    } else if (state.alerts.kind === 'real') {
+      alertsCoverageReasons().slice(0, 2).forEach(function (reason) {
+        rows.push({ wait: '告警分类器', want: '恢复完整覆盖（' + shortReason(reason) + '）' });
+      });
+    }
+    return rows;
+  }
+
+  /** 第三问：当前关注的那件事的历史（优先右栏选中节点，其次共享板最近一条任务）。 */
+  function tqHistory() {
+    if (state.tiers.kind === 'real' && state.tierSelectedId) {
+      const view = buildTierView();
+      const stack = view.tree ? [view.tree] : [];
+      let found = null;
+      while (stack.length && !found) {
+        const node = stack.shift();
+        if (!node) continue;
+        if (node.id === state.tierSelectedId) { found = node; break; }
+        if (node.children && node.children.length) stack.push.apply(stack, node.children);
+      }
+      if (found) {
+        const rows = [{
+          wait: (found.name || found.id) + '（T' + found.tier + '）',
+          want: (TIER_STATUS[found.status] || '空闲') + ' · 开始 ' + (found.start || '未知')
+        }];
+        if (found.mode) rows.push({ wait: '子代理模式', want: SUBAGENT_MODE[found.mode] || '未知' });
+        if (found.children && found.children.length) {
+          rows.push({ wait: found.children.length + ' 个子代理', want: '展开右栏对应节点查看分别是谁' });
+        }
+        return rows;
+      }
+    }
+    const board = state.board;
+    if (board.kind === 'real' && board.data) {
+      const tasks = Array.isArray(board.data.tasks) ? board.data.tasks : [];
+      const events = Array.isArray(board.data.events) ? board.data.events : [];
+      if (tasks.length) {
+        const task = tasks[0];
+        const related = events.filter(function (event) { return event.task === task.id; });
+        return [
+          { wait: '最近任务 ' + (task.id || ''), want: '「' + (task.title || '未命名') + '」· ' + taskStateInfo(task).text + ' · 更新 ' + relTime(task.updatedAt) },
+          { wait: '证据与事件', want: (Number.isFinite(task.evidenceCount) ? task.evidenceCount + ' 条证据' : '证据数未取到') + ' · 最近事件 ' + related.length + ' 条（任务页 → 事件流看全部）' }
+        ];
+      }
+    }
+    return [];
+  }
+
+  /** 渲染三问：整条 bar 只在至少一问有内容时出现。 */
+  function renderThreeQuestions() {
+    const bar = $('#tqBar');
+    if (!bar) return;
+    // 0.6.0：告警路由可用时，第一问由 TRAIL 告警驱动；路由未加载（Host 未重启）时
+    // 退回 0.5.0 的「按板状态直接列」路径，行为不变、不额外占行。
+    const needs = alertsData() !== null ? renderNeedsAlerts() : tqFill('tqNeeds', 'tqNeedsN', 'tqNeedsList', tqNeeds());
+    const health = tqFill('tqHealth', 'tqHealthN', 'tqHealthList', tqHealth());
+    const history = tqFill('tqHistory', 'tqHistoryN', 'tqHistoryList', tqHistory());
+    bar.hidden = needs + health + history === 0;
+  }
   /* =====================================================================
    * 常用动作 —— 真实动作（0.3.0 通道原样保留）
    *
@@ -2086,21 +2551,92 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     const raw = (task && (task.lifecycle || key)) || 'unknown';
     return { text: '未知 · ' + raw, cls: 'unknown' };
   }
-  function taskItem(task, index) {
+  /** 官方 TeamTaskView 的 ready/受阻 → 状态点类名（teamDot）。 */
+  function teamDot(task) {
+    const status = Object.prototype.hasOwnProperty.call(TEAM_DOT, task.status) ? task.status : 'pending';
+    if (status === 'pending' && task.ready === false) return 'warning';
+    return TEAM_DOT[status];
+  }
+  /** 官方状态 + ready 的一句话说明（中文，不显示英文状态值）。 */
+  function teamStatusText(task) {
+    const status = TEAM_STATUS[task.status] || ('未知 · ' + String(task.status || ''));
+    if (task.status === 'pending') return task.ready === true ? status + ' · 可接手' : status + ' · 受阻';
+    return status;
+  }
+  /** mesh 板缺哪一列：如实写"数据源不含"，不假装是空数组。 */
+  function unsupportedText(task, field) {
+    const unsupported = Array.isArray(task.unsupported) ? task.unsupported : [];
+    if (unsupported.indexOf(field) === -1) return '';
+    return field === 'blockedBy'
+      ? '数据源不含依赖（mesh 板没有 blockedBy 列）'
+      : '数据源不含写域（mesh 板没有 writeScopes 列）';
+  }
+  function blockedByText(task) {
+    const missing = unsupportedText(task, 'blockedBy');
+    if (missing) return missing;
+    const ids = Array.isArray(task.blockedBy) ? task.blockedBy : [];
+    if (!ids.length) return '无';
+    return ids.join('、') + (task.ready === true ? '（都已完成）' : '（有未完成，任务受阻）');
+  }
+  function writeScopesText(task) {
+    const missing = unsupportedText(task, 'writeScopes');
+    if (missing) return missing;
+    const scopes = Array.isArray(task.writeScopes) ? task.writeScopes : [];
+    return scopes.length ? scopes.join('、') : '无';
+  }
+  /** 0.6.0：任务卡上的告警小标记（命中时显示，点了跳到大管家对应告警卡）。 */
+  function taskAlertFlags(task) {
+    const hits = alertsForTask(task && typeof task.id === 'string' ? task.id : '');
+    if (!hits.length) return '';
+    return hits.map(function (alert) {
+      const severity = ALERT_SEVERITY[alert.severity] ? alert.severity : 'low';
+      return '<span class="alert-flag sev-' + severity + '" role="button" tabindex="0" data-alert-jump="' + esc(alert.id) + '"' +
+        ' title="跳到大管家告警：' + esc((alert.categoryLabel || alert.category) + ' · ' + (alert.why || '')) + '">' +
+        '⚠ ' + esc(ALERT_SEVERITY[severity] || severity) + ' · ' + esc(alert.categoryLabel || alert.category) + '</span>';
+    }).join('');
+  }
+  /**
+   * 一条任务 → 列表项（0.5.0：叠加官方 TeamTaskView 字段）。
+   * mesh 任务保持旧五态 pill；official 任务用官方 status + ready 文案。
+   * @param {object} task 任务（mesh 行或 official 行）
+   * @param {number} index 序号（用于 detail id）
+   * @param {string} source 'mesh' | 'official'
+   */
+  function taskItem(task, index, source) {
     const info = taskStateInfo(task);
-    const detailId = 'task-detail-' + index;
-    const owner = task.owner || '—';
-    const node = task.node || '—';
+    const official = source === 'official' || task.source === 'official';
+    const detailId = 'task-detail-' + (official ? 'official' : 'mesh') + '-' + index;
+    const owner = task.ownerName || task.owner || '—';
+    const node = task.node || (official ? task.sessionTitle : '') || '—';
     const evidence = Number.isFinite(task.evidenceCount) ? task.evidenceCount + ' 条证据' : '证据 —';
     const acceptance = Array.isArray(task.acceptance) && task.acceptance.length
       ? task.acceptance.map(function (line) { return '<div class="row"><b>验收</b><span>' + esc(line) + '</span></div>'; }).join('')
       : '<div class="row"><b>验收</b><span>—</span></div>';
-    const brief = task.brief ? '<div class="row"><b>说明</b><span>' + esc(task.brief) + '</span></div>' : '';
+    const brief = task.brief || task.description
+      ? '<div class="row"><b>说明</b><span>' + esc(task.brief || task.description) + '</span></div>'
+      : '';
+    const warnings = Array.isArray(task.writeScopeWarnings) ? task.writeScopeWarnings : [];
+    const stateClass = official
+      ? (task.status === 'in_progress' ? 'leased' : task.status === 'completed' ? 'done' : (task.status === 'pending' && task.ready === false ? 'stale' : 'unknown'))
+      : info.cls;
+    const stateText = official ? teamStatusText(task) : info.text;
+    const readyText = task.status !== 'pending'
+      ? '不适用（' + (TEAM_STATUS[task.status] || '未知') + '）'
+      : (task.ready === true ? '是（依赖都已完成，可接手）' : '否（等依赖完成后才能接手）');
+    const sourceTag = '<span class="src-tag ' + (official ? 'official' : '') + '">' + (official ? '官方' : 'mesh') + '</span>';
+    const officialRows =
+      '<div class="row"><b>官方视图</b><span>' + esc(teamStatusText(task)) + ' · 就绪：' + esc(readyText) + '</span></div>' +
+      '<div class="row"><b>阻塞依赖</b><span>' + esc(blockedByText(task)) + '</span></div>' +
+      '<div class="row"><b>写域</b><span>' + esc(writeScopesText(task)) + '</span></div>' +
+      '<div class="row"><b>写域告警</b><span>' + (warnings.length ? warnings.map(function (line) { return esc(line); }).join('；') : '无') + '</span></div>' +
+      '<div class="row"><b>数据来源</b><span>' + (official
+        ? '官方 Agent Teams 投影（agentTeam，只读）· 会话 ' + esc(task.sessionId || '—')
+        : '共享板 mesh（/task/list）') + '</span></div>';
     return '<li class="item">' +
       '<button class="item-row" type="button" aria-expanded="false" aria-controls="' + detailId + '">' +
-        '<span class="st ' + info.cls + '">' + esc(info.text) + '</span>' +
+        '<span class="st ' + stateClass + '"><i class="sd ' + teamDot(task) + ' st-dot" aria-hidden="true"></i>' + esc(stateText) + '</span>' +
         '<span class="item-main">' +
-          '<span class="item-title">' + esc(task.title || '(无标题)') + '</span>' +
+          '<span class="item-title">' + esc(task.title || task.subject || '(无标题)') + sourceTag + taskAlertFlags(task) + '</span>' +
           '<span class="item-meta"><code>' + esc(task.id || '—') + '</code> · ' + esc(owner) + ' · 节点 ' + esc(node) +
             ' · ' + esc(evidence) + ' · 更新 ' + esc(relTime(task.updatedAt)) + '</span>' +
         '</span>' +
@@ -2110,6 +2646,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         '<div class="row"><b>原始状态</b><span>' + esc((task.lifecycle || 'unknown') + (task.ackState ? ' · 回执 ' + task.ackState : '')) + '</span></div>' +
         (task.updatedAt ? '<div class="row"><b>更新时间</b><span>' + esc(fmtMs(task.updatedAt)) + '</span></div>' : '') +
         (Number.isFinite(task.leaseDeadline) ? '<div class="row"><b>租约到期</b><span>' + esc(fmtMs(task.leaseDeadline)) + '</span></div>' : '') +
+        officialRows +
         acceptance + brief +
       '</div>' +
     '</li>';
@@ -2148,7 +2685,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       if (count) count.textContent = '';
       return;
     }
-    list.innerHTML = rows.map(function (row, i) { return taskItem(row, i); }).join('');
+    list.innerHTML = rows.map(function (row, i) { return taskItem(row, i, 'mesh'); }).join('');
     empty.hidden = rows.length > 0;
     if (!rows.length) {
       empty.textContent = board.kind === 'unconfigured'
@@ -2185,9 +2722,71 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     const count = $('#eventTabCount');
     if (count) count.textContent = rows.length ? String(rows.length) : '';
   }
+  /**
+   * 官方任务板（0.5.0）：只读渲染 `/api/board` 的 `official` 段。
+   * 拿不到就明说「官方任务板不可用（原因）」，不拿 mesh 任务或 mock 数据冒充。
+   */
+  function renderOfficial() {
+    const board = state.board;
+    const list = $('#officialList');
+    const empty = $('#officialEmpty');
+    const hint = $('#officialHint');
+    const count = $('#officialCount');
+    if (!list || !empty) return;
+    const setHint = function (text) { if (hint) hint.textContent = text; };
+    const setCount = function (text) { if (count) count.textContent = text; };
+    if (board.kind === 'loading' || board.kind === 'mock') {
+      list.innerHTML = '';
+      empty.hidden = false;
+      empty.textContent = board.kind === 'loading'
+        ? '载入中…'
+        : '官方任务板不可用（共享板接口整体不可达，官方投影随 api/board 一起返回：' + board.reason + '）';
+      setHint('不可用');
+      setCount('');
+      return;
+    }
+    if (board.kind === 'unconfigured') {
+      list.innerHTML = '';
+      empty.hidden = false;
+      empty.textContent = '官方任务板不可用（共享板未配置：api/board 未返回 official 段）';
+      setHint('不可用');
+      setCount('');
+      return;
+    }
+    const official = board.data && board.data.official ? board.data.official : null;
+    if (official === null) {
+      list.innerHTML = '';
+      empty.hidden = false;
+      empty.textContent = '官方任务板不可用（当前宿主 /api/board 没有 official 段：新版 Host 需重启 DSH 后生效）';
+      setHint('待重启');
+      setCount('');
+      return;
+    }
+    if (official.available !== true) {
+      list.innerHTML = '';
+      empty.hidden = false;
+      empty.textContent = '官方任务板不可用（' + String(official.reason || '原因未给出') + '）';
+      setHint('不可用');
+      setCount('');
+      return;
+    }
+    const rows = Array.isArray(official.tasks) ? official.tasks : [];
+    const teams = Array.isArray(official.teams) ? official.teams : [];
+    const enabledTeams = teams.filter(function (team) { return team.enabled === true; }).length;
+    list.innerHTML = rows.map(function (row, i) { return taskItem(row, i, 'official'); }).join('');
+    empty.hidden = rows.length > 0;
+    if (!rows.length) {
+      empty.textContent = enabledTeams === 0
+        ? '官方任务板为空：本机活会话里没有开启团队模式（Team）的任务板'
+        : '官方任务板为空：开启团队模式的会话里还没有共享任务';
+    }
+    setHint('只读 · ' + enabledTeams + ' 个团队' + (official.truncated === true ? ' · 已截断' : ''));
+    setCount(rows.length ? String(rows.length) : '');
+  }
   function renderBoardModule() {
     renderTasks();
     renderEvents();
+    renderOfficial();
     renderBoardAction();
     renderChrome();
   }
@@ -2456,6 +3055,10 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       const start = node.startedAt ? fmtStamp(node.startedAt) : '';
       const kids = (byParent.get(node.id) || []).map(function (kid) { return convert(kid, tier + 1); }).filter(Boolean);
       const kind = node.kind === 'subagent' ? '子代理' : '会话';
+      // 官方 subagent 契约（dsh-client-ui-subagent）：mode 只对子代理有意义；T1 会话不适用。
+      const mode = node.kind === 'subagent' ? (SUBAGENT_MODE[node.mode] ? node.mode : 'unknown') : '';
+      const modeText = mode ? (SUBAGENT_MODE[mode] || '未知') : '';
+      const meta = (mode ? ['模式 ' + modeText] : []).concat(kids.length ? [kids.length + ' 个子代理'] : []);
       return {
         tier: tier,
         id: node.id,
@@ -2464,8 +3067,11 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         status: status,
         statusText: TIER_STATUS[status],
         start: start || '—',
-        task: kind + (start ? ' · 开始 ' + start : ''),
-        meta: kids.length ? [kids.length + ' 个子代理'] : [],
+        mode: mode,
+        parentSessionId: typeof node.parentSessionId === 'string' ? node.parentSessionId : '',
+        childSessionId: typeof node.childSessionId === 'string' ? node.childSessionId : '',
+        task: kind + (modeText ? ' · ' + modeText : '') + (start ? ' · 开始 ' + start : ''),
+        meta: meta,
         children: kids,
         emptyNote: tier === 1 && kids.length === 0 ? '暂无活子代理' : '',
         emptySub: tier === 1 && kids.length === 0 ? '该会话目前没有正在运行的子代理' : ''
@@ -2518,6 +3124,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       '<span class="badge" aria-hidden="true">T' + n.tier + '</span>' +
       '<div class="card">' +
         '<div class="nrow"><i class="dot ' + n.status + '"></i><span class="nname" title="' + esc(n.name) + '">' + esc(n.name) + '</span>' +
+          (n.mode ? '<span class="mode-tag">' + esc(SUBAGENT_MODE[n.mode] || '未知') + '</span>' : '') +
           '<span class="nst ' + n.status + '">' + esc(n.statusText || TIER_STATUS[n.status] || '空闲') + '</span>' + fold + '</div>' +
         '<div class="nsub"><span class="dev"><svg class="i"><use href="#i-monitor"></use></svg>' + esc(n.device) + '</span>' +
           '<span class="ntask">' + esc(n.task) + '</span></div>' +
@@ -2531,7 +3138,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       kidsHtml = '<div class="kids"><div class="empty"><span class="empty-t">' + esc(n.emptyNote) + '</span><span>' + esc(n.emptySub || '') + '</span></div></div>';
     }
     return '<div class="node lv' + level + '" role="none" data-id="' + esc(n.id) + '" data-name="' + esc(n.name) + '" data-device="' + esc(n.device) +
-      '" data-level="T' + n.tier + '" data-status="' + esc(n.statusText || '') + '" data-task="' + esc(n.task) + '" data-start="' + esc(n.start || '—') + '">' +
+      '" data-level="T' + n.tier + '" data-status="' + esc(n.statusText || '') + '" data-task="' + esc(n.task) + '" data-start="' + esc(n.start || '—') +
+      '" data-mode="' + esc(n.mode || '') + '" data-child-session="' + esc(n.childSessionId || '') + '" data-parent-session="' + esc(n.parentSessionId || '') + '">' +
       head + kidsHtml + '</div>';
   }
 
@@ -2603,7 +3211,12 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       if (view.source) {
         const remote = Array.isArray(view.source.remote) ? view.source.remote : [];
         const up = remote.filter(function (row) { return row.link === 'up'; }).length;
-        sourceHint.textContent = '数据：' + (view.source.local || '—') + ' + 远端 ' + up + '/' + remote.length + ' · 15 秒刷新';
+        const modeSource = view.source.subagentMode === 'official-projection'
+          ? ' · 契约：官方投影'
+          : view.source.subagentMode === 'official-projection(no-mode)'
+            ? ' · 契约：官方投影（无 mode 数据）'
+            : ' · mode：未知（官方投影不可用）';
+        sourceHint.textContent = '数据：' + (view.source.local || '—') + ' + 远端 ' + up + '/' + remote.length + modeSource + ' · 15 秒刷新';
       } else {
         sourceHint.textContent = '数据：活会话 + 子代理血缘';
       }
@@ -2656,6 +3269,9 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     tip.appendChild(tipRow('状态', data.status || '—'));
     tip.appendChild(tipRow('任务', data.task || '—'));
     tip.appendChild(tipRow('开始', data.start || '—', true));
+    if (data.mode) tip.appendChild(tipRow('子代理模式', SUBAGENT_MODE[data.mode] || '未知'));
+    if (data.childSession) tip.appendChild(tipRow('子会话', data.childSession, true));
+    if (data.parentSession) tip.appendChild(tipRow('父会话', data.parentSession, true));
     tip.classList.add('show');
   }
   function initTierInteractions() {
@@ -2674,12 +3290,13 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           return;
         }
         const head = event.target.closest('.head');
-        if (!head) { state.tierSelectedId = ''; applyTierSelection(); return; }
+        if (!head) { state.tierSelectedId = ''; applyTierSelection(); renderThreeQuestions(); return; }
         const node = head.parentElement;
         if (!node) return;
         const id = node.getAttribute('data-id') || '';
         state.tierSelectedId = state.tierSelectedId === id ? '' : id;
         applyTierSelection();
+        renderThreeQuestions();
       });
       tree.addEventListener('keydown', function (event) {
         if (!event.target.classList || !event.target.classList.contains('head')) return;
@@ -2925,6 +3542,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     loadBoard();
     loadHost();
     loadTiers();
+    loadAlerts();
   }
   function setDatasetFlag(kind, value) {
     try { document.body.dataset[kind] = value; } catch (error) { /* 旧内核无 dataset 也不影响功能 */ }
@@ -2934,6 +3552,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     setDatasetFlag('board', state.board.kind);
     setDatasetFlag('host', state.host.kind);
     setDatasetFlag('tiers', state.tiers.kind);
+    setDatasetFlag('alerts', state.alerts.kind);
     setDatasetFlag('page', state.page);
   }
 
@@ -2950,6 +3569,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   renderMemory();
   renderChrome();
   renderBoardModule();
+  renderThreeQuestions();
   renderHostModule();
   setPage('butler');
   markState();
@@ -2960,10 +3580,25 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     toast('已请求刷新：链路 / 共享板 / 本机 / 层级');
   });
   const taskList = $('#taskList');
-  if (taskList) taskList.addEventListener('click', function (event) {
-    const button = event.target.closest('.item-row');
-    if (button) toggleItem(button);
-  });
+  if (taskList) {
+    taskList.addEventListener('click', function (event) {
+      const jump = event.target.closest('[data-alert-jump]');
+      if (jump) {
+        event.preventDefault();
+        jumpToAlert(jump.getAttribute('data-alert-jump'));
+        return;
+      }
+      const button = event.target.closest('.item-row');
+      if (button) toggleItem(button);
+    });
+    taskList.addEventListener('keydown', function (event) {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const jump = event.target.closest('[data-alert-jump]');
+      if (!jump) return;
+      event.preventDefault();
+      jumpToAlert(jump.getAttribute('data-alert-jump'));
+    });
+  }
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') {
       closeDrawer();
@@ -2976,6 +3611,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     loadCluster();
     loadBoard();
     loadHost();
+    loadAlerts();
   }, POLL_MS);
   setInterval(function () {
     if (document.hidden) return;

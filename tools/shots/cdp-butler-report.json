@@ -4,7 +4,7 @@
     "width": 1440,
     "height": 1000
   },
-  "generatedAt": "2026-11-21T09:34:06.073Z",
+  "generatedAt": "2026-11-21T12:37:21.527Z",
   "checks": [
     {
       "name": "页面标题是大管家",
@@ -85,6 +85,36 @@
       "name": "集群导航 badge 是 up/总数",
       "ok": true,
       "detail": "actual=\"1/4\" expected=\"1/4\""
+    },
+    {
+      "name": "三问条出现（真实数据里有需要人/系统问题）",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "三问计数=列表长度（需要我 3 mesh + 1 官方可认领）",
+      "ok": true,
+      "detail": "actual=\"4/4\" expected=\"4/4\""
+    },
+    {
+      "name": "三问计数=列表长度（健康 3 条 down 链路 + api/alerts 未加载）",
+      "ok": true,
+      "detail": "actual=\"4/4\" expected=\"4/4\""
+    },
+    {
+      "name": "三问计数=列表长度（历史 2 行）",
+      "ok": true,
+      "detail": "actual=\"2/2\" expected=\"2/2\""
+    },
+    {
+      "name": "三问每行说在等谁/要什么",
+      "ok": true,
+      "detail": "needle=在等"
+    },
+    {
+      "name": "三问健康行点名 down 对端",
+      "ok": true,
+      "detail": "needle=s5"
     },
     {
       "name": "右栏节点总数（1+4+6+2）",
@@ -172,6 +202,41 @@
       "detail": "actual=4 expected=4"
     },
     {
+      "name": "mesh 任务行都带官方 StateDot 状态点",
+      "ok": true,
+      "detail": "actual=6 expected=6"
+    },
+    {
+      "name": "官方任务板渲染 2 条（只读 official 段）",
+      "ok": true,
+      "detail": "actual=2 expected=2"
+    },
+    {
+      "name": "官方任务板计数=列表长度",
+      "ok": true,
+      "detail": "actual=\"2\" expected=\"2\""
+    },
+    {
+      "name": "官方任务板标只读与团队数",
+      "ok": true,
+      "detail": "needle=只读 · 1 个团队"
+    },
+    {
+      "name": "官方任务行标 source=official",
+      "ok": true,
+      "detail": "actual=\"官方,官方\" expected=\"官方,官方\""
+    },
+    {
+      "name": "官方任务详情带就绪/阻塞依赖/写域告警",
+      "ok": true,
+      "detail": "needle=阻塞依赖"
+    },
+    {
+      "name": "官方任务详情带写域告警原文",
+      "ok": true,
+      "detail": "needle=write scopes overlap with task-official-3"
+    },
+    {
       "name": "集群页可见",
       "ok": true,
       "detail": "actual=\"cluster\" expected=\"cluster\""
@@ -222,9 +287,14 @@
       "detail": "actual=\"settings\" expected=\"settings\""
     },
     {
-      "name": "设置页插件版本 0.4.0",
+      "name": "设置页插件版本 0.6.0",
       "ok": true,
-      "detail": "actual=\"0.4.0\" expected=\"0.4.0\""
+      "detail": "actual=\"0.6.0\" expected=\"0.6.0\""
+    },
+    {
+      "name": "设置页官方任务板数据源可见",
+      "ok": true,
+      "detail": "needle=可用 · 2 任务 · 1 个团队"
     },
     {
       "name": "设置页共享板来源接真实 origin",
@@ -270,6 +340,21 @@
       "name": "点节点高亮 T0→… 上级路径，再点取消",
       "ok": true,
       "detail": "{\"ok\":true,\"first\":{\"hasSel\":true,\"sel\":1,\"path\":3},\"cleared\":true}"
+    },
+    {
+      "name": "选中 T2 后三问历史切到该节点",
+      "ok": true,
+      "detail": "needle=层级交互"
+    },
+    {
+      "name": "层级节点带官方 mode 徽标（可续聊/一次性/未知）",
+      "ok": true,
+      "detail": "可续聊,一次性,未知,未知,未知,未知,未知,未知"
+    },
+    {
+      "name": "层级节点带官方血缘字段 childSessionId/parentSessionId",
+      "ok": true,
+      "detail": "[{\"mode\":\"\",\"child\":\"\",\"parent\":\"\"},{\"mode\":\"\",\"child\":\"session-main\",\"parent\":\"\"},{\"mode\":\"continuable\",\"child\":\"session-child-1\",\"parent\":\"session-main\"},{\"mode\":\"one-shot\",\"child\":\"session-grand-1\",\"parent\":\"session-child-1\"}]"
     },
     {
       "name": "900 无横向溢出",
@@ -397,6 +482,16 @@
       "detail": "actual=1 expected=1"
     },
     {
+      "name": "mock 时官方任务板不冒充数据",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "mock 时官方任务板给不可用原因",
+      "ok": true,
+      "detail": "needle=官方任务板不可用"
+    },
+    {
       "name": "页面 JS 报错为 0",
       "ok": true,
       "detail": "[]"
@@ -409,12 +504,13 @@
     {
       "name": "截图数量 ≥ 5",
       "ok": true,
-      "detail": "shots=13"
+      "detail": "shots=14"
     }
   ],
   "shots": [
     "tools/shots/shot-butler-01-dashboard-1440.png",
     "tools/shots/shot-butler-02-tasks-1440.png",
+    "tools/shots/shot-butler-14-official-board-1440.png",
     "tools/shots/shot-butler-03-cluster-1440.png",
     "tools/shots/shot-butler-04-memory-1440.png",
     "tools/shots/shot-butler-05-settings-1440.png",
@@ -437,6 +533,7 @@
         "board": "real",
         "host": "real",
         "tiers": "real",
+        "alerts": "missing",
         "page": "butler"
       }
     },
@@ -447,6 +544,7 @@
         "board": "real",
         "host": "real",
         "tiers": "real",
+        "alerts": "missing",
         "page": "butler"
       }
     },
@@ -457,6 +555,7 @@
         "board": "real",
         "host": "real",
         "tiers": "missing",
+        "alerts": "missing",
         "page": "butler"
       }
     },
@@ -467,11 +566,12 @@
         "board": "mock",
         "host": "mock",
         "tiers": "missing",
+        "alerts": "missing",
         "page": "butler"
       }
     }
   ],
   "ok": true,
   "failed": 0,
-  "passed": 81
+  "passed": 100
 }

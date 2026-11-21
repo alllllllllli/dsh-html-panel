@@ -1,0 +1,274 @@
+{
+  "page": "public/index.html",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "generatedAt": "2026-11-21T12:39:47.481Z",
+  "checks": [
+    {
+      "name": "告警接口真实加载（alerts=real）",
+      "ok": true,
+      "detail": "actual=real expected=real"
+    },
+    {
+      "name": "三问条出现",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "第一问可见",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "需要你计数 = 高+中（2+1）",
+      "ok": true,
+      "detail": "actual=3 expected=3"
+    },
+    {
+      "name": "显示「需要你：3 条」",
+      "ok": true,
+      "detail": "needle=需要你：3 条"
+    },
+    {
+      "name": "高/中告警卡片数 = 3",
+      "ok": true,
+      "detail": "actual=3 expected=3"
+    },
+    {
+      "name": "高严重度卡片数",
+      "ok": true,
+      "detail": "actual=2 expected=2"
+    },
+    {
+      "name": "中严重度卡片数",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "低优先级单独折叠",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "低优先级卡片数（不计入需要你）",
+      "ok": true,
+      "detail": "actual=2 expected=2"
+    },
+    {
+      "name": "告警卡有中文类目「任务编排」",
+      "ok": true,
+      "detail": "needle=任务编排"
+    },
+    {
+      "name": "告警卡有中文类目「超时」",
+      "ok": true,
+      "detail": "needle=超时"
+    },
+    {
+      "name": "告警卡有一句话为什么",
+      "ok": true,
+      "detail": "needle=证据条数是 0"
+    },
+    {
+      "name": "告警卡有建议动作",
+      "ok": true,
+      "detail": "needle=建议："
+    },
+    {
+      "name": "告警卡有证据字段路径",
+      "ok": true,
+      "detail": "needle=tasks.t-fixture-done-noev.evidenceCount=0"
+    },
+    {
+      "name": "「需要你」折叠默认展开（截图能看到卡片）",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "告警降级原因进「系统是否健康」",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "1440 无横向溢出",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "任务页有任务行",
+      "ok": true,
+      "detail": "actual=5 expected=5"
+    },
+    {
+      "name": "任务卡告警标记数（命中任务的行各一个）",
+      "ok": true,
+      "detail": "actual=4 expected=4"
+    },
+    {
+      "name": "任务卡标记带跳转属性",
+      "ok": true,
+      "detail": "actual=4 expected=4"
+    },
+    {
+      "name": "任务卡标记带严重度文案（中·任务编排）",
+      "ok": true,
+      "detail": "needle=中 · 任务编排"
+    },
+    {
+      "name": "任务卡标记带严重度文案（高·超时）",
+      "ok": true,
+      "detail": "needle=高 · 超时"
+    },
+    {
+      "name": "点任务卡标记跳回大管家",
+      "ok": true,
+      "detail": "actual=butler expected=butler"
+    },
+    {
+      "name": "跳转后告警折叠展开",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "跳转后告警卡仍在页面里",
+      "ok": true,
+      "detail": "needle=同标题任务"
+    },
+    {
+      "name": "900 无横向溢出（有告警）",
+      "ok": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "900 告警卡仍在",
+      "ok": true,
+      "detail": "actual=3 expected=3"
+    },
+    {
+      "name": "无告警时第一问仍显示（明说没有异常）",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "无告警时计数为 0",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "无告警文案「当前没有需要你处理的异常」",
+      "ok": true,
+      "detail": "needle=当前没有需要你处理的异常"
+    },
+    {
+      "name": "无告警时不渲染告警卡",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "无告警时没有低优先级折叠",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "无告警时任务卡无标记",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "1440 无横向溢出（无告警）",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "900 无横向溢出（无告警）",
+      "ok": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "900 无告警文案仍在",
+      "ok": true,
+      "detail": "needle=当前没有需要你处理的异常"
+    },
+    {
+      "name": "live：真实页面加载完成（alerts 状态已定，不是 loading）",
+      "ok": true,
+      "detail": "{\"cluster\":\"real\",\"board\":\"real\",\"host\":\"real\",\"tiers\":\"real\",\"alerts\":\"missing\",\"page\":\"butler\"}"
+    },
+    {
+      "name": "live：三问条在真实数据下出现",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "live：1440 无横向溢出",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "live：api/alerts 404 时健康问写明「重启 DSH 后路由生效」",
+      "ok": true,
+      "detail": "needle=api/alerts"
+    },
+    {
+      "name": "live：健康问写明当前是 HTTP 404",
+      "ok": true,
+      "detail": "needle=404"
+    },
+    {
+      "name": "live：404 时第一问如实（无待办为空 / 有则按板状态列出，不编告警）",
+      "ok": true,
+      "detail": "{\"visible\":false,\"text\":\"是否需要我0\"}"
+    }
+  ],
+  "shots": [
+    "tools/shots/shot-alerts-01-needs-1440.png",
+    "tools/shots/shot-alerts-02-tasks-flags-1440.png",
+    "tools/shots/shot-alerts-03-jump-1440.png",
+    "tools/shots/shot-alerts-04-needs-900.png",
+    "tools/shots/shot-alerts-05-empty-1440.png",
+    "tools/shots/shot-alerts-06-empty-900.png",
+    "tools/shots/shot-alerts-07-live-real-1440.png"
+  ],
+  "pageErrors": [],
+  "runtimeErrors": [],
+  "scenarios": [
+    {
+      "name": "alerts",
+      "dataset": {
+        "cluster": "real",
+        "board": "real",
+        "host": "real",
+        "tiers": "real",
+        "alerts": "real",
+        "page": "butler"
+      }
+    },
+    {
+      "name": "empty",
+      "dataset": {
+        "cluster": "real",
+        "board": "real",
+        "host": "real",
+        "tiers": "real",
+        "alerts": "real",
+        "page": "butler"
+      }
+    },
+    {
+      "name": "live",
+      "dataset": {
+        "cluster": "real",
+        "board": "real",
+        "host": "real",
+        "tiers": "real",
+        "alerts": "missing",
+        "page": "butler"
+      }
+    }
+  ],
+  "ok": true,
+  "failed": 0,
+  "passed": 43
+}
