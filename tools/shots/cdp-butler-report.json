@@ -1,0 +1,477 @@
+{
+  "page": "public/index.html",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "generatedAt": "2026-11-21T09:34:06.073Z",
+  "checks": [
+    {
+      "name": "页面标题是大管家",
+      "ok": true,
+      "detail": "actual=\"大管家 · DSH 控制台\" expected=\"大管家 · DSH 控制台\""
+    },
+    {
+      "name": "默认进大管家页",
+      "ok": true,
+      "detail": "actual=\"butler\" expected=\"butler\""
+    },
+    {
+      "name": "五页导航齐全",
+      "ok": true,
+      "detail": "actual=\"butler,tasks,cluster,memory,settings\" expected=\"butler,tasks,cluster,memory,settings\""
+    },
+    {
+      "name": "导航文案是大管家口径",
+      "ok": true,
+      "detail": "actual=\"大管家,任务,集群,记忆,设置\" expected=\"大管家,任务,集群,记忆,设置\""
+    },
+    {
+      "name": "示例对话 badge 明确标注",
+      "ok": true,
+      "detail": "needle=示例对话"
+    },
+    {
+      "name": "示例对话 badge 说明不是真实聊天",
+      "ok": true,
+      "detail": "needle=不是真实聊天"
+    },
+    {
+      "name": "cluster 真实",
+      "ok": true,
+      "detail": "actual=\"real\" expected=\"real\""
+    },
+    {
+      "name": "board 真实",
+      "ok": true,
+      "detail": "actual=\"real\" expected=\"real\""
+    },
+    {
+      "name": "host 真实",
+      "ok": true,
+      "detail": "actual=\"real\" expected=\"real\""
+    },
+    {
+      "name": "tiers 真实",
+      "ok": true,
+      "detail": "actual=\"real\" expected=\"real\""
+    },
+    {
+      "name": "顶栏设备统计接真实链路",
+      "ok": true,
+      "detail": "needle=4 台设备 · 1 条链路 up"
+    },
+    {
+      "name": "顶栏共享板统计接真实任务数",
+      "ok": true,
+      "detail": "needle=板上 6 任务"
+    },
+    {
+      "name": "左栏底部设备状态接真实实例",
+      "ok": true,
+      "detail": "needle=pc-ky614"
+    },
+    {
+      "name": "左栏底部链路统计",
+      "ok": true,
+      "detail": "needle=4 台设备 · 1 条链路 up"
+    },
+    {
+      "name": "任务导航 badge 是真实任务数",
+      "ok": true,
+      "detail": "actual=\"6\" expected=\"6\""
+    },
+    {
+      "name": "集群导航 badge 是 up/总数",
+      "ok": true,
+      "detail": "actual=\"1/4\" expected=\"1/4\""
+    },
+    {
+      "name": "右栏节点总数（1+4+6+2）",
+      "ok": true,
+      "detail": "actual=13 expected=13"
+    },
+    {
+      "name": "层级计数 chip T0..T3",
+      "ok": true,
+      "detail": "actual=\"1,4,6,2\" expected=\"1,4,6,2\""
+    },
+    {
+      "name": "节点徽标从 T0 起",
+      "ok": true,
+      "detail": "actual=\"T0\" expected=\"T0\""
+    },
+    {
+      "name": "T1 出现在徽标里",
+      "ok": true,
+      "detail": "needle=T1"
+    },
+    {
+      "name": "T3 出现在徽标里",
+      "ok": true,
+      "detail": "needle=T3"
+    },
+    {
+      "name": "设备标签出现 pc-ky614",
+      "ok": true,
+      "detail": "needle=pc-ky614"
+    },
+    {
+      "name": "设备标签出现 server",
+      "ok": true,
+      "detail": "needle=server"
+    },
+    {
+      "name": "设备标签出现 mcloud",
+      "ok": true,
+      "detail": "needle=mcloud"
+    },
+    {
+      "name": "有降级说明时 badge 显示",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "降级原因来自接口",
+      "ok": true,
+      "detail": "needle=远端设备的子代理层级不可见"
+    },
+    {
+      "name": "1440 无横向溢出",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "任务页可见",
+      "ok": true,
+      "detail": "actual=\"tasks\" expected=\"tasks\""
+    },
+    {
+      "name": "任务行数接共享板真值",
+      "ok": true,
+      "detail": "actual=6 expected=6"
+    },
+    {
+      "name": "事件流行数接共享板真值",
+      "ok": true,
+      "detail": "actual=8 expected=8"
+    },
+    {
+      "name": "板 badge 标真实",
+      "ok": true,
+      "detail": "actual=\"real\" expected=\"real\""
+    },
+    {
+      "name": "板 badge 文案",
+      "ok": true,
+      "detail": "needle=真实 · 共享板"
+    },
+    {
+      "name": "任务页待办渲染（localStorage）",
+      "ok": true,
+      "detail": "actual=4 expected=4"
+    },
+    {
+      "name": "集群页可见",
+      "ok": true,
+      "detail": "actual=\"cluster\" expected=\"cluster\""
+    },
+    {
+      "name": "拓扑真实节点 4 个",
+      "ok": true,
+      "detail": "actual=4 expected=4"
+    },
+    {
+      "name": "拓扑待接入空心圆 1 个",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "设备/链路列表有行",
+      "ok": true,
+      "detail": "rows=5"
+    },
+    {
+      "name": "拓扑 badge 标真实",
+      "ok": true,
+      "detail": "actual=\"real\" expected=\"real\""
+    },
+    {
+      "name": "拓扑 badge 文案",
+      "ok": true,
+      "detail": "needle=真实 · interconnect"
+    },
+    {
+      "name": "记忆探测回执有结果",
+      "ok": true,
+      "detail": "{\"label\":\"记忆\",\"state\":\"成功\",\"text\":\"已在新标签页打开 OpenViking Studio（172.24.112.11:1933，探测 12ms）\"}"
+    },
+    {
+      "name": "记忆 badge 标可达",
+      "ok": true,
+      "detail": "actual=\"可达\" expected=\"可达\""
+    },
+    {
+      "name": "记忆状态含 origin",
+      "ok": true,
+      "detail": "needle=172.24.112.11:1933"
+    },
+    {
+      "name": "设置页可见",
+      "ok": true,
+      "detail": "actual=\"settings\" expected=\"settings\""
+    },
+    {
+      "name": "设置页插件版本 0.4.0",
+      "ok": true,
+      "detail": "actual=\"0.4.0\" expected=\"0.4.0\""
+    },
+    {
+      "name": "设置页共享板来源接真实 origin",
+      "ok": true,
+      "detail": "needle=172.24.112.11:13090"
+    },
+    {
+      "name": "设置页层级来源接真实字符串",
+      "ok": true,
+      "detail": "needle=sessions+agents"
+    },
+    {
+      "name": "设置页本机来源接真实字段",
+      "ok": true,
+      "detail": "needle=fixture-pc"
+    },
+    {
+      "name": "最新报告回执成功",
+      "ok": true,
+      "detail": "actual=\"成功\" expected=\"成功\""
+    },
+    {
+      "name": "报告面板打开",
+      "ok": true,
+      "detail": "visible=true"
+    },
+    {
+      "name": "报告内容来自宿主动作路由",
+      "ok": true,
+      "detail": "needle=fixture 报告"
+    },
+    {
+      "name": "独立打开时新会话如实说明",
+      "ok": true,
+      "detail": "needle=不在 DSH 面板 iframe"
+    },
+    {
+      "name": "T1 折叠后子节点隐藏、再点恢复",
+      "ok": true,
+      "detail": "{\"ok\":true,\"collapsed\":true,\"display\":\"none\"}"
+    },
+    {
+      "name": "点节点高亮 T0→… 上级路径，再点取消",
+      "ok": true,
+      "detail": "{\"ok\":true,\"first\":{\"hasSel\":true,\"sel\":1,\"path\":3},\"cleared\":true}"
+    },
+    {
+      "name": "900 无横向溢出",
+      "ok": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "900 右栏默认收在屏外",
+      "ok": true,
+      "detail": "{\"left\":912,\"right\":1296,\"width\":384}"
+    },
+    {
+      "name": "900 抽屉按钮可见",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "点抽屉后右栏进入可视区",
+      "ok": true,
+      "detail": "{\"rect\":{\"left\":516,\"right\":900,\"width\":384},\"transform\":\"none\",\"matches\":true,\"rules\":[]}"
+    },
+    {
+      "name": "抽屉态 body.drawer",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "窄屏仍无横向溢出",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "关闭抽屉后 body.drawer 移除",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "降级场景 tiers 仍是结构化响应",
+      "ok": true,
+      "detail": "actual=\"real\" expected=\"real\""
+    },
+    {
+      "name": "降级时只渲染 T0（不编节点）",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "降级 badge 显示",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "降级原因写进页面",
+      "ok": true,
+      "detail": "needle=会话层级不可见"
+    },
+    {
+      "name": "404 时层级降级",
+      "ok": true,
+      "detail": "actual=\"missing\" expected=\"missing\""
+    },
+    {
+      "name": "404 时只渲染 T0",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "404 时降级 badge 显示",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "404 时写明需要重启 DSH",
+      "ok": true,
+      "detail": "needle=404"
+    },
+    {
+      "name": "404 时写明重启后生效",
+      "ok": true,
+      "detail": "needle=重启"
+    },
+    {
+      "name": "cluster 回落 mock",
+      "ok": true,
+      "detail": "actual=\"mock\" expected=\"mock\""
+    },
+    {
+      "name": "board 回落 mock",
+      "ok": true,
+      "detail": "actual=\"mock\" expected=\"mock\""
+    },
+    {
+      "name": "host 回落 mock",
+      "ok": true,
+      "detail": "actual=\"mock\" expected=\"mock\""
+    },
+    {
+      "name": "板 badge 标 mock",
+      "ok": true,
+      "detail": "actual=\"mock\" expected=\"mock\""
+    },
+    {
+      "name": "板 badge 写明 mock 兜底",
+      "ok": true,
+      "detail": "needle=mock 兜底"
+    },
+    {
+      "name": "拓扑 badge 标 mock",
+      "ok": true,
+      "detail": "actual=\"mock\" expected=\"mock\""
+    },
+    {
+      "name": "拓扑 badge 写明 mock 兜底",
+      "ok": true,
+      "detail": "needle=mock 兜底"
+    },
+    {
+      "name": "mock 时仍有任务列表（示例数据）",
+      "ok": true,
+      "detail": "rows=6"
+    },
+    {
+      "name": "mock 时层级降级但 T0 在",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "页面 JS 报错为 0",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "CDP 运行时异常为 0",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "截图数量 ≥ 5",
+      "ok": true,
+      "detail": "shots=13"
+    }
+  ],
+  "shots": [
+    "tools/shots/shot-butler-01-dashboard-1440.png",
+    "tools/shots/shot-butler-02-tasks-1440.png",
+    "tools/shots/shot-butler-03-cluster-1440.png",
+    "tools/shots/shot-butler-04-memory-1440.png",
+    "tools/shots/shot-butler-05-settings-1440.png",
+    "tools/shots/shot-butler-06-action-report-1440.png",
+    "tools/shots/shot-butler-07-action-unsupported-1440.png",
+    "tools/shots/shot-butler-08-tiers-selected-1440.png",
+    "tools/shots/shot-butler-09-narrow-900.png",
+    "tools/shots/shot-butler-10-narrow-900-drawer.png",
+    "tools/shots/shot-butler-11-tiers-degraded-1440.png",
+    "tools/shots/shot-butler-12-tiers-404-1440.png",
+    "tools/shots/shot-butler-13-mock-fallback-1440.png"
+  ],
+  "pageErrors": [],
+  "runtimeErrors": [],
+  "scenarios": [
+    {
+      "name": "real",
+      "dataset": {
+        "cluster": "real",
+        "board": "real",
+        "host": "real",
+        "tiers": "real",
+        "page": "butler"
+      }
+    },
+    {
+      "name": "degraded",
+      "dataset": {
+        "cluster": "real",
+        "board": "real",
+        "host": "real",
+        "tiers": "real",
+        "page": "butler"
+      }
+    },
+    {
+      "name": "tiers404",
+      "dataset": {
+        "cluster": "real",
+        "board": "real",
+        "host": "real",
+        "tiers": "missing",
+        "page": "butler"
+      }
+    },
+    {
+      "name": "mock",
+      "dataset": {
+        "cluster": "mock",
+        "board": "mock",
+        "host": "mock",
+        "tiers": "missing",
+        "page": "butler"
+      }
+    }
+  ],
+  "ok": true,
+  "failed": 0,
+  "passed": 81
+}

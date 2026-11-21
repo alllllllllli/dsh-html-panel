@@ -1,74 +1,53 @@
 {
-  "url": "http://127.0.0.1:51539/dsh-html-panel/index.html",
-  "ready": true,
+  "generatedAt": "2026-11-21T09:34:50.199Z",
+  "dshUrl": "http://127.0.0.1:53499",
+  "source": {
+    "file": "public/index.html",
+    "bytes": 156626,
+    "sha256": "94d080e87b83f6440b47dfaadce37ee4f54e428ed9ef95e554ae468a42d34ee4"
+  },
   "page": {
-    "readyText": "实例 pc-ky614",
-    "boardLine": "板 http://172.24.112.11:13090",
-    "chips": "\n    \n      interconnect 1/4 up\n    \n    \n      板 在线 · 38ms\n    \n    \n      板上 20 任务\n    \n    \n      \n    \n  ",
-    "hostLine": "Living-Dream · win32 · CPU 12 核 · 开机 9 小时",
-    "buttons": [
-      {
-        "label": "新会话",
-        "disabled": false,
-        "action": "new-session"
-      },
-      {
-        "label": "派发任务",
-        "disabled": false,
-        "action": "dispatch"
-      },
-      {
-        "label": "打开看板",
-        "disabled": false,
-        "action": "board"
-      },
-      {
-        "label": "查记忆",
-        "disabled": false,
-        "action": "notes"
-      },
-      {
-        "label": "读最新报告",
-        "disabled": false,
-        "action": "latest-report"
-      },
-      {
-        "label": "重启 DSH",
-        "disabled": true,
-        "action": null
-      }
-    ],
-    "errors": []
+    "path": "/dsh-html-panel/index.html",
+    "status": 200,
+    "bytes": 156626,
+    "sha256": "94d080e87b83f6440b47dfaadce37ee4f54e428ed9ef95e554ae468a42d34ee4",
+    "latencyMs": 32,
+    "updated": true
   },
-  "receipts": {
-    "board": {
-      "state": "成功",
-      "text": "已在新标签页打开共享板 http://172.24.112.11:13090（只读任务接口）"
+  "routes": [
+    {
+      "path": "/dsh-html-panel/api/cluster",
+      "status": 200,
+      "bytes": 371,
+      "sha256": "7dd58806483a195e01b462683a201020485931d2e862ec66e350bad3962e1de2",
+      "latencyMs": 15
     },
-    "notes": {
-      "state": "暂不支持",
-      "text": "宿主还没有可用的 api/action 路由（HTTP 405）：新版 Host 需要重启 DSH 后生效。"
+    {
+      "path": "/dsh-html-panel/api/board",
+      "status": 200,
+      "bytes": 27549,
+      "sha256": "ec1fc37f11ee2a6b6166a3702b8f45348af6e63675bb038767e12b2f1f75cd38",
+      "latencyMs": 144
     },
-    "latest-report": {
-      "state": "暂不支持",
-      "text": "宿主还没有可用的 api/action 路由（HTTP 405）：新版 Host 需要重启 DSH 后生效。"
+    {
+      "path": "/dsh-html-panel/api/host",
+      "status": 200,
+      "bytes": 482,
+      "sha256": "df328aebe8e3c3d20ebcbf96ad2b725e1504fd9d0afef3e2490c10d563755dc0",
+      "latencyMs": 10
     },
-    "new-session": {
-      "state": "暂不支持",
-      "text": "当前页面不在 DSH 面板 iframe 里（独立打开），该动作需要 DSH 客户端。"
-    },
-    "dispatch": {
-      "state": "暂不支持",
-      "text": "当前页面不在 DSH 面板 iframe 里（独立打开），该动作需要 DSH 客户端。"
+    {
+      "path": "/dsh-html-panel/api/tiers",
+      "status": 404,
+      "bytes": 32,
+      "sha256": "f6578700f17f2f39cecda3a992f836ad4cd400d583ad6c46cd3b80217402d33d",
+      "latencyMs": 15
     }
-  },
-  "popups": [],
-  "errors": [],
-  "popupTargets": [
-    "http://172.24.112.11:13090/",
-    "edge://sync-confirmation-dialog/"
   ],
-  "finalErrors": [],
-  "runtimeErrors": [],
-  "shot": "tools/shots/shot-actions-07-live-dsh-page.png"
+  "tiersNote": "404：新版 Host 尚未加载（api/tiers 需重启 DSH 后生效）—— 页面会显示「降级：需重启」",
+  "expected": {
+    "pageUpdated": true,
+    "tiers": "404（未重启）或 200（已重启）均可接受，如实记录"
+  },
+  "pass": true
 }

@@ -4,584 +4,1250 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#14161a">
-<meta name="description" content="DSH 快捷工作台 / 启动页（集群拓扑、共享板任务/事件、本机磁盘与内存均接同源真实数据，失败才标 mock 兜底）">
-<title>快捷工作台 · DSH</title>
-<!-- 版本 B / v6：v5 工作台 + 三条同源只读数据源 + 静默轮询。
-     内联 CSS/JS，零外链；唯一网络请求是三个同源相对路径 api/cluster、api/board、api/host，
-     各自失败时该模块退回本页 MOCK 并明确标注「mock 兜底 · 原因」；轮询失败保留上一次好数据。 -->
+<title>大管家 · DSH 控制台</title>
 <style>
-  :root{
-    --bg:#14161a;
-    --panel:#1a1d23;
-    --panel-2:#1e222a;
-    --raised:#242a33;
-    --line:#2b313b;
-    --line-2:#3a4250;
-    --text:#e8ebf1;
-    --muted:#a2aab8;
-    --dim:#8b93a1;
-    --accent:#7896ff;
-    --accent-2:#4d6bfe;
-    --accent-soft:rgba(120,150,255,.14);
-    --ok:#3ecf8e;
-    --ok-soft:rgba(62,207,142,.12);
-    --warn:#e7a94e;
-    --warn-soft:rgba(231,169,78,.12);
-    --bad:#f2717a;
-    --bad-soft:rgba(242,113,122,.12);
-    --info:#5fb3f2;
-    --info-soft:rgba(95,179,242,.12);
-    --violet:#b48cff;
-    --violet-soft:rgba(180,140,255,.12);
-    --cyan:#4fd6c8;
-    --radius:12px;
-    --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 26px rgba(0,0,0,.16);
-    --font:"Segoe UI","Microsoft YaHei","PingFang SC","Hiragino Sans GB",system-ui,-apple-system,sans-serif;
-    --mono:"Cascadia Mono",Consolas,"Courier New",monospace;
-  }
-  *{box-sizing:border-box}
-  html{background:var(--bg)}
-  body{
-    margin:0;font-family:var(--font);font-size:13.5px;line-height:1.5;color:var(--text);
-    background:
-      radial-gradient(1000px 380px at 8% -10%,rgba(77,107,254,.13),transparent 62%),
-      radial-gradient(900px 340px at 94% -8%,rgba(79,214,200,.06),transparent 60%),
-      var(--bg);
-    min-height:100vh;
-  }
-  a{color:var(--accent)}
-  code,.mono{font-family:var(--mono);font-size:.92em}
-  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
-  .skip{position:absolute;left:8px;top:-40px;z-index:60;background:var(--accent-2);color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;transition:top .15s}
-  .skip:focus{top:8px}
-  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+/* 大管家 v7 · 纯界面稿（示例数据，零外链、零外部请求）
+ *
+ * 视觉 token 直接取自本机 DSH 安装包 app.asar：
+ *   @deepseek-ai/dsh-client-ui-theme/src/styles/design-platform.css
+ *   @deepseek-ai/dsh-client-ui-theme/src/styles/base.css
+ *   @deepseek-ai/dsh-client-ui-theme/src/styles/gradient-shadow-text.css
+ *   @deepseek-ai/dsh-client-ui-conversation/.../ConversationRoot.module.css
+ *   @deepseek-ai/dsh-client-ui-conversation/.../InputBar.module.css
+ *   @deepseek-ai/dsh-client-ui-chat/.../AssistantMarkdown.module.css
+ *   @deepseek-ai/dsh-client-ui-chat/.../MessageIconActions.module.css
+ *   @deepseek-ai/dsh-client-ui-chat/.../ReasoningRow.module.css
+ * 深色主题值（body[data-ds-dark-theme]）见下方 :root 注释。
+ */
+:root{
+  /* 色板：dark 主题 alias 解析后的真实值 */
+  --bg-base:rgb(21,21,23);          /* --dsw-alias-bg-base = bluish-950 */
+  --bg-layer-1:rgb(35,35,36);       /* --dsw-alias-bg-layer-1 = bluish-875 */
+  --bg-layer-2:rgb(44,44,46);       /* --dsw-alias-bg-layer-2 = bluish-850 */
+  --bg-layer-3:rgb(53,54,56);       /* --dsw-alias-bg-layer-3 = bluish-800 */
+  --sidebar-fill:rgb(27,27,28);     /* --dsw-specific-sidebar-fill = bluish-900 */
+  --sidebar-active:rgb(67,69,74);   /* --dsw-specific-sidebar-nav-item-active = bluish-750 */
+  --input-major:rgb(44,44,46);      /* --dsw-specific-input-major = bluish-850 */
+  --card-fill:rgb(27,27,28);        /* --dsw-alias-markdown-code-block = bluish-900 */
+  --inline-code:rgb(41,41,41);      /* --dsw-alias-markdown-inline-code = neutral-800 */
 
-  /* ---------- 顶栏 / 问候 ---------- */
-  .topbar{
-    position:sticky;top:0;z-index:20;
-    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-    padding:9px 18px;background:rgba(20,22,26,.92);
-    border-bottom:1px solid var(--line);backdrop-filter:blur(10px);
-  }
-  .brand{display:flex;align-items:center;gap:10px}
-  .logo{
-    width:28px;height:28px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;
-    background:linear-gradient(145deg,#2a3560,#1d2438);border:1px solid #3a4670;color:var(--accent);font-size:14px;
-  }
-  .brand h1{font-size:14.5px;margin:0;font-weight:650;letter-spacing:.02em;white-space:nowrap}
-  .brand .sub{font-size:11.5px;color:var(--dim);white-space:nowrap}
-  .spacer{flex:1 1 auto}
-  .status-chips{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
-  .chip-status{
-    display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);
-    background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px 9px;
-  }
-  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:0 0 auto}
-  .dot.ok{background:var(--ok);box-shadow:0 0 0 3px rgba(62,207,142,.14)}
-  .dot.warn{background:var(--warn);box-shadow:0 0 0 3px rgba(231,169,78,.14)}
-  .dot.bad{background:var(--bad);box-shadow:0 0 0 3px rgba(242,113,122,.14)}
-  .dot.unknown{background:var(--dim);box-shadow:0 0 0 3px rgba(139,147,161,.14)}
+  --label-primary:rgb(249,250,251);   /* --dsw-alias-label-primary = bluish-50 */
+  --label-secondary:rgb(207,211,214); /* --dsw-alias-label-secondary = bluish-300 */
+  --label-tertiary:rgb(173,178,184);  /* --dsw-alias-label-tertiary = bluish-400 */
+  --label-caption:rgb(129,133,140);   /* --dsw-alias-label-caption = bluish-600 */
+  --label-dimmed:rgb(67,69,74);       /* --dsw-alias-label-dimmed = bluish-750 */
 
-  .hero{
-    display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;
-    max-width:1360px;margin:0 auto;padding:18px 18px 12px;
-  }
-  .hero .greet h2{font-size:23px;margin:0;font-weight:650;letter-spacing:.01em}
-  .hero .greet .who{color:var(--accent)}
-  .hero .greet p{margin:3px 0 0;color:var(--muted);font-size:12.5px}
-  .hero .greet p .sep{color:var(--line-2);margin:0 6px}
-  .hero .clock-box{text-align:right}
-  .hero .clock{
-    display:block;font-family:var(--mono);font-size:27px;font-weight:600;letter-spacing:.02em;
-    font-variant-numeric:tabular-nums;line-height:1.1;color:var(--text);
-  }
-  .hero .clock-sub{font-size:11.5px;color:var(--dim)}
+  --border-l1:rgba(255,255,255,.06);
+  --border-l2:rgba(255,255,255,.12);
+  --border-l3:rgba(255,255,255,.16);
+  --border-l4:rgba(255,255,255,.2);
+  --hover:rgba(255,255,255,.08);
+  --hover-solid:rgb(53,54,56);
 
-  /* ---------- 主栅格 ---------- */
-  main{max-width:1360px;margin:0 auto;padding:0 18px 34px}
-  .grid-main{display:grid;grid-template-columns:minmax(250px,.92fr) minmax(330px,1.25fr) minmax(285px,1.02fr);gap:12px;align-items:start}
-  .col{display:flex;flex-direction:column;gap:12px;min-width:0}
-  .panel{
-    background:linear-gradient(180deg,var(--panel-2),var(--panel));
-    border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
-    padding:12px 13px 13px;min-width:0;
-  }
-  .panel-head{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin:0 0 9px}
-  .panel-head h2{font-size:13.5px;margin:0;font-weight:650;letter-spacing:.03em}
-  .panel-head .hint{font-size:11.5px;color:var(--dim);margin-left:auto}
-  .panel-head .count{font-size:11.5px;color:var(--dim);border:1px solid var(--line-2);border-radius:999px;padding:0 7px}
-  .panel-foot{margin:9px 0 0;padding-top:8px;border-top:1px solid var(--line);font-size:11.5px;color:var(--dim);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .panel-foot .grow{flex:1 1 auto}
+  --accent:rgb(122,170,255);        /* business-primary / link / send = deepseek-400 */
+  --accent-strong:rgb(65,118,230);  /* --dsw-alias-button-info-hover = deepseek-500 */
+  --green:rgb(34,197,94);           /* --dsw-alias-state-success-primary = green-500 */
+  --green-soft:rgb(78,209,126);     /* --dsw-alias-state-success-secondary = green-400 */
+  --amber:rgb(245,158,11);          /* --dsw-alias-state-warn-primary = amber-500 */
+  --red:rgb(242,90,90);             /* --dsw-alias-state-error-primary = red-400 */
+  --violet:rgb(167,139,250);        /* --dsw-alias-state-done-primary = violet-400 */
+  --scrollbar:rgb(60,60,61);        /* --dsw-alias-scrollbar-bg-l1 = neutral-700 */
+  --scrollbar-hover:rgb(84,85,87);  /* --dsw-alias-scrollbar-hover-l1 = neutral-600 */
+  --tooltip-bg:rgb(67,69,74);       /* --dsw-alias-tooltip-bg = bluish-750 */
 
-  /* ---------- 常用动作 ---------- */
-  .action-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-  .action{
-    display:flex;align-items:center;gap:10px;width:100%;text-align:left;
-    font:inherit;color:var(--text);background:#171a20;border:1px solid var(--line);
-    border-radius:9px;padding:8px 10px;cursor:pointer;
-    transition:border-color .12s,background .12s,transform .06s;
-  }
-  .action:hover:not(:disabled){border-color:#4a5a7c;background:#1c2130}
-  .action:active:not(:disabled){transform:translateY(1px)}
-  .action:disabled{opacity:.52;cursor:not-allowed}
-  .action .ico{
-    width:26px;height:26px;flex:0 0 auto;border-radius:8px;display:grid;place-items:center;
-    font-size:13px;background:var(--accent-soft);color:var(--accent);border:1px solid rgba(120,150,255,.25);
-  }
-  .action .txt{min-width:0;flex:1 1 auto}
-  .action .txt b{display:block;font-size:12.5px;font-weight:600;line-height:1.35}
-  .action .txt span{display:block;font-size:11px;color:var(--dim);line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .action kbd{
-    font-family:var(--mono);font-size:10.5px;color:var(--dim);background:#101318;
-    border:1px solid var(--line-2);border-bottom-width:2px;border-radius:5px;padding:1px 5px;white-space:nowrap;
-  }
-  .action .soon{font-size:10.5px;color:var(--warn);border:1px solid rgba(231,169,78,.35);border-radius:5px;padding:0 5px;white-space:nowrap}
-  .receipt{
-    margin-top:10px;background:#14171d;border:1px dashed #333c4a;border-radius:9px;padding:8px 10px;
-  }
-  .receipt-head{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--dim);margin-bottom:5px}
-  .receipt-head .grow{flex:1 1 auto}
-  .muted-btn{
-    font:inherit;font-size:11px;color:var(--dim);background:transparent;border:1px solid var(--line-2);
-    border-radius:6px;padding:1px 7px;cursor:pointer;
-  }
-  .muted-btn:hover:not(:disabled){color:var(--text);border-color:#4a5464}
-  .muted-btn:disabled{opacity:.45;cursor:not-allowed}
-  .receipt-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;min-height:38px}
-  .receipt-list li{font-size:11.5px;color:var(--muted);display:flex;gap:7px;align-items:baseline;line-height:1.45}
-  .receipt-list li .t{font-family:var(--mono);font-size:10.5px;color:var(--dim);flex:0 0 auto}
-  .receipt-list li b{color:var(--text);font-weight:600}
-  .receipt-list .placeholder{color:var(--dim);font-style:normal}
-  /* 动作回执：四态（成功 / 失败 / 暂不支持 / 进行中）必须是四种颜色 */
-  .receipt-list li .r-body{min-width:0;flex:1 1 auto}
-  .receipt-list li .r-state{
-    font-size:10.5px;font-weight:600;border-radius:5px;padding:0 5px;border:1px solid transparent;
-    white-space:nowrap;flex:0 0 auto;
-  }
-  .receipt-list li .r-state.ok{color:var(--ok);background:var(--ok-soft);border-color:rgba(62,207,142,.3)}
-  .receipt-list li .r-state.fail{color:var(--bad);background:var(--bad-soft);border-color:rgba(242,113,122,.3)}
-  .receipt-list li .r-state.unsupported{color:var(--warn);background:var(--warn-soft);border-color:rgba(231,169,78,.3)}
-  .receipt-list li .r-state.pending{color:var(--info);background:var(--info-soft);border-color:rgba(95,179,242,.3)}
-  .receipt-list li .r-text{display:block;color:var(--muted);overflow-wrap:anywhere}
-  .receipt-list li .r-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:3px;align-items:center}
-  .receipt-list li .r-link{font-size:11px;color:#9fc1ff;text-decoration:underline}
-  .receipt-list li .r-hint{
-    font:inherit;font-size:10.5px;color:#c9d4ff;background:rgba(120,150,255,.12);
-    border:1px solid rgba(120,150,255,.3);border-radius:6px;padding:1px 7px;cursor:pointer;
-  }
-  .receipt-list li .r-hint:hover{background:rgba(120,150,255,.2)}
-  /* 最新报告预览（读最新报告动作的真实返回内容） */
-  .report-meta{font-size:11px;color:var(--dim);overflow-wrap:anywhere}
-  .report-pre{
-    margin:6px 0 0;max-height:320px;overflow:auto;background:#101318;border:1px solid var(--line);
-    border-radius:8px;padding:8px 10px;font-family:var(--mono);font-size:11px;line-height:1.55;
-    color:#c6cedd;white-space:pre-wrap;overflow-wrap:anywhere;
-  }
+  /* 字体：--dsh-font-family-text-default / --dsh-font-family-code-default */
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Helvetica Neue',Helvetica,Arial,sans-serif;
+  --mono:'SF Mono','JetBrains Mono','Fira Code',Consolas,'Liberation Mono',Menlo,Courier,'PingFang SC','Microsoft YaHei';
 
-  /* ---------- 最近任务 / 文档 ---------- */
-  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 0 4px}
-  .tab{
-    font:inherit;font-size:12.5px;color:var(--muted);background:transparent;border:0;
-    border-bottom:2px solid transparent;padding:6px 10px 7px;cursor:pointer;border-radius:6px 6px 0 0;
-  }
-  .tab:hover{color:var(--text);background:rgba(255,255,255,.03)}
-  .tab[aria-selected="true"]{color:#c9d4ff;border-bottom-color:var(--accent-2);font-weight:600}
-  .tab .n{font-size:10.5px;color:var(--dim);margin-left:4px}
-  .tab-panel{outline-offset:6px}
-  .tab-panel[hidden]{display:none}
-  .item-list{list-style:none;margin:0;padding:0}
-  .item + .item{border-top:1px solid rgba(43,49,59,.7)}
-  .item-row{
-    display:flex;align-items:center;gap:9px;width:100%;text-align:left;font:inherit;color:inherit;
-    background:transparent;border:0;padding:8px 4px;cursor:pointer;border-radius:7px;
-  }
-  .item-row:hover{background:rgba(255,255,255,.035)}
-  .item-row .item-main{min-width:0;flex:1 1 auto;display:block}
-  .item-row .item-title{display:block;font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .item-row .item-meta{display:block;font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .item-row .item-meta code{color:#b9c2d2}
-  .chev{color:var(--dim);font-size:11px;flex:0 0 auto;transition:transform .12s}
-  .item-row[aria-expanded="true"] .chev{transform:rotate(90deg)}
-  .st{font-size:10.5px;font-weight:600;border-radius:5px;padding:1px 6px;border:1px solid transparent;white-space:nowrap;flex:0 0 auto}
-  /* 共享板五态配色（其余原始状态一律走 unknown，并保留原始值） */
-  .st.leased{color:var(--info);background:var(--info-soft);border-color:rgba(95,179,242,.3)}
-  .st.awaiting{color:var(--warn);background:var(--warn-soft);border-color:rgba(231,169,78,.3)}
-  .st.undelivered{color:var(--dim);background:rgba(139,147,161,.12);border-color:rgba(139,147,161,.3)}
-  .st.stale{color:var(--bad);background:var(--bad-soft);border-color:rgba(242,113,122,.3)}
-  .st.done{color:var(--ok);background:var(--ok-soft);border-color:rgba(62,207,142,.3)}
-  .st.unknown{color:var(--violet);background:var(--violet-soft);border-color:rgba(180,140,255,.3)}
-  .item-detail{
-    margin:0 4px 8px 4px;background:#14171d;border:1px solid var(--line);border-left:2px solid #3d4a63;
-    border-radius:8px;padding:8px 10px;font-size:11.5px;color:var(--muted);line-height:1.6;
-  }
-  .item-detail .row{display:flex;gap:8px;flex-wrap:wrap}
-  .item-detail .row + .row{margin-top:3px}
-  .item-detail b{color:var(--text);font-weight:600}
-  .item-detail .path{font-family:var(--mono);font-size:10.5px;color:#a9b3c4;overflow-wrap:anywhere}
-  .item-detail .note{margin-top:4px}
-  .doc-ico{
-    width:26px;height:26px;flex:0 0 auto;border-radius:7px;display:grid;place-items:center;
-    font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.02em;
-    background:rgba(180,140,255,.12);border:1px solid rgba(180,140,255,.28);color:var(--violet);
-  }
-  .empty-hint{font-size:11.5px;color:var(--dim);margin:8px 0 0}
-  .empty-hint[hidden]{display:none}
-  /* 事件流（api/board 的 events）：时间 / 任务 / 节点 / 类型 / 正文 */
-  .evt{padding:7px 4px}
-  .evt-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-  .evt-time{font-family:var(--mono);font-size:11px;color:var(--dim);flex:0 0 auto}
-  .evt-kind{font-size:10.5px;color:var(--cyan);border:1px solid rgba(79,214,200,.25);background:rgba(79,214,200,.08);border-radius:5px;padding:0 5px;white-space:nowrap}
-  .evt-rel{margin-left:auto;font-size:10.5px;color:var(--dim);white-space:nowrap}
-  .evt-text{display:block;font-size:12px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
-  .evt-meta{display:block;font-size:10.5px;color:var(--dim);margin-top:1px;overflow-wrap:anywhere}
-  /* mock 兜底标注：琥珀色，和「真实」视觉上必须能区分开 */
-  .hint.is-mock{color:var(--warn)}
-  .chip-status[hidden]{display:none}
+  /* 圆角：--dsw-radius-* */
+  --radius-xs:4px;--radius-sm:8px;--radius-md:12px;--radius-lg:16px;--radius-xl:20px;--radius-panel:28px;
+  /* elevation：--dsw-elevation-soft / --dsw-elevation-panel */
+  --elevation-soft:0 0 0 0.5px var(--border-l2),0 4px 16px 0 rgba(0,0,0,.03),0 0 24px 0 rgba(0,0,0,.03);
+  --elevation-panel:0 0 0 0.5px var(--border-l3),0 3px 8px 0 rgba(0,0,0,.03),0 0 16px 0 rgba(0,0,0,.02);
+  /* 会话列宽：--dsh-chat-content-width = clamp(680px, 64%, 920px) */
+  --chat-w:clamp(680px,64%,920px);
+}
 
-  /* ---------- 系统小部件 ---------- */
-  .widget-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .widget{background:#171a20;border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-width:0}
-  .widget.span2{grid-column:1 / -1}
-  .widget .wk{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--dim)}
-  .widget .wv{font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:1px}
-  .widget .wv small{font-size:10.5px;color:var(--dim);font-weight:400;margin-left:4px}
-  .wbar{height:5px;border-radius:999px;background:#0f1217;border:1px solid #262c36;overflow:hidden;margin-top:5px}
-  .wbar span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#4d6bfe,#7896ff)}
-  .wbar.green span{background:linear-gradient(90deg,#2f8f6d,#3ecf8e)}
-  .wbar.amber span{background:linear-gradient(90deg,#a97a2c,#e7a94e)}
-  .disk-row + .disk-row{margin-top:7px}
-  .disk-row .dr{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:11.5px}
-  .disk-row .dr .name{color:var(--muted);font-family:var(--mono);font-size:11px}
-  .disk-row .dr .amt{color:var(--dim);font-size:10.5px;font-variant-numeric:tabular-nums}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg-base);color:var(--label-primary);
+  font-family:var(--font);font-size:14px;line-height:24px;
+  overflow:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+button{font-family:inherit;color:inherit;background:transparent;border:0;padding:0}
+::selection{background:rgba(122,170,255,.28);color:#fff}
+*{scrollbar-width:thin;scrollbar-color:var(--scrollbar) transparent}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--scrollbar);border-radius:999px}
+::-webkit-scrollbar-thumb:hover{background:var(--scrollbar-hover)}
+::-webkit-scrollbar-corner{background:transparent}
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-  /* ---------- 集群拓扑（inline SVG；节点状态只靠边框色区分） ---------- */
-  .topo-panel{margin:0 0 12px}
-  .topo-figure{margin:0;min-width:0}
-  .topo{
-    display:block;width:100%;max-width:1100px;height:auto;margin:0 auto;
-    font-family:var(--mono);
-  }
-  .topo .edge{stroke:#46505f;stroke-width:1.2;fill:none;vector-effect:non-scaling-stroke}
-  .topo .node-rect{
-    fill:#1b2330;stroke-width:1.4;vector-effect:non-scaling-stroke;
-    transition:stroke .15s,fill .15s;
-  }
-  .topo .node-rect.online{stroke:#5fb3f2;filter:drop-shadow(0 0 5px rgba(95,179,242,.22))}
-  .topo .node-rect.offline{stroke:#565e6d}
-  .topo .node-rect.unknown{stroke:#3f4754;stroke-dasharray:5 4}
-  .topo .node-label{fill:var(--muted);font-size:13px;letter-spacing:.05em}
-  .topo .node,.topo .pending{cursor:help;outline:none}
-  .topo .node:hover .node-rect.online,.topo .node:focus-visible .node-rect.online{fill:#1f2b3a;stroke:#9ad4ff}
-  .topo .node:hover .node-rect.offline,.topo .node:focus-visible .node-rect.offline{fill:#20262f;stroke:#8a93a3}
-  .topo .node:focus-visible .node-rect{stroke-width:2.2}
-  .topo .node:focus-visible .node-label{fill:var(--text)}
-  .topo .pending-dot{
-    fill:none;stroke:#4b5564;stroke-width:1.4;vector-effect:non-scaling-stroke;
-    transition:stroke .15s;
-  }
-  .topo .pending-label{fill:var(--dim);font-size:11px;letter-spacing:.04em}
-  .topo .pending:hover .pending-dot,.topo .pending:focus-visible .pending-dot{stroke:#9aa3b2}
-  .topo .pending:focus-visible .pending-label{fill:var(--muted)}
-  .topo-legend{
-    display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px;padding-top:8px;
-    border-top:1px solid var(--line);font-size:11.5px;color:var(--dim);
-  }
-  .topo-legend .lg{display:inline-flex;align-items:center;gap:6px}
-  .topo-legend .sw{
-    display:inline-block;flex:0 0 auto;width:16px;height:9px;border-radius:3px;
-    border:1.4px solid #5fb3f2;background:rgba(95,179,242,.10);
-  }
-  .topo-legend .sw.offline{border-color:#565e6d;background:#1b2330}
-  .topo-legend .sw.unknown{width:11px;height:11px;border-radius:50%;border:1.4px dashed #4b5564;background:transparent}
-  .topo-legend .note{margin-left:auto}
-  /* 数据来源 badge：真实 / mock 兜底 / 载入中；颜色复用顶栏状态点 */
-  .topo-src{display:inline-flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
-  .topo-src .dot{width:6px;height:6px}
-  .topo-src .stamp{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
-  .topo-others{margin:7px 0 0;font-size:11.5px;color:var(--dim);line-height:1.5}
-  .topo-others code{color:#b9c2d2}
-  .topo-others[hidden]{display:none}
+/* ---------- 内联 SVG 图标 ---------- */
+.sprite{position:absolute;width:0;height:0;overflow:hidden;pointer-events:none}
+.i{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:-2.5px;flex:0 0 auto}
+.flip{transform:scaleY(-1)}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex:0 0 auto;background:var(--label-dimmed)}
+.dot.run{background:var(--green);box-shadow:0 0 0 3px rgba(34,197,94,.12);animation:pulse 2.6s ease-in-out infinite}
+.dot.idle{background:rgb(84,85,87)}
+.dot.queue{background:var(--amber)}
+.dot.blocked{background:var(--red)}
+.dot.done{background:var(--violet)}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 2px rgba(34,197,94,.18)}
+  50%{box-shadow:0 0 0 4px rgba(34,197,94,.04)}
+}
 
-  /* ---------- 待办 ---------- */
-  .todo-form{display:flex;gap:6px;margin-bottom:8px}
-  .todo-form input{
-    flex:1 1 auto;min-width:0;font:inherit;font-size:12.5px;color:var(--text);
-    background:#14171d;border:1px solid var(--line-2);border-radius:8px;padding:6px 9px;
-  }
-  .todo-form input::placeholder{color:#6d7584}
-  .todo-form input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(120,150,255,.16)}
-  .btn{
-    font:inherit;font-size:12px;color:var(--text);background:var(--raised);
-    border:1px solid var(--line-2);border-radius:8px;padding:6px 12px;cursor:pointer;white-space:nowrap;
-  }
-  .btn:hover{background:#2b323d;border-color:#4a5464}
-  .btn.primary{background:linear-gradient(180deg,#4d6bfe,#3f57d8);border-color:#5c76ff;color:#fff}
-  .btn.primary:hover{background:linear-gradient(180deg,#5c78ff,#4a62e6)}
-  .btn:disabled{opacity:.45;cursor:not-allowed}
-  .todo-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
-  .todo{
-    display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:7px;
-  }
-  .todo:hover{background:rgba(255,255,255,.03)}
-  .todo input[type="checkbox"]{
-    width:15px;height:15px;flex:0 0 auto;accent-color:#4d6bfe;cursor:pointer;margin:0;
-  }
-  .todo label{flex:1 1 auto;min-width:0;font-size:12.5px;color:var(--text);cursor:pointer;overflow-wrap:anywhere}
-  .todo.is-done label{color:var(--dim);text-decoration:line-through}
-  .todo .del{
-    flex:0 0 auto;font:inherit;font-size:12px;line-height:1;color:var(--dim);background:transparent;
-    border:1px solid transparent;border-radius:6px;padding:3px 5px;cursor:pointer;opacity:0;transition:opacity .1s;
-  }
-  .todo:hover .del,.todo .del:focus-visible{opacity:1}
-  .todo .del:hover{color:var(--bad);border-color:rgba(242,113,122,.35);opacity:1}
-  .todo-empty{font-size:11.5px;color:var(--dim);padding:10px 4px;text-align:center}
-  .todo-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--dim)}
-  .todo-foot .grow{flex:1 1 auto}
-  .store-hint{font-size:10.5px;color:var(--dim)}
-  .store-hint.bad{color:var(--warn)}
+/* ---------- 应用外壳 ---------- */
+.app{display:flex;height:100vh;height:100dvh;overflow:hidden}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
 
-  .toast{
-    position:fixed;left:50%;bottom:16px;transform:translate(-50%,14px);
-    background:#232833;border:1px solid #3d4656;border-radius:9px;padding:8px 14px;
-    font-size:12.5px;color:var(--text);box-shadow:var(--shadow);opacity:0;pointer-events:none;
-    transition:opacity .18s,transform .18s;z-index:50;max-width:calc(100vw - 32px);
-  }
-  .toast.show{opacity:1;transform:translate(-50%,0)}
+/* ---------- 左栏：侧边导航 ---------- */
+.side{
+  flex:0 0 200px;display:flex;flex-direction:column;min-height:0;
+  background:var(--sidebar-fill);border-right:1px solid var(--border-l3);
+}
+.brand{display:flex;align-items:center;gap:10px;padding:14px 12px 10px;min-width:0}
+.logo{
+  width:32px;height:32px;border-radius:var(--radius-sm);display:grid;place-items:center;
+  background:var(--bg-layer-2);border:1px solid var(--border-l2);color:var(--label-primary);
+}
+.logo .i{width:17px;height:17px}
+.brand-tx{min-width:0}
+.brand-t{font-size:15px;line-height:22px;font-weight:600;letter-spacing:.01em;white-space:nowrap}
+.brand-s{font-family:var(--mono);font-size:9.5px;line-height:14px;color:var(--label-caption);letter-spacing:.14em;margin-top:1px}
+.nav{padding:8px 8px 0;display:flex;flex-direction:column;gap:2px;min-height:0}
+.nav-item{
+  display:flex;align-items:center;gap:9px;width:100%;height:32px;padding:0 9px;
+  border-radius:var(--radius-sm);color:var(--label-secondary);font-size:13px;line-height:20px;
+  font-weight:500;cursor:pointer;text-align:left;transition:background .12s,color .12s;
+}
+.nav-item .i{width:16px;height:16px;color:var(--label-tertiary)}
+.nav-item:hover{background:var(--hover);color:var(--label-primary)}
+.nav-item:hover .i{color:var(--label-primary)}
+.nav-item.active{background:var(--sidebar-active);color:var(--label-primary)}.nav-item.active .i{color:var(--label-primary)}
+.nav-label{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-badge{
+  font-family:var(--mono);font-size:10px;line-height:16px;height:16px;padding:0 5px;
+  color:var(--label-tertiary);background:var(--bg-layer-1);border:1px solid var(--border-l1);border-radius:var(--radius-xs);
+}
+.nav-item.active .nav-badge{color:var(--label-secondary);background:rgba(255,255,255,.06);border-color:var(--border-l2)}
+.side-foot{
+  margin-top:auto;padding:10px 12px 12px;border-top:1px solid var(--border-l1);
+  display:flex;flex-direction:column;gap:2px;
+}
+.sf-1{display:flex;align-items:center;gap:7px;font-size:12px;line-height:18px;color:var(--label-secondary)}
+.sf-dev{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--label-caption)}
+.sf-sub{font-size:11px;line-height:17px;color:var(--label-caption)}
+.sf-ver{font-family:var(--mono);font-size:9.5px;line-height:15px;color:var(--label-dimmed);margin-top:4px}
 
-  @media (prefers-reduced-motion:reduce){
-    .toast,.chev{transition:none}
-    .action:active{transform:none}
+/* ---------- 中栏：对话区（对齐 DSH ConversationRoot / InputBar） ---------- */
+.chat{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;background:var(--bg-base);position:relative}
+
+/* header：min-height 76px，padding 10px 20px 0，标题行 30px，tab 行 25px */
+.chat-head{flex:0 0 auto;padding:10px 20px 0;border-bottom:1px solid var(--border-l3);min-width:0}
+.head-main{display:flex;align-items:center;min-height:30px;gap:10px;min-width:0}
+.sess-title{
+  font-size:16px;line-height:24px;font-weight:600;letter-spacing:.01em;color:var(--label-primary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0;
+}
+.head-stats{display:flex;align-items:center;gap:14px;min-width:0;overflow:hidden;margin-left:4px}
+.stat{display:inline-flex;align-items:center;gap:6px;font-size:13px;line-height:20px;color:var(--label-tertiary);white-space:nowrap}
+.stat .i{width:14px;height:14px;color:var(--label-caption)}
+.stat .dot{width:6px;height:6px}
+.head-actions{margin-left:auto;display:flex;align-items:center;gap:6px;flex:0 0 auto}
+.icon-btn{
+  width:28px;height:28px;border-radius:var(--radius-sm);display:grid;place-items:center;
+  color:var(--label-secondary);cursor:pointer;transition:background .12s,color .12s;
+}
+.icon-btn:hover{background:var(--hover);color:var(--label-primary)}
+.icon-btn .i{width:16px;height:16px}
+.tabs-row{display:flex;align-items:flex-start;gap:32px;margin-top:6px;min-height:25px;padding-left:8px;min-width:0}
+.tab{
+  position:relative;min-height:31px;margin:-8px -10px 0;padding:8px 10px;
+  font-size:13px;line-height:16px;font-weight:500;color:var(--label-tertiary);cursor:pointer;
+}
+.tab:hover{color:var(--label-secondary)}
+.tab::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;border-radius:2px;background:transparent}
+.tab.active{color:var(--accent)}
+.tab.active::after{background:var(--accent)}
+.tab-more{width:22px;min-width:22px;height:22px;min-height:22px;margin-top:-3px;padding:0;display:grid;place-items:center;color:var(--label-secondary);font-size:15px;line-height:1}
+.tab-more::after{display:none}
+.tab-more:hover{background:var(--hover);border-radius:var(--radius-sm)}
+.tabs-r{margin-left:auto;display:flex;align-items:center;gap:8px;align-self:center}
+.drawer-btn{
+  display:none;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:var(--radius-sm);
+  border:1px solid var(--border-l2);background:var(--bg-layer-1);color:var(--label-secondary);
+  font-size:12px;line-height:18px;cursor:pointer;
+}
+.drawer-btn:hover{background:var(--hover-solid);color:var(--label-primary)}
+.drawer-btn .i{width:14px;height:14px}
+.drawer-btn .mono{font-size:10px;color:var(--label-caption)}
+
+/* 消息流：滚动区 padding 16px 32px；列宽 clamp(680px,64%,920px) */
+.thread{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:16px 32px 6px}
+.thread-inner{max-width:var(--chat-w);width:100%;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.msg{display:flex;flex-direction:column;gap:16px;min-width:0}
+.msg-meta{display:flex;align-items:center;gap:8px;font-size:12px;line-height:18px;color:var(--label-caption)}
+.msg-meta .who{color:var(--label-tertiary);font-weight:500}
+.msg-meta .t{font-family:var(--mono);font-size:11px;color:var(--label-caption)}
+.msg.user .body{font-size:14px;line-height:24px;color:var(--label-primary);white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* 「已启动」智能体任务卡：DSH markdown-code-block 底色 + l1 细描边 */
+.started{
+  width:100%;background:var(--card-fill);border:1px solid var(--border-l1);
+  border-radius:var(--radius-lg);padding:14px 16px 0;
+}
+.started-h{font-size:14px;line-height:24px;font-weight:500;color:var(--label-primary);padding-bottom:6px}
+.kv{display:grid;grid-template-columns:88px minmax(0,1fr);gap:12px;padding:1px 0;font-size:13px;line-height:20px}
+.kv .k{color:var(--label-tertiary)}
+.kv .v{color:var(--label-secondary);min-width:0;overflow-wrap:anywhere}
+.kv .v.mono{font-family:var(--mono);font-size:12.5px}
+.task-more{border-top:1px solid var(--border-l1);margin-top:10px}
+.task-more>summary{
+  display:flex;align-items:center;gap:7px;padding:10px 0;cursor:pointer;list-style:none;
+  color:var(--label-tertiary);font-size:13px;line-height:20px;user-select:none;
+}
+.task-more>summary::-webkit-details-marker{display:none}
+.task-more>summary:hover{color:var(--label-secondary)}
+.task-more>summary .chev{width:12px;height:12px;color:var(--label-caption);transition:transform .14s}
+.task-more[open]>summary .chev{transform:rotate(90deg)}
+.task-body{padding:0 0 12px;font-size:13px;line-height:20px;color:var(--label-tertiary);white-space:pre-wrap}
+
+/* 思考（ReasoningRow：折叠态 24px 行，13/20） */
+.think{max-width:100%}
+.think>summary{
+  display:inline-flex;align-items:center;gap:6px;height:24px;cursor:pointer;list-style:none;
+  color:var(--label-tertiary);font-size:13px;line-height:20px;user-select:none;
+}
+.think>summary::-webkit-details-marker{display:none}
+.think>summary:hover{color:var(--label-secondary)}
+.think>summary .i{width:16px;height:16px;color:var(--label-caption)}
+.think-body{
+  margin:2px 0 0;padding:2px 0 2px 22px;border-left:1px solid var(--border-l2);
+  font-size:13px;line-height:20px;color:var(--label-tertiary);
+}
+
+/* 助手正文（AssistantMarkdown：14/24，块间距 16） */
+.md{display:flex;flex-direction:column;gap:16px;font-size:14px;line-height:24px;color:var(--label-primary)}
+.md p{margin:0}
+.md ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.md li{color:var(--label-primary)}
+.md li::marker{color:var(--label-caption)}
+.md strong{font-weight:650;color:var(--label-primary)}
+.md .note{font-size:13px;line-height:20px;color:var(--label-tertiary)}
+.code{
+  font-family:var(--mono);font-size:12px;line-height:18px;color:var(--label-primary);
+  background:var(--inline-code);border-radius:var(--radius-xs);padding:1px 5px;
+}
+
+/* 消息动作行（MessageIconActions：28px 行高、8px 间距、28px 命中区） */
+.msg-tools{display:flex;align-items:center;gap:8px;height:28px;margin-top:16px;margin-left:-6px}
+.tool{
+  width:28px;height:28px;border-radius:var(--radius-sm);display:grid;place-items:center;
+  color:var(--label-tertiary);cursor:pointer;transition:background .12s,color .12s;
+}
+.tool:hover{background:var(--hover);color:var(--label-secondary)}
+.tool .i{width:15px;height:15px}
+.usage{display:inline-flex;align-items:center;gap:8px;margin-left:8px;font-size:12px;line-height:20px;color:var(--label-tertiary)}
+.usage .i{width:14px;height:14px;color:var(--label-caption)}
+.usage .ut{font-family:var(--mono);font-size:11.5px;color:var(--label-caption)}
+
+/* composer：DSH InputBar —— 28px 圆角卡片、input-major 底、soft elevation */
+.composer{flex:0 0 auto;padding:0 16px 4px}
+.composer-card{
+  max-width:calc(var(--chat-w) + 32px);width:100%;margin:0 auto;box-sizing:border-box;
+  display:flex;flex-direction:column;gap:12px;padding-top:16px;
+  background:var(--input-major);border-radius:var(--radius-panel);box-shadow:var(--elevation-soft);
+}
+.composer-input{
+  display:block;width:100%;min-height:40px;max-height:120px;resize:none;overflow:auto;
+  border:0;outline:0;background:transparent;color:var(--label-primary);
+  font-family:var(--font);font-size:14px;line-height:24px;padding:6px 8px 2px 14px;
+}
+.composer-input::placeholder{color:var(--label-caption)}
+.composer-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 10px 8px;min-width:0}
+.cb-l,.cb-r{display:flex;align-items:center;gap:12px;min-width:0}
+.cb-r{margin-left:auto}
+.add{
+  width:28px;height:28px;border-radius:999px;display:grid;place-items:center;flex:0 0 auto;
+  background:var(--bg-layer-3);color:var(--label-primary);cursor:pointer;
+}
+.add:hover{background:var(--hover-solid)}
+.add .i{width:14px;height:14px}
+.perm{
+  display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 4px;border-radius:var(--radius-sm);
+  color:var(--label-secondary);font-size:13px;line-height:20px;font-weight:500;cursor:pointer;white-space:nowrap;
+}
+.perm:hover{background:var(--hover);color:var(--label-primary)}
+.perm .i{width:14px;height:14px}
+.perm .chev{width:12px;height:12px;color:var(--label-caption)}
+.model{
+  display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 4px;border-radius:var(--radius-sm);
+  color:var(--label-secondary);font-size:13px;line-height:20px;font-weight:500;cursor:pointer;white-space:nowrap;
+}
+.model:hover{background:var(--hover)}
+.model b{color:var(--label-secondary);font-weight:500}
+.model .chev{width:12px;height:12px;color:var(--label-caption)}
+.send{
+  width:34px;height:34px;border-radius:999px;display:grid;place-items:center;flex:0 0 auto;
+  background:var(--accent);color:#fff;cursor:pointer;transform:translateY(-2px);
+  transition:background .12s;
+}
+.send:hover{background:var(--accent-strong)}
+.send .i{width:17px;height:17px;stroke-width:2}
+.composer-stats{
+  max-width:calc(var(--chat-w) + 32px);width:100%;margin:6px auto 0;
+  display:flex;align-items:center;gap:2px;min-height:22px;
+  font-size:12px;line-height:20px;color:var(--label-tertiary);white-space:nowrap;overflow:hidden;
+}
+.pill{display:inline-flex;align-items:center;gap:6px;height:20px;padding:0 8px;border-radius:var(--radius-sm);font-variant-numeric:tabular-nums}
+.pill .i{width:14px;height:14px;color:var(--label-caption)}
+.pill .dot{width:5px;height:5px}
+.pill-sep{width:2px;height:2px;border-radius:1px;background:var(--label-caption);margin:0 6px;flex:0 0 auto}
+
+/* ---------- 右栏：派活层级（T0–T3，设备只作标签） ---------- */
+.hier{
+  flex:0 0 384px;width:384px;min-width:0;display:flex;flex-direction:column;min-height:0;
+  background:var(--sidebar-fill);border-left:1px solid var(--border-l3);position:relative;z-index:20;
+}
+.hier-head{flex:0 0 auto;padding:14px 14px 10px;border-bottom:1px solid var(--border-l1);display:flex;flex-direction:column;gap:8px}
+.hh-row{display:flex;align-items:center;gap:7px;min-width:0}
+.hh-title{font-size:13.5px;line-height:20px;font-weight:600;letter-spacing:.01em;color:var(--label-primary)}
+.hh-info{width:14px;height:14px;color:var(--label-caption)}
+.hier-close{display:none;margin-left:auto}
+.hh-desc{font-size:12px;line-height:18px;color:var(--label-tertiary);margin-top:-3px}
+.hh-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:1px}
+.cnt{
+  display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 7px;
+  border:1px solid var(--border-l1);border-radius:var(--radius-xs);background:var(--bg-layer-1);
+  font-family:var(--mono);font-size:10px;line-height:16px;color:var(--label-tertiary);white-space:nowrap;
+}
+.cnt .ck{color:var(--label-caption);font-size:9.5px;letter-spacing:.04em}
+.cnt b{font-weight:600;color:var(--label-secondary);font-size:10.5px}
+.cnt.c0{border-color:rgba(122,170,255,.32);background:rgba(122,170,255,.08)}
+.cnt.c0 .ck{color:var(--accent)}
+.hier-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:12px 12px 16px}
+.tree{display:flex;flex-direction:column;gap:6px}
+
+/* 层级节点 */
+.node{position:relative}
+.node>.head{
+  display:grid;grid-template-columns:22px minmax(0,1fr);column-gap:9px;align-items:start;
+  border-radius:var(--radius-sm);cursor:pointer;outline:none;
+}
+.node>.head:focus-visible .card{border-color:var(--accent);box-shadow:0 0 0 2px rgba(122,170,255,.2)}
+.badge{
+  height:19px;margin-top:1px;border-radius:var(--radius-xs);border:1px solid var(--border-l1);
+  background:var(--bg-layer-1);color:var(--label-caption);
+  font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.02em;
+  display:flex;align-items:center;justify-content:center;position:relative;z-index:1;
+}
+.card{
+  min-width:0;background:var(--bg-layer-1);border:1px solid var(--border-l1);border-radius:var(--radius-md);
+  padding:8px 10px;transition:border-color .12s,background .12s;
+}
+.node>.head:hover>.card{border-color:var(--border-l2);background:var(--bg-layer-2)}
+.lv0>.head .card{
+  padding:10px 12px;border-radius:var(--radius-md);
+  background:linear-gradient(180deg,rgba(122,170,255,.12),rgba(122,170,255,.04));
+  border-color:rgba(122,170,255,.45);
+}
+.lv0>.head:hover .card{border-color:rgba(122,170,255,.65);background:linear-gradient(180deg,rgba(122,170,255,.16),rgba(122,170,255,.06))}
+.lv0>.head .badge{border-color:rgba(122,170,255,.45);color:var(--accent);background:rgba(122,170,255,.1)}
+.lv1>.head .card{padding:8px 10px}
+.lv2>.head .card{padding:7px 9px;border-radius:var(--radius-sm);background:rgba(35,35,36,.7);border-color:rgba(255,255,255,.05)}
+.lv3>.head .card{padding:6px 9px;border-radius:var(--radius-sm);background:rgba(35,35,36,.42);border-color:rgba(255,255,255,.05)}
+.lv2>.head:hover>.card,.lv3>.head:hover>.card{background:var(--bg-layer-2);border-color:var(--border-l2)}
+.nrow{display:flex;align-items:center;gap:6px;min-width:0}
+.nname{flex:1 1 auto;min-width:0;font-size:13px;line-height:20px;font-weight:600;color:var(--label-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lv0 .nname{font-size:13.5px;font-weight:650}
+.lv2 .nname,.lv3 .nname{font-weight:550;font-size:12.5px}
+.nst{margin-left:auto;display:inline-flex;align-items:center;font-size:11px;line-height:18px;color:var(--label-tertiary);white-space:nowrap;flex:0 0 auto}
+.nst.run{color:var(--green-soft)}
+.nst.idle{color:var(--label-tertiary)}
+.nst.queue{color:var(--amber)}
+.nst.blocked{color:var(--red)}
+.nst.done{color:var(--violet)}
+.fold{
+  width:16px;height:16px;border-radius:var(--radius-xs);display:grid;place-items:center;
+  color:var(--label-caption);cursor:pointer;flex:0 0 auto;margin-left:1px;
+}
+.fold:hover{background:var(--hover);color:var(--label-primary)}
+.fold .i{width:12px;height:12px;transform:rotate(90deg);transition:transform .14s}
+.node.collapsed>.head .fold .i{transform:rotate(0)}
+.nsub{display:flex;align-items:center;gap:6px;margin-top:3px;min-width:0}
+.dev{
+  display:inline-flex;align-items:center;gap:4px;height:17px;padding:0 5px;border-radius:var(--radius-xs);
+  border:1px solid var(--border-l1);background:var(--sidebar-fill);color:var(--label-tertiary);
+  font-family:var(--mono);font-size:10px;white-space:nowrap;flex:0 0 auto;
+}
+.dev .i{width:10px;height:10px;color:var(--label-caption)}
+.ntask{min-width:0;font-size:12px;line-height:18px;color:var(--label-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lv0 .ntask{font-size:12px}
+.nmeta{margin-top:3px;display:flex;gap:10px;min-width:0;overflow:hidden;white-space:nowrap;font-family:var(--mono);font-size:10px;line-height:16px;color:var(--label-caption)}
+.nmeta span{flex:0 0 auto}
+
+/* 树连线（层级缩进 + 泳道） */
+.node>.kids{
+  margin-left:11px;padding-left:16px;padding-top:6px;padding-bottom:2px;
+  border-left:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;gap:6px;
+}
+.node>.kids>.node::before{content:"";position:absolute;left:-17px;top:11px;width:17px;height:1px;background:rgba(255,255,255,.1)}
+.node>.kids>.node:last-child::after{
+  content:"";position:absolute;left:-17px;top:12px;bottom:-8px;width:2px;background:var(--sidebar-fill);
+}
+.node.collapsed>.kids{display:none}
+.empty{
+  margin-top:2px;padding:9px 12px;border:1px dashed rgba(255,255,255,.12);border-radius:var(--radius-sm);
+  display:flex;flex-direction:column;gap:2px;background:rgba(255,255,255,.012);
+}
+.empty .empty-t{font-size:12px;line-height:18px;color:var(--label-secondary)}
+.empty span:last-child{font-size:11px;line-height:17px;color:var(--label-caption)}
+
+/* 选中：整条上级路径高亮 */
+.tree.has-sel .node:not(.path):not(.sub)>.head{opacity:.42}
+.node.path>.head>.card{border-color:rgba(122,170,255,.5);background:rgba(122,170,255,.09)}
+.node.path>.head>.badge{border-color:rgba(122,170,255,.5);color:var(--accent)}
+.node.sel>.head>.card{border-color:var(--accent);box-shadow:0 0 0 1px rgba(122,170,255,.22)}
+.node>.head,.node.path>.head>.card{transition:opacity .14s ease,border-color .12s,background .12s,box-shadow .12s}
+
+.hier-foot{flex:0 0 auto;padding:9px 12px 11px;border-top:1px solid var(--border-l1);display:flex;flex-direction:column;gap:5px}
+.legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11px;line-height:16px;color:var(--label-tertiary)}
+.legend .lg{display:inline-flex;align-items:center;gap:4px}
+.legend .dot{width:5px;height:5px}
+.hint{font-size:11px;line-height:16px;color:var(--label-caption)}
+.hint b{color:var(--label-tertiary);font-weight:500}
+
+/* ---------- tooltip / 抽屉遮罩 ---------- */
+.tip{
+  position:fixed;z-index:120;width:240px;padding:8px 10px;border-radius:var(--radius-sm);
+  background:var(--tooltip-bg);box-shadow:var(--elevation-panel);
+  font-size:12px;line-height:18px;color:var(--label-primary);pointer-events:none;
+  opacity:0;transform:translateY(4px);transition:opacity .1s ease,transform .1s ease;
+}
+.tip.show{opacity:1;transform:none}
+.tip-t{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;margin-bottom:5px;color:var(--label-primary)}
+.tip-lv{font-family:var(--mono);font-size:9px;line-height:14px;padding:0 4px;border-radius:3px;color:var(--accent);border:1px solid rgba(122,170,255,.4);background:rgba(0,0,0,.2)}
+.tip-r{display:grid;grid-template-columns:38px minmax(0,1fr);gap:6px;padding:1px 0}
+.tip-r .k{color:var(--label-tertiary)}
+.tip-r .v{color:var(--label-primary);overflow-wrap:anywhere}
+.tip-r .v.mono{font-family:var(--mono);font-size:11.5px}
+.mask{
+  display:none;position:fixed;inset:0;z-index:50;
+  background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s ease;
+}
+
+/* ---------- 响应式：≤1200px 右栏收为抽屉 ---------- */
+@media (max-width:1200px){
+  .hier{
+    position:fixed;top:0;right:0;bottom:0;width:min(384px,92vw);
+    transform:translateX(103%);transition:transform .24s cubic-bezier(.4,0,.2,1);
+    box-shadow:var(--elevation-panel);border-left:1px solid var(--border-l3);
   }
-  @media (max-width:1180px){
-    .grid-main{grid-template-columns:minmax(250px,.9fr) minmax(330px,1.1fr)}
-    .col.c{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
-  }
-  @media (max-width:880px){
-    .grid-main{grid-template-columns:1fr}
-    .col.c{grid-template-columns:1fr}
-    .hero{padding-top:12px}
-    .hero .clock{font-size:22px}
-    .hero .greet h2{font-size:20px}
-    main{padding:0 10px 28px}
-    .topbar{padding:8px 10px}
-    .brand .sub{display:none}
-    .topo-legend .note{margin-left:0;flex-basis:100%}
-  }
-  @media (max-height:700px){
-    .hero{padding:10px 18px 8px}
-    .hero .greet h2{font-size:20px}
-    .hero .clock{font-size:22px}
-    .panel{padding:10px 11px 11px}
-  }
+  body.drawer .hier{transform:none}
+  .hier-close{display:inline-grid}
+  .drawer-btn{display:inline-flex}
+  .mask{display:block}
+  body.drawer .mask{opacity:1;pointer-events:auto}
+}
+@media (max-width:980px){
+  .stat-extra{display:none}
+  .chat-head{padding:10px 14px 0}
+  .tabs-row{padding-left:4px;gap:26px}
+  .thread{padding:14px 16px 6px}
+  .composer{padding:0 10px 4px}
+  .head-stats{gap:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  .dot.run{animation:none}
+  *{transition:none !important}
+}
+/* =========================================================================
+ * 0.4.0 新增：五页导航 / 任务与事件 / 拓扑 / 待办 / 动作回执 / 层级降级
+ * 基础三栏、token、对话区、派活层级样式全部沿用上面的 V7 稿（DSH 真实 token）。
+ * ========================================================================= */
+
+/* ---------- 通用 ---------- */
+.grow{flex:1 1 auto;min-width:0}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{font-size:12px;line-height:18px;color:var(--label-caption)}
+
+/* ---------- 页面容器：中栏按导航切换 ---------- */
+.page{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;min-width:0}
+.page[hidden]{display:none}
+.page-head{
+  flex:0 0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:14px 20px 12px;border-bottom:1px solid var(--border-l3);min-width:0;
+}
+.page-title{margin:0;font-size:16px;line-height:24px;font-weight:600;letter-spacing:.01em;color:var(--label-primary);white-space:nowrap}
+.page-desc{font-size:12px;line-height:18px;color:var(--label-tertiary);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.page-badge{
+  display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;
+  border:1px solid var(--border-l1);border-radius:var(--radius-sm);background:var(--bg-layer-1);
+  font-size:11px;line-height:16px;color:var(--label-tertiary);white-space:nowrap;max-width:52%;
+}
+.page-badge[data-kind="mock"]{border-color:rgba(245,158,11,.4);color:var(--amber)}
+.page-badge[data-kind="missing"]{border-color:rgba(242,90,90,.4);color:var(--red)}
+.page-badge .dot{width:6px;height:6px}
+.page-badge .mono{font-size:10px;color:var(--label-caption)}
+.page-body{
+  flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
+  padding:14px 20px 22px;display:flex;flex-direction:column;gap:14px;
+}
+.empty-hint{margin:6px 0 0;font-size:12.5px;line-height:20px;color:var(--label-caption)}
+
+/* ---------- 数据过期横幅（轮询失败时保留旧数据） ---------- */
+.stale-banner{
+  position:absolute;top:8px;right:16px;z-index:40;display:flex;align-items:center;gap:7px;
+  max-width:60%;padding:4px 10px;border-radius:var(--radius-sm);
+  border:1px solid rgba(245,158,11,.4);background:rgba(67,52,20,.92);
+  font-size:11.5px;line-height:17px;color:var(--amber);
+}
+.stale-banner[hidden]{display:none}
+.stale-banner span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- 大管家页：示例对话 badge / 报告 / 回执 / 快捷动作 ---------- */
+.demo-badge{
+  display:inline-flex;align-items:center;gap:6px;align-self:flex-start;
+  margin:0;padding:3px 9px;border-radius:999px;
+  border:1px dashed rgba(122,170,255,.45);background:rgba(122,170,255,.07);
+  font-size:11.5px;line-height:17px;color:var(--accent);
+}
+.demo-badge .i{width:13px;height:13px}
+
+.traj{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.traj li{
+  display:grid;grid-template-columns:74px 74px minmax(0,1fr) 56px;gap:10px;align-items:baseline;
+  padding:8px 10px;border:1px solid var(--border-l1);border-radius:var(--radius-sm);background:var(--bg-layer-1);
+  font-size:12.5px;line-height:19px;
+}
+.tr-t{color:var(--label-caption);font-size:11px}
+.tr-k{color:var(--label-tertiary)}
+.tr-v{color:var(--label-secondary);min-width:0;overflow-wrap:anywhere}
+.tr-s{text-align:right;font-size:11.5px;color:var(--label-tertiary)}
+.tr-s.done{color:var(--violet)}
+.tr-s.run{color:var(--green-soft)}
+.tr-s.queue{color:var(--amber)}
+
+.receipts{
+  flex:0 0 auto;margin:0 16px 2px;border:1px solid var(--border-l1);border-radius:var(--radius-md);
+  background:var(--sidebar-fill);max-height:118px;display:flex;flex-direction:column;min-width:0;
+}
+.receipts-head{display:flex;align-items:center;gap:8px;padding:6px 12px 4px;font-size:12px;line-height:18px;color:var(--label-tertiary)}
+.receipt-list{list-style:none;margin:0;padding:0 10px 8px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.receipt-list .placeholder{font-size:11.5px;line-height:17px;color:var(--label-caption);padding:2px 2px 4px}
+.receipt-list li{display:flex;align-items:baseline;gap:8px;font-size:12px;line-height:18px;min-width:0;flex-wrap:wrap}
+.receipt-list .t{font-family:var(--mono);font-size:10.5px;color:var(--label-caption);flex:0 0 auto}
+.receipt-list .r-body{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;min-width:0}
+.r-state{font-size:10.5px;line-height:16px;padding:0 5px;border-radius:var(--radius-xs);border:1px solid var(--border-l1);white-space:nowrap}
+.r-state.ok{color:var(--green-soft);border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.08)}
+.r-state.fail{color:var(--red);border-color:rgba(242,90,90,.4);background:rgba(242,90,90,.08)}
+.r-state.unsupported{color:var(--amber);border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.08)}
+.r-state.pending{color:var(--accent);border-color:rgba(122,170,255,.4);background:rgba(122,170,255,.08)}
+.r-text{color:var(--label-secondary);font-size:11.5px;line-height:17px;min-width:0;overflow-wrap:anywhere}
+.r-actions{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+.r-hint,.r-link{
+  font-size:11px;line-height:16px;padding:1px 6px;border-radius:var(--radius-xs);
+  border:1px solid var(--border-l2);background:var(--bg-layer-2);color:var(--label-secondary);
+  cursor:pointer;text-decoration:none;
+}
+.r-hint:hover,.r-link:hover{background:var(--hover-solid);color:var(--label-primary)}
+.report{
+  flex:0 0 auto;margin:8px 16px 0;border:1px solid var(--border-l3);border-radius:var(--radius-md);
+  background:var(--bg-layer-1);max-height:30vh;display:flex;flex-direction:column;min-width:0;
+}
+.report[hidden]{display:none}
+.report-head{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--border-l1);min-width:0}
+.report-title{font-size:12.5px;line-height:18px;font-weight:600}
+.report-meta{font-size:10.5px;color:var(--label-caption);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.report-pre{
+  margin:0;padding:10px 12px;overflow:auto;font-family:var(--mono);font-size:11.5px;line-height:18px;
+  color:var(--label-secondary);white-space:pre-wrap;overflow-wrap:anywhere;
+}
+.report-foot{margin:0;padding:0 12px 8px;font-size:10.5px;line-height:16px;color:var(--label-caption)}
+
+.composer-quick{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 14px;min-width:0}
+.cq-label{font-size:11px;line-height:17px;color:var(--label-caption);white-space:nowrap;flex:0 0 auto}
+.action-strip{display:flex;align-items:center;gap:5px;flex-wrap:wrap;min-width:0}
+.cb-sep{width:1px;height:18px;background:var(--border-l2);margin:0 3px;flex:0 0 auto}
+.action{
+  display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 9px;
+  border:1px solid var(--border-l2);border-radius:var(--radius-sm);
+  background:var(--bg-layer-2);color:var(--label-secondary);
+  font-size:12px;line-height:18px;font-weight:500;cursor:pointer;white-space:nowrap;
+}
+.action:hover{background:var(--hover-solid);color:var(--label-primary);border-color:var(--border-l3)}
+.action:disabled{opacity:.45;cursor:not-allowed}
+.action .act-ico{font-size:12px;line-height:1;color:var(--label-tertiary)}
+.action .act-label{min-width:0}
+
+/* ---------- 任务 / 事件 ---------- */
+.tabs{display:flex;align-items:center;gap:18px;min-width:0;border-bottom:1px solid var(--border-l1);padding-bottom:2px}
+.tabs .tab{min-height:28px;margin:0;padding:4px 2px;font-size:12.5px;line-height:18px}
+.tabs .tab::after{left:2px;right:2px}
+.tab .n{font-family:var(--mono);font-size:10px;color:var(--label-caption);margin-left:5px}
+.item-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.item{background:var(--bg-layer-1);border:1px solid var(--border-l1);border-radius:var(--radius-md);overflow:hidden}
+.item-row{display:flex;align-items:flex-start;gap:9px;width:100%;padding:9px 11px;text-align:left;cursor:pointer}
+.item-row:hover{background:var(--hover)}
+.item-main{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 auto}
+.item-title{font-size:13px;line-height:20px;font-weight:550;color:var(--label-primary);overflow-wrap:anywhere}
+.item-meta{font-family:var(--mono);font-size:10.5px;line-height:16px;color:var(--label-caption);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.st{
+  flex:0 0 auto;min-width:52px;text-align:center;font-size:10.5px;line-height:18px;padding:0 6px;
+  border-radius:var(--radius-xs);border:1px solid var(--border-l1);background:var(--bg-layer-2);color:var(--label-tertiary);white-space:nowrap;
+}
+.st.leased{color:var(--accent);border-color:rgba(122,170,255,.4);background:rgba(122,170,255,.08)}
+.st.awaiting{color:var(--amber);border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.08)}
+.st.undelivered{color:var(--red);border-color:rgba(242,90,90,.4);background:rgba(242,90,90,.08)}
+.st.stale{color:var(--label-caption);border-color:var(--border-l2);background:rgba(255,255,255,.03)}
+.st.done{color:var(--violet);border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.08)}
+.st.unknown{color:var(--label-caption)}
+.chev{color:var(--label-caption);font-size:11px;line-height:20px;flex:0 0 auto;transition:transform .14s}
+.item-row[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.item-detail{padding:2px 11px 10px;border-top:1px solid var(--border-l1);display:flex;flex-direction:column;gap:3px}
+.item-detail[hidden]{display:none}
+.row{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;font-size:12px;line-height:18px;padding:2px 0}
+.row b{color:var(--label-tertiary);font-weight:500}
+.row span{color:var(--label-secondary);overflow-wrap:anywhere}
+.item.evt{display:flex;flex-direction:column;gap:3px;padding:9px 11px}
+.evt-row{display:flex;align-items:baseline;gap:8px;min-width:0}
+.evt-time{font-family:var(--mono);font-size:10.5px;color:var(--label-caption);flex:0 0 auto}
+.evt-kind{font-size:10.5px;line-height:16px;padding:0 5px;border-radius:var(--radius-xs);border:1px solid var(--border-l1);background:var(--bg-layer-2);color:var(--label-tertiary)}
+.evt-rel{margin-left:auto;font-size:10.5px;color:var(--label-caption);flex:0 0 auto}
+.evt-text{font-size:12.5px;line-height:19px;color:var(--label-secondary);overflow-wrap:anywhere}
+.evt-meta{font-family:var(--mono);font-size:10.5px;line-height:16px;color:var(--label-caption);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- 卡片 / 待办 ---------- */
+.card{background:var(--bg-layer-1);border:1px solid var(--border-l1);border-radius:var(--radius-md);padding:11px 13px;display:flex;flex-direction:column;gap:9px;min-width:0}
+.card-h{display:flex;align-items:center;gap:8px;font-size:13px;line-height:20px;font-weight:600;color:var(--label-primary);min-width:0}
+.card-h .count{font-family:var(--mono);font-size:10.5px;font-weight:400;color:var(--label-caption)}
+.todo-form{display:flex;gap:8px}
+.todo-form input{
+  flex:1 1 auto;min-width:0;height:30px;padding:0 10px;border-radius:var(--radius-sm);
+  border:1px solid var(--border-l2);background:var(--bg-base);color:var(--label-primary);font:inherit;font-size:12.5px;
+}
+.todo-form input::placeholder{color:var(--label-caption)}
+.todo-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.todo{display:flex;align-items:center;gap:8px;padding:3px 2px;font-size:12.5px;line-height:19px;min-width:0}
+.todo input[type="checkbox"]{accent-color:var(--accent);width:14px;height:14px;flex:0 0 auto}
+.todo label{flex:1 1 auto;min-width:0;color:var(--label-secondary);overflow-wrap:anywhere;cursor:pointer}
+.todo.is-done label{color:var(--label-caption);text-decoration:line-through}
+.todo .del{color:var(--label-caption);cursor:pointer;font-size:12px;padding:0 4px}
+.todo .del:hover{color:var(--red)}
+.todo-empty{margin:0;font-size:12px;color:var(--label-caption)}
+.todo-foot{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--label-tertiary)}
+.store-hint{margin:0;font-size:10.5px;line-height:16px;color:var(--label-caption)}
+.store-hint.bad{color:var(--amber)}
+.btn,.muted-btn{
+  height:28px;padding:0 10px;border-radius:var(--radius-sm);border:1px solid var(--border-l2);
+  background:var(--bg-layer-2);color:var(--label-secondary);font:inherit;font-size:12px;line-height:18px;cursor:pointer;
+}
+.btn:hover,.muted-btn:hover{background:var(--hover-solid);color:var(--label-primary)}
+.btn.primary{border-color:rgba(122,170,255,.5);background:rgba(122,170,255,.14);color:var(--accent)}
+.btn.primary:hover{background:rgba(122,170,255,.22)}
+.btn:disabled,.muted-btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* ---------- 集群拓扑 / 设备列表 ---------- */
+.topo-figure{margin:0;padding:6px 2px 0;border:1px solid var(--border-l1);border-radius:var(--radius-md);background:var(--bg-layer-1);overflow:hidden}
+.topo{display:block;width:100%;height:auto;max-height:340px}
+.topo .edge{stroke:rgba(255,255,255,.16);stroke-width:1.4}
+.topo .node{cursor:default}
+.topo .node-rect{fill:var(--bg-base);stroke:var(--label-dimmed);stroke-width:1.4;rx:14}
+.topo .node-rect.online{stroke:var(--accent);fill:rgba(122,170,255,.07)}
+.topo .node-rect.offline{stroke:var(--label-dimmed);fill:var(--bg-layer-1)}
+.topo .node-rect.unknown{stroke:rgba(255,255,255,.2);stroke-dasharray:5 4;fill:transparent}
+.topo .node-label{fill:var(--label-secondary);font-family:var(--mono);font-size:13px}
+.topo .pending-dot{fill:none;stroke:rgba(255,255,255,.22);stroke-width:1.4;stroke-dasharray:4 3}
+.topo .pending-label{fill:var(--label-caption);font-family:var(--mono);font-size:11px}
+.topo-legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:11px;line-height:16px;color:var(--label-tertiary);padding:0 4px}
+.topo-legend .lg{display:inline-flex;align-items:center;gap:5px}
+.topo-legend .sw{width:12px;height:8px;border-radius:2px;border:1.4px solid var(--accent);background:rgba(122,170,255,.07)}
+.topo-legend .sw.offline{border-color:var(--label-dimmed);background:var(--bg-layer-1)}
+.topo-legend .sw.unknown{border-color:rgba(255,255,255,.2);border-style:dashed;background:transparent}
+.topo-others{margin:0;font-size:11.5px;line-height:17px;color:var(--label-tertiary)}
+.dev-list{display:flex;flex-direction:column;gap:2px}
+.dev-row{display:flex;align-items:center;gap:9px;padding:4px 2px;font-size:12.5px;line-height:19px;border-bottom:1px solid var(--border-l1);min-width:0}
+.dev-row:last-child{border-bottom:0}
+.dev-row b{font-weight:550;color:var(--label-primary);white-space:nowrap}
+.dev-id{font-family:var(--mono);font-size:10.5px;color:var(--label-caption);white-space:nowrap}
+.dev-link{margin-left:auto;font-size:11px;color:var(--label-tertiary);white-space:nowrap}
+.dev-link.up{color:var(--green-soft)}
+.dev-link.down{color:var(--label-caption)}
+.dev-origin{font-family:var(--mono);font-size:10.5px;color:var(--label-caption);max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dev-note{font-size:11px;color:var(--label-caption);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- 记忆 / 设置 ---------- */
+.memory-state{margin:0;font-size:12.5px;line-height:20px;color:var(--label-secondary)}
+.kv-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.kv-list li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:10px;font-size:12.5px;line-height:19px;padding:2px 0;border-bottom:1px solid var(--border-l1)}
+.kv-list li:last-child{border-bottom:0}
+.kv-list b{font-weight:500;color:var(--label-tertiary)}
+.kv-list span{color:var(--label-secondary);overflow-wrap:anywhere}
+.card .muted{margin:0}
+
+/* ---------- 右侧：降级 / 数据来源提示 ---------- */
+.degraded{
+  font-size:10px;line-height:15px;padding:0 6px;border-radius:var(--radius-xs);
+  border:1px solid rgba(245,158,11,.5);background:rgba(245,158,11,.1);color:var(--amber);
+  cursor:help;white-space:nowrap;flex:0 0 auto;
+}
+.degraded[hidden]{display:none}
+#tierSourceHint{margin-top:1px}
+
+/* ---------- toast ---------- */
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(8px);
+  z-index:200;max-width:min(560px,84vw);padding:8px 14px;border-radius:var(--radius-sm);
+  background:var(--tooltip-bg);color:var(--label-primary);box-shadow:var(--elevation-panel);
+  font-size:12.5px;line-height:19px;opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;
+  overflow-wrap:anywhere;
+}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+/* ---------- 响应式补充 ---------- */
+@media (max-width:1200px){
+  .page-head{padding:12px 16px 10px}
+  .page-body{padding:12px 16px 18px}
+  .receipts{margin:0 10px 2px}
+  .report{margin:6px 10px 0}
+  .stale-banner{right:10px;max-width:72%}
+}
+@media (max-width:980px){
+  .page-head{padding:10px 12px 8px}
+  .page-body{padding:10px 12px 16px}
+  .receipts{margin:0 8px 2px;max-height:96px}
+  .report{margin:6px 8px 0;max-height:26vh}
+  .traj li{grid-template-columns:64px 58px minmax(0,1fr) 48px;gap:7px}
+}
+@media (prefers-reduced-motion:reduce){
+  .toast{transition:none}
+}
 </style>
 </head>
 <body>
-<a class="skip" href="#main">跳到主内容</a>
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="2.5" y="3" width="19" height="7" rx="2"/><rect x="2.5" y="14" width="19" height="7" rx="2"/><path d="M6.5 6.5h.01M6.5 17.5h.01"/></symbol>
+  <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8.5" ry="3"/><path d="M3.5 5v14c0 1.7 3.8 3 8.5 3s8.5-1.3 8.5-3V5"/><path d="M3.5 12c0 1.7 3.8 3 8.5 3s8.5-1.3 8.5-3"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M5 3v6M5 13v8M12 3v8M12 15v6M19 3v3M19 10v11"/><circle cx="5" cy="11" r="1.6"/><circle cx="12" cy="13.2" r="1.6"/><circle cx="19" cy="8" r="1.6"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.8"/><path d="M20 20l-4.2-4.2"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></symbol>
+  <symbol id="i-branch" viewBox="0 0 24 24"><path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.2" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-chevd" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-thumb" viewBox="0 0 24 24"><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/><path d="M7 22h11.3a2 2 0 0 0 2-1.7l1.4-9a2 2 0 0 0-2-2.3H15l.7-3.2a2 2 0 0 0-3.4-1.7L7 9v13z"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 4.9 4.9 1.9-4.9 1.9L12 16.6l-1.9-4.9L5.2 9.8l4.9-1.9L12 3z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8.8-2z"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2" y="3.5" width="20" height="13" rx="2"/><path d="M8 21h8M12 16.5V21"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-3.6 8-9.5V5.5L12 2.5 4 5.5v7c0 5.9 8 9.5 8 9.5z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.6h.01"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4.9 19a9 9 0 1 1 14.2 0"/><path d="M12 13l3.5-3.5"/><circle cx="12" cy="13" r="1.2" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-steps" viewBox="0 0 24 24"><path d="M4 18h4V6H4zM10 18h4V9h-4zM16 18h4V4h-4z"/></symbol>
+  <symbol id="i-brain" viewBox="0 0 24 24"><path d="M9.5 3a3 3 0 0 0-3 3 2.6 2.6 0 0 0-1.9 4.4A2.8 2.8 0 0 0 6 15.6 3 3 0 0 0 9.5 21c1 0 1.9-.5 2.5-1.2"/><path d="M14.5 3a3 3 0 0 1 3 3 2.6 2.6 0 0 1 1.9 4.4A2.8 2.8 0 0 1 18 15.6 3 3 0 0 1 14.5 21c-1 0-1.9-.5-2.5-1.2"/><path d="M12 4.5v15"/></symbol>
+</svg>
 
-<header class="topbar">
-  <div class="brand">
-    <span class="logo" aria-hidden="true">◈</span>
-    <div>
-      <h1>工作台</h1>
-      <div class="sub">DSH · 快捷启动页</div>
+<div class="app">
+  <!-- 左栏：侧边导航 -->
+    <aside class="side">
+    <div class="brand">
+      <div class="logo"><svg class="i"><use href="#i-bell"></use></svg></div>
+      <div class="brand-tx">
+        <div class="brand-t">大管家</div>
+        <div class="brand-s">BUTLER CONSOLE</div>
+      </div>
     </div>
-  </div>
-  <div class="spacer"></div>
-  <div class="status-chips">
-    <span class="chip-status" id="chipCluster" data-state="loading" title="本实例 interconnect 链路（同源 api/cluster）">
-      <span class="dot unknown" id="chipClusterDot" aria-hidden="true"></span><span id="chipClusterText">interconnect 载入中…</span>
-    </span>
-    <span class="chip-status" id="chipBoard" data-state="loading" title="共享板健康与最近一次请求延迟（同源 api/board）">
-      <span class="dot unknown" id="chipBoardDot" aria-hidden="true"></span><span id="chipBoardText">板 载入中…</span>
-    </span>
-    <span class="chip-status" id="chipTasks" data-state="loading" title="共享板任务数（同源 api/board）">
-      <span class="dot unknown" id="chipTasksDot" aria-hidden="true"></span><span id="chipTasksText">任务 载入中…</span>
-    </span>
-    <span class="chip-status" id="chipStale" hidden aria-live="polite" title="轮询失败：页面保留上一次好数据">
-      <span class="dot warn" aria-hidden="true"></span><span id="chipStaleText"></span>
-    </span>
-  </div>
-</header>
-
-<div class="hero">
-  <div class="greet">
-    <h2><span id="greeting">你好</span>，<span class="who">ky614</span></h2>
-    <p>
-      <span id="dateLine">—</span>
-      <span class="sep">·</span><span id="selfLine">实例 —</span>
-      <span class="sep">·</span><span id="boardSourceLine">板 —</span>
-      <span class="sep">·</span><span id="dataStamp">数据 —</span>
-    </p>
-  </div>
-  <div class="clock-box">
-    <time class="clock" id="clock" datetime="">--:--:--</time>
-    <span class="clock-sub">本机时间 · Asia/Shanghai</span>
-  </div>
-</div>
-
-<main id="main" tabindex="-1">
-  <noscript><p class="panel">此页面需要启用 JavaScript（集群、共享板、本机数据都来自同源只读接口 api/cluster、api/board、api/host；取不到时用本页 mock 并标注；不会访问外部网络）。</p></noscript>
-
-  <!-- 集群拓扑：SVG 骨架 + 脚本填充节点/连线（inline SVG，非 canvas）。
-       数据：同源 api/cluster 返回的真实 interconnect 链路；取不到时用 MOCK.topology 渲染并标 mock 兜底。 -->
-  <section class="panel topo-panel" aria-labelledby="topo-h">
-    <div class="panel-head">
-      <h2 id="topo-h">集群拓扑</h2>
-      <span class="hint topo-src" id="topoSource" data-state="loading" aria-live="polite">
-        <span class="dot unknown" id="topoDot" aria-hidden="true"></span>
-        <span id="topoSourceText">真实数据载入中…</span>
-        <span class="stamp" id="topoStamp"></span>
-      </span>
+    <nav class="nav" aria-label="主导航">
+      <button class="nav-item active" type="button" data-page="butler" aria-current="page">
+        <svg class="i"><use href="#i-bell"></use></svg>
+        <span class="nav-label">大管家</span>
+        <span class="nav-badge" id="navButlerCount">T0</span>
+      </button>
+      <button class="nav-item" type="button" data-page="tasks">
+        <svg class="i"><use href="#i-list"></use></svg>
+        <span class="nav-label">任务</span>
+        <span class="nav-badge" id="navTasksCount" hidden>—</span>
+      </button>
+      <button class="nav-item" type="button" data-page="cluster">
+        <svg class="i"><use href="#i-server"></use></svg>
+        <span class="nav-label">集群</span>
+        <span class="nav-badge" id="navClusterCount" hidden>—</span>
+      </button>
+      <button class="nav-item" type="button" data-page="memory">
+        <svg class="i"><use href="#i-db"></use></svg>
+        <span class="nav-label">记忆</span>
+      </button>
+      <button class="nav-item" type="button" data-page="settings">
+        <svg class="i"><use href="#i-sliders"></use></svg>
+        <span class="nav-label">设置</span>
+      </button>
+    </nav>
+    <div class="side-foot">
+      <div class="sf-1"><i class="dot run" id="sfDot"></i><span id="sfText">本机在线</span><span class="sf-dev" id="sfDev">—</span></div>
+      <div class="sf-sub" id="sfSub">链路数据载入中…</div>
+      <div class="sf-ver" id="sfVer">v0.4.0 · 真实数据</div>
     </div>
-    <figure class="topo-figure">
-      <svg class="topo" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid meet" role="group" aria-labelledby="topoTitle topoDesc">
-        <title id="topoTitle">DSH 集群拓扑</title>
-        <desc id="topoDesc">mcloud 在上方居中，三条链路分别连到下方的 pc-ky614、server、s5；pc-ky614 与 server、server 与 s5 之间还有横向链路；server 下方一个空心圆表示待接入节点。亮蓝边框为在线，灰色边框为离线，灰色虚线为未知。</desc>
-        <g id="topoEdges"></g>
-        <g id="topoNodes"></g>
-      </svg>
-    </figure>
-    <div class="topo-legend">
-      <span class="lg"><span class="sw" aria-hidden="true"></span>在线</span>
-      <span class="lg"><span class="sw offline" aria-hidden="true"></span>离线</span>
-      <span class="lg"><span class="sw unknown" aria-hidden="true"></span>未知 / 待接入</span>
-      <span class="note">悬停或按 Tab 聚焦节点：title 只显示实例、origin 与链路等本页真能拿到的字段。</span>
-    </div>
-    <p class="topo-others" id="topoOthers" hidden></p>
-  </section>
+  </aside>
 
-  <div class="grid-main">
-    <!-- ① 常用动作 -->
-    <div class="col">
-      <section class="panel" aria-labelledby="actions-h">
-        <div class="panel-head">
-          <h2 id="actions-h">常用动作</h2>
-          <span class="hint">点击执行真实动作</span>
-        </div>
-        <ul class="action-list" id="actionList"></ul>
-        <div class="receipt">
-          <div class="receipt-head">
-            <span>动作回执</span>
-            <span class="grow"></span>
-            <button class="muted-btn" type="button" id="clearReceipt" disabled>清空</button>
+  <!-- 中栏：对话区（复刻 DSH 真实界面） -->
+    <main class="chat">
+    <div class="stale-banner" id="chipStale" hidden aria-live="polite" title="轮询失败：页面保留上一次好数据，不闪回示例">
+      <span class="dot" aria-hidden="true"></span><span id="chipStaleText"></span>
+    </div>
+
+    <!-- ================= 页：大管家（默认） ================= -->
+    <section class="page" id="page-butler" data-page="butler" aria-label="大管家">
+      <header class="chat-head">
+        <div class="head-main">
+          <div class="sess-title">大管家 · 主控台</div>
+          <div class="head-stats">
+            <span class="stat"><i class="dot run"></i><span id="statSelf">本机在线</span></span>
+            <span class="stat stat-extra"><svg class="i"><use href="#i-server"></use></svg><span id="statDevices">链路载入中…</span></span>
+            <span class="stat stat-extra"><svg class="i"><use href="#i-db"></use></svg><span id="statBoard">板上数据载入中…</span></span>
           </div>
-          <ul class="receipt-list" id="receiptList" aria-live="polite">
-            <li class="placeholder">还没有动作。点击上方按钮，真实结果（成功 / 失败 / 暂不支持）会记在这里。</li>
-          </ul>
+          <div class="head-actions">
+            <button class="icon-btn" type="button" id="refreshBtn" title="刷新全部数据" aria-label="刷新全部数据"><svg class="i"><use href="#i-spark"></use></svg></button>
+            <button class="icon-btn" type="button" id="headHierBtn" title="派活层级（窄屏抽屉）" aria-label="派活层级"><svg class="i"><use href="#i-branch"></use></svg></button>
+          </div>
         </div>
-        <p class="panel-foot">动作结果来自真实调用：DSH 客户端服务（新会话）、宿主动作路由 api/action（报告 / 记忆探测）或共享板只读接口（看板）；做不到会写明原因。</p>
-      </section>
+        <div class="tabs-row" role="tablist" aria-label="视图">
+          <button class="tab active" type="button" role="tab" data-tab="dialogue" aria-selected="true" id="tab-dialogue">对话</button>
+          <button class="tab" type="button" role="tab" data-tab="trajectory" aria-selected="false" id="tab-trajectory">轨迹</button>
+          <div class="tabs-r">
+            <button class="drawer-btn" id="drawerBtn" type="button" aria-controls="hier" aria-expanded="false">
+              <svg class="i"><use href="#i-branch"></use></svg>派活层级<span class="mono" id="drawerCount">T1×—</span>
+            </button>
+          </div>
+        </div>
+      </header>
 
-      <!-- 读最新报告的真实返回：宿主 api/action('latest-report') 读到的内容（只读、截断 64 KB） -->
-      <section class="panel" id="reportPanel" aria-labelledby="report-h" hidden>
-        <div class="panel-head">
-          <h2 id="report-h">最新报告</h2>
-          <span class="hint report-meta" id="reportMeta"></span>
+      <div class="thread" id="thread">
+        <div class="thread-inner">
+          <p class="demo-badge" id="demoBadge"><svg class="i" aria-hidden="true"><use href="#i-info"></use></svg>示例对话 · 静态演示（不是真实聊天；下方动作按钮与右栏层级才是真实数据）</p>
+
+          <div id="traceDialogue">
+            <article class="msg user">
+              <div class="msg-meta"><span class="who">你</span><span class="t">15:38</span></div>
+              <div class="body">按 V7 界面稿落地：左栏改名「大管家」，中栏照 DSH 真实对话界面，右栏 T0–T3 派活层级接真实数据；设备只做标签，别按设备分组。</div>
+            </article>
+
+            <article class="msg bot">
+              <section class="started" aria-label="已启动的智能体任务">
+                <div class="started-h">已启动</div>
+                <div class="kv"><span class="k">智能体任务</span><span class="v">大管家 v0.4.0 · V7 界面稿落地 + 右栏真实层级</span></div>
+                <div class="kv"><span class="k">描述</span><span class="v">三栏保留；中栏换成五页导航与 DSH 风格对话区；右栏 T0–T3 接活会话与子代理血缘，设备仅作节点标签</span></div>
+                <div class="kv"><span class="k">智能体名称</span><span class="v mono">v7-butler</span></div>
+                <details class="task-more">
+                  <summary><svg class="i chev"><use href="#i-chev"></use></svg>任务内容</summary>
+                  <div class="task-body">单文件 HTML（内联 CSS / JS，零外链）
+新增只读路由 api/tiers（T0 根 + T1 活会话 + T2/T3 子代理）
+保留 api/cluster · api/board · api/host 与 POST api/action
+不动布局方向、不重配配色、不重启 DSH</div>
+                </details>
+              </section>
+
+              <details class="think">
+                <summary><svg class="i"><use href="#i-brain"></use></svg><span>思考</span></summary>
+                <div class="think-body">层级口径先定死：T0 是大管家本体；T1 是本机与其它设备上的活会话，平级；T2 是这些会话开的子代理；T3 是子代理再开的子代理。设备只做节点标签，缩进与连线只表达层级。中栏按 DSH 真实对话界面做，不做气泡。</div>
+              </details>
+
+              <div class="md">
+                <p><strong>这一版按 DSH 本体来做，示例对话只负责「看结构」：</strong></p>
+                <ul>
+                  <li><strong>左栏</strong>：品牌与导航项都叫「大管家」，共 5 项（大管家 / 任务 / 集群 / 记忆 / 设置），当前项用 DSH 侧栏真实灰底 active</li>
+                  <li><strong>中栏</strong>：对话 / 轨迹两个 tab；这段对话是<strong>静态示例</strong>，页面顶部有 badge；composer 那一行动作按钮会真调用 DSH 客户端服务与宿主动作路由</li>
+                  <li><strong>右栏</strong>：T0 大管家 → T1 活会话（本机与其它设备平级）→ T2/T3 子代理血缘，设备只是节点里的等宽小标签</li>
+                </ul>
+                <p>任务 / 集群 / 记忆 / 设置四页与右栏层级读同源真实数据：共享板、interconnect 链路、本机状态、活会话血缘。<span class="code">api/tiers</span> 是新路由，宿主需要重启 DSH 后才有；没有时右栏会标「降级」并给出原因，不会编节点。</p>
+                <p class="note">示例对话不发送消息、不持久化；颜色、圆角、字号沿用从 DSH 安装包抽取的设计 token。</p>
+              </div>
+
+              <div class="msg-tools">
+                <button class="tool" type="button" title="复制（示例）" aria-label="复制"><svg class="i"><use href="#i-copy"></use></svg></button>
+                <button class="tool" type="button" title="有帮助（示例）" aria-label="有帮助"><svg class="i"><use href="#i-thumb"></use></svg></button>
+                <button class="tool flip" type="button" title="没帮助（示例）" aria-label="没帮助"><svg class="i"><use href="#i-thumb"></use></svg></button>
+                <button class="tool" type="button" title="分享（示例）" aria-label="分享"><svg class="i"><use href="#i-share"></use></svg></button>
+                <span class="usage"><svg class="i"><use href="#i-db"></use></svg>示例数据<span class="ut">15:43</span></span>
+              </div>
+            </article>
+
+            <article class="msg user">
+              <div class="msg-meta"><span class="who">你</span><span class="t">15:45</span></div>
+              <div class="body">900 宽右栏默认收起，点「派活层级」滑出抽屉；别挤压对话区。</div>
+            </article>
+
+            <article class="msg bot">
+              <div class="md">
+                <p>窄屏走抽屉：≤1200px 右栏隐藏，tab 行右侧出现「派活层级」按钮；点开从右侧滑出、带遮罩，Esc 或点遮罩收起。900 宽整页截图随交付一起给。</p>
+              </div>
+              <div class="msg-tools">
+                <button class="tool" type="button" title="复制（示例）" aria-label="复制"><svg class="i"><use href="#i-copy"></use></svg></button>
+                <button class="tool" type="button" title="有帮助（示例）" aria-label="有帮助"><svg class="i"><use href="#i-thumb"></use></svg></button>
+                <button class="tool flip" type="button" title="没帮助（示例）" aria-label="没帮助"><svg class="i"><use href="#i-thumb"></use></svg></button>
+                <button class="tool" type="button" title="分享（示例）" aria-label="分享"><svg class="i"><use href="#i-share"></use></svg></button>
+                <span class="usage"><svg class="i"><use href="#i-db"></use></svg>示例数据<span class="ut">15:45</span></span>
+              </div>
+            </article>
+          </div>
+
+          <div id="traceTrajectory" hidden>
+            <p class="demo-badge"><svg class="i" aria-hidden="true"><use href="#i-info"></use></svg>示例轨迹 · 静态演示（不来自真实会话）</p>
+            <ol class="traj">
+              <li><span class="tr-t mono">15:38:04</span><span class="tr-k">用户消息</span><span class="tr-v">按 V7 界面稿落地：改名、五页导航、右栏接真实层级</span><span class="tr-s done">完成</span></li>
+              <li><span class="tr-t mono">15:38:09</span><span class="tr-k">读取</span><span class="tr-v">v7-butler-console.html · report-v7.md</span><span class="tr-s done">完成</span></li>
+              <li><span class="tr-t mono">15:41:22</span><span class="tr-k">实现</span><span class="tr-v">lib/tiers.js · GET api/tiers（活会话 + 子代理血缘）</span><span class="tr-s done">完成</span></li>
+              <li><span class="tr-t mono">15:52:40</span><span class="tr-k">实现</span><span class="tr-v">public/index.html · 五页导航 + 三栏布局</span><span class="tr-s done">完成</span></li>
+              <li><span class="tr-t mono">16:05:13</span><span class="tr-k">验证</span><span class="tr-v">node --test 单测 · check-page 静态自检</span><span class="tr-s run">进行中</span></li>
+              <li><span class="tr-t mono">16:12:00</span><span class="tr-k">验证</span><span class="tr-v">CDP 五页导航 / 右栏折叠高亮 / 900 抽屉</span><span class="tr-s queue">排队</span></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <section class="report" id="reportPanel" aria-labelledby="reportMeta" hidden>
+        <div class="report-head">
+          <span class="report-title">最新报告</span>
+          <span class="report-meta mono" id="reportMeta"></span>
           <span class="grow"></span>
-          <button class="muted-btn" type="button" id="closeReport">关闭</button>
+          <button class="icon-btn" type="button" id="closeReport" aria-label="关闭报告"><svg class="i"><use href="#i-x"></use></svg></button>
         </div>
         <pre class="report-pre" id="reportContent"></pre>
-        <p class="panel-foot" id="reportFoot">来自宿主动作路由 api/action · 只读 · 超过 64 KB 只显示前 64 KB</p>
-      </section>
-    </div>
-
-    <!-- ② 最近任务 / 事件流（共享板同源只读数据） -->
-    <div class="col">
-      <section class="panel" aria-labelledby="recent-h">
-        <div class="panel-head">
-          <h2 id="recent-h">最近任务与事件</h2>
-          <span class="hint" id="recentHint" aria-live="polite">载入中…</span>
-        </div>
-        <div class="tabs" role="tablist" aria-label="最近任务与事件流">
-          <button class="tab" role="tab" id="tab-tasks" aria-controls="panel-tasks" aria-selected="true" tabindex="0">最近任务<span class="n" id="taskTabCount"></span></button>
-          <button class="tab" role="tab" id="tab-events" aria-controls="panel-events" aria-selected="false" tabindex="-1">事件流<span class="n" id="eventTabCount"></span></button>
-        </div>
-        <div class="tab-panel" role="tabpanel" id="panel-tasks" aria-labelledby="tab-tasks" tabindex="0">
-          <ul class="item-list" id="taskList"></ul>
-          <p class="empty-hint" id="taskEmpty" hidden>板上暂无任务</p>
-        </div>
-        <div class="tab-panel" role="tabpanel" id="panel-events" aria-labelledby="tab-events" tabindex="0" hidden>
-          <ul class="item-list" id="eventList"></ul>
-          <p class="empty-hint" id="eventEmpty" hidden>暂无事件</p>
-        </div>
-        <p class="panel-foot"><span>共享板只读接口 · 每 30 秒静默刷新</span></p>
-      </section>
-    </div>
-
-    <!-- ③ 系统小部件（本机只读数据） + 待办 -->
-    <div class="col c">
-      <section class="panel" aria-labelledby="widgets-h">
-        <div class="panel-head">
-          <h2 id="widgets-h">本机状态</h2>
-          <span class="hint" id="widgetsHint" aria-live="polite">本机 · 只读</span>
-        </div>
-        <div class="widget-grid">
-          <div class="widget span2">
-            <div class="wk"><span>磁盘</span><span id="osLine">载入中…</span></div>
-            <div id="diskRows"><div class="empty-hint">载入中…</div></div>
-          </div>
-          <div class="widget">
-            <div class="wk"><span>内存</span><span id="memTotal">—</span></div>
-            <div class="wv"><span id="memUsed">—</span><small id="memRatio"></small></div>
-            <div class="wbar" role="progressbar" aria-label="内存已用" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="memBar" style="width:0%"></span></div>
-          </div>
-          <div class="widget">
-            <div class="wk"><span>板健康</span><span id="boardHealthSrc">—</span></div>
-            <div class="wv"><span id="boardLat">—</span><small id="boardLatNote">最近一次 /health 延迟</small></div>
-          </div>
-        </div>
-        <p class="panel-foot">数据来自同源只读路由 api/host 与本机 statfs · 零外链、零外部依赖</p>
+        <p class="report-foot">来自宿主动作路由 api/action · 只读 · 超过 64 KB 只显示前 64 KB</p>
       </section>
 
-      <section class="panel" aria-labelledby="todo-h">
-        <div class="panel-head">
-          <h2 id="todo-h">待办</h2>
-          <span class="count" id="todoCount">0 项</span>
-          <span class="hint">勾选自动存本机</span>
-        </div>
-        <form class="todo-form" id="todoForm">
-          <label class="sr-only" for="todoInput">添加待办</label>
-          <input id="todoInput" type="text" maxlength="80" placeholder="添加待办，Enter 保存…" autocomplete="off">
-          <button class="btn primary" type="submit">添加</button>
-        </form>
-        <ul class="todo-list" id="todoList"></ul>
-        <p class="todo-empty" id="todoEmpty" hidden>还没有待办，加一条试试。</p>
-        <div class="panel-foot todo-foot">
-          <span id="todoSummary">0 项未完成</span>
+      <div class="receipts" aria-label="动作回执">
+        <div class="receipts-head">
+          <span>动作回执</span>
+          <span class="muted" id="receiptHint">四态：成功 / 失败 / 暂不支持 / 进行中</span>
           <span class="grow"></span>
-          <button class="muted-btn" type="button" id="clearDone" disabled>清除已完成</button>
+          <button class="muted-btn" type="button" id="clearReceipt" disabled>清空</button>
         </div>
-        <p class="store-hint" id="storeHint">待办保存在 localStorage，刷新页面不丢。</p>
-      </section>
-    </div>
-  </div>
-</main>
+        <ul class="receipt-list" id="receiptList" aria-live="polite">
+          <li class="placeholder">还没有动作。点下面的按钮，真实结果（成功 / 失败 / 暂不支持）会记在这里。</li>
+        </ul>
+      </div>
 
+      <div class="composer">
+        <div class="composer-card">
+          <textarea id="prompt" class="composer-input" rows="1" placeholder="对话区（示例对话，不会发送；用下方快捷动作做真实操作）" spellcheck="false" aria-label="输入消息"></textarea>
+          <div class="composer-quick">
+            <span class="cq-label">快捷动作</span>
+            <div class="action-strip" id="actionList" aria-label="快捷动作"></div>
+          </div>
+          <div class="composer-row">
+            <div class="cb-l">
+              <button class="add" type="button" title="添加附件（视觉占位）" aria-label="添加附件"><svg class="i"><use href="#i-plus"></use></svg></button>
+              <button class="perm" type="button" title="权限设置（视觉占位）"><svg class="i"><use href="#i-info"></use></svg>完全权限<svg class="i chev"><use href="#i-chevd"></use></svg></button>
+            </div>
+            <div class="cb-r">
+              <span class="model" title="示例样式；页面不读模型配置">DeepSeek V4.1 Flash <b>Max</b><svg class="i chev"><use href="#i-chevd"></use></svg></span>
+              <button class="send" type="button" id="sendBtn" aria-disabled="true" aria-label="发送（示例对话不可发送）" title="示例对话，不可发送"><svg class="i"><use href="#i-up"></use></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="composer-stats">
+          <span class="pill"><svg class="i"><use href="#i-branch"></use></svg><span id="pillTiers">层级载入中…</span></span>
+          <span class="pill-sep"></span>
+          <span class="pill"><svg class="i"><use href="#i-db"></use></svg><span id="pillBoard">板载入中…</span></span>
+          <span class="pill-sep"></span>
+          <span class="pill"><svg class="i"><use href="#i-gauge"></use></svg><span id="pillHost">本机载入中…</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 页：任务 ================= -->
+    <section class="page" id="page-tasks" data-page="tasks" aria-label="任务" hidden>
+      <header class="page-head">
+        <h2 class="page-title">任务</h2>
+        <span class="page-desc">共享板只读 · 每 30 秒静默刷新</span>
+        <span class="grow"></span>
+        <span class="page-badge" id="boardBadge" data-kind="loading"><i class="dot" aria-hidden="true"></i><span id="boardBadgeText">载入中…</span></span>
+      </header>
+      <div class="page-body">
+        <div class="tabs" role="tablist" aria-label="最近任务与事件流">
+          <button class="tab active" role="tab" id="tab-tasks" aria-controls="panel-tasks" aria-selected="true" tabindex="0">最近任务<span class="n" id="taskTabCount"></span></button>
+          <button class="tab" role="tab" id="tab-events" aria-controls="panel-events" aria-selected="false" tabindex="-1">事件流<span class="n" id="eventTabCount"></span></button>
+          <span class="grow"></span>
+          <span class="page-desc" id="recentHint">载入中…</span>
+        </div>
+        <div role="tabpanel" id="panel-tasks" aria-labelledby="tab-tasks" tabindex="0">
+          <ul class="item-list" id="taskList"></ul>
+          <p class="empty-hint" id="taskEmpty" hidden>载入中…</p>
+        </div>
+        <div role="tabpanel" id="panel-events" aria-labelledby="tab-events" tabindex="0" hidden>
+          <ul class="item-list" id="eventList"></ul>
+          <p class="empty-hint" id="eventEmpty" hidden>载入中…</p>
+        </div>
+        <section class="card" aria-labelledby="todo-h">
+          <div class="card-h"><span id="todo-h">待办</span><span class="count" id="todoCount">0 项</span><span class="grow"></span><span class="muted">勾选自动存本机</span></div>
+          <form class="todo-form" id="todoForm">
+            <label class="sr-only" for="todoInput">添加待办</label>
+            <input id="todoInput" type="text" maxlength="80" placeholder="添加待办，Enter 保存…" autocomplete="off">
+            <button class="btn primary" type="submit">添加</button>
+          </form>
+          <ul class="todo-list" id="todoList"></ul>
+          <p class="todo-empty" id="todoEmpty" hidden>还没有待办，加一条试试。</p>
+          <div class="todo-foot">
+            <span id="todoSummary">0 项未完成</span>
+            <span class="grow"></span>
+            <button class="muted-btn" type="button" id="clearDone" disabled>清除已完成</button>
+          </div>
+          <p class="store-hint" id="storeHint">待办保存在 localStorage，刷新页面不丢。</p>
+        </section>
+      </div>
+    </section>
+
+    <!-- ================= 页：集群 ================= -->
+    <section class="page" id="page-cluster" data-page="cluster" aria-label="集群" hidden>
+      <header class="page-head">
+        <h2 class="page-title">集群</h2>
+        <span class="page-desc">interconnect 链路 · 只读</span>
+        <span class="grow"></span>
+        <span class="page-badge" id="topoSource" data-state="loading"><i class="dot" id="topoDot" aria-hidden="true"></i><span id="topoSourceText">真实数据载入中…</span><span class="mono" id="topoStamp"></span></span>
+      </header>
+      <div class="page-body">
+        <figure class="topo-figure">
+          <svg class="topo" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid meet" role="group" aria-labelledby="topoTitle topoDesc">
+            <title id="topoTitle">DSH 集群拓扑</title>
+            <desc id="topoDesc">mcloud 在上方居中，三条链路分别连到下方的 pc-ky614、server、s5；pc-ky614 与 server、server 与 s5 之间还有横向链路；server 下方一个空心圆表示待接入节点。亮蓝边框为在线，灰色边框为离线，灰色虚线为未知。</desc>
+            <g id="topoEdges"></g>
+            <g id="topoNodes"></g>
+          </svg>
+        </figure>
+        <div class="topo-legend">
+          <span class="lg"><span class="sw" aria-hidden="true"></span>在线</span>
+          <span class="lg"><span class="sw offline" aria-hidden="true"></span>离线</span>
+          <span class="lg"><span class="sw unknown" aria-hidden="true"></span>未知 / 待接入</span>
+          <span class="muted">悬停或按 Tab 聚焦节点：title 只显示实例、origin 与链路等本页真能拿到的字段。</span>
+        </div>
+        <p class="topo-others" id="topoOthers" hidden></p>
+        <section class="card" aria-labelledby="dev-h">
+          <div class="card-h"><span id="dev-h">设备与链路</span><span class="grow"></span><span class="muted" id="clusterHint">—</span></div>
+          <div class="dev-list" id="clusterList"><p class="empty-hint">载入中…</p></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ================= 页：记忆 ================= -->
+    <section class="page" id="page-memory" data-page="memory" aria-label="记忆" hidden>
+      <header class="page-head">
+        <h2 class="page-title">记忆</h2>
+        <span class="page-desc">OpenViking · 长时记忆入口</span>
+        <span class="grow"></span>
+        <span class="page-badge" id="memoryBadge" data-kind="idle"><i class="dot" aria-hidden="true"></i><span id="memoryBadgeText">未探测</span></span>
+      </header>
+      <div class="page-body">
+        <section class="card" aria-labelledby="mem-h">
+          <div class="card-h"><span id="mem-h">OpenViking 状态</span><span class="grow"></span><button class="btn primary" type="button" id="memoryProbe">探测并打开 Studio</button></div>
+          <p class="memory-state" id="memoryState">未探测：点「探测并打开 Studio」会走宿主动作路由 api/action 真探测 OpenViking，可达才打开新标签页。</p>
+          <p class="muted">探测失败会如实给出原因（超时 / 拒绝 / 未配置）；页面不持有任何地址或凭据，也不直接读写记忆库。</p>
+        </section>
+        <section class="card" aria-labelledby="mem2-h">
+          <div class="card-h"><span id="mem2-h">接入方式</span></div>
+          <ul class="kv-list">
+            <li><b>记忆服务</b><span>OpenViking（Studio 为只读入口，当前探测状态见上）</span></li>
+            <li><b>派活对话</b><span>在 DSH 会话里用 OpenViking 技能检索 / 写入记忆</span></li>
+            <li><b>本页能做的</b><span>真探测与打开入口；不替代会话内的记忆读写</span></li>
+            <li><b>数据来源</b><span class="mono">POST api/action · probe-memory</span></li>
+          </ul>
+        </section>
+      </div>
+    </section>
+
+    <!-- ================= 页：设置 ================= -->
+    <section class="page" id="page-settings" data-page="settings" aria-label="设置" hidden>
+      <header class="page-head">
+        <h2 class="page-title">设置</h2>
+        <span class="page-desc">只读信息 · 本页不提供重启 / 接管</span>
+      </header>
+      <div class="page-body">
+        <section class="card" aria-labelledby="set-h">
+          <div class="card-h"><span id="set-h">版本与路由</span></div>
+          <ul class="kv-list">
+            <li><b>插件版本</b><span class="mono" id="setVersion">0.4.0</span></li>
+            <li><b>页面路由</b><span class="mono">/dsh-html-panel/</span></li>
+            <li><b>只读数据路由</b><span class="mono">api/cluster · api/board · api/host · api/tiers</span></li>
+            <li><b>写动作路由</b><span class="mono">POST api/action（只收白名单动作 id）</span></li>
+          </ul>
+        </section>
+        <section class="card" aria-labelledby="set2-h">
+          <div class="card-h"><span id="set2-h">当前数据源</span></div>
+          <ul class="kv-list">
+            <li><b>共享板</b><span id="setBoard">—</span></li>
+            <li><b>链路</b><span id="setCluster">—</span></li>
+            <li><b>层级</b><span id="setTiersSource">—</span></li>
+            <li><b>本机</b><span id="setHost">—</span></li>
+          </ul>
+        </section>
+        <section class="card" aria-labelledby="set3-h">
+          <div class="card-h"><span id="set3-h">回滚与红线</span></div>
+          <p class="muted">回滚：把 <span class="mono">node_modules/dsh-html-panel</span> 换回 0.3.0 备份后重启 DSH。页面 <span class="mono">public/index.html</span> 的改动刷新即生效；<span class="mono">lib/</span> 改动（含新增 api/tiers 路由、侧栏改名）需重启 DSH 后才生效。</p>
+          <p class="muted" id="disabledReason">红线：不由面板重启 DSH —— 面板不提供重启、结束或接管 DSH 进程的能力，按钮永久禁用。</p>
+          <button class="btn" type="button" disabled aria-describedby="disabledReason">重启 DSH（永久禁用）</button>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <!-- 右栏：派活层级（T0–T3，设备只作标签，不按设备分组） -->
+    <aside class="hier" id="hier" aria-label="派活层级">
+    <div class="hier-head">
+      <div class="hh-row">
+        <span class="hh-title">派活层级</span>
+        <button class="degraded" id="tierDegraded" type="button" hidden>降级</button>
+        <svg class="i hh-info" aria-hidden="true"><use href="#i-info"></use></svg>
+        <button class="icon-btn hier-close" id="hierClose" type="button" aria-label="收起派活层级"><svg class="i"><use href="#i-x"></use></svg></button>
+      </div>
+      <div class="hh-desc" id="hhDesc">按层级组织，设备仅作标签</div>
+      <div class="hh-chips">
+        <span class="cnt c0"><span class="ck">T0</span><b id="cntT0">–</b></span>
+        <span class="cnt"><span class="ck">T1</span><b id="cntT1">–</b></span>
+        <span class="cnt"><span class="ck">T2</span><b id="cntT2">–</b></span>
+        <span class="cnt"><span class="ck" id="ckT3">T3</span><b id="cntT3">–</b></span>
+      </div>
+    </div>
+    <div class="hier-scroll" id="hierScroll">
+      <div class="tree" id="tree" role="tree" aria-label="大管家派活层级"></div>
+    </div>
+    <div class="hier-foot">
+      <div class="legend">
+        <span class="lg"><i class="dot run"></i>运行中</span>
+        <span class="lg"><i class="dot idle"></i>空闲</span>
+        <span class="lg"><i class="dot queue"></i>排队</span>
+        <span class="lg"><i class="dot blocked"></i>阻塞</span>
+        <span class="lg"><i class="dot done"></i>已完成</span>
+      </div>
+      <div class="hint" id="tierHint">点击节点高亮 <b>T0→…</b> 上级路径 · T2/T3 可折叠</div>
+      <div class="hint" id="tierSourceHint">数据：活会话 + 子代理血缘</div>
+    </div>
+  </aside>
+</div>
+
+<div class="mask" id="mask"></div>
+<div class="tip" id="tip" role="tooltip"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
+'use strict';
 (function () {
-  'use strict';
+  /* =====================================================================
+   * 大管家 · DSH 控制台（0.4.0）
+   *
+   * 三栏：左导航（5 页）· 中栏（按页切换）· 右栏派活层级（T0–T3）。
+   * 真实数据全部来自**同源只读路由**（相对路径 fetch，Host 半 lib/ 实现）：
+   *   api/cluster  本实例 interconnect 链路（集群页 / 顶栏 / 左栏底部）
+   *   api/board    共享板任务 / 事件 / 健康（任务页）
+   *   api/host     本机内存 / CPU / 磁盘（设置页 / composer 状态条）
+   *   api/tiers    T0 大管家 → T1 活会话 → T2/T3 子代理（右栏派活层级）
+   * 写动作只有两条真实通道：
+   *   panel-action postMessage → lib/client.js（新会话 / 派发草稿）
+   *   POST api/action → lib/actions.js（记忆探测 / 最新报告 / 打开报告目录）
+   * 中栏「示例对话」是**静态演示**，页面顶部有 badge；它不发消息、不持久化。
+   * 本页没有任何外部引用：零外链、零第三方脚本、零外部字体。
+   * ===================================================================== */
+
+  const $ = (selector, root) => (root || document).querySelector(selector);
+  const pad = n => (n < 10 ? '0' + n : String(n));
+
+  /** 所有来自接口/配置的字符串都过这里再拼 HTML（会话标题、板数据都是外部输入）。 */
+  function esc(value) {
+    return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmtStamp(value) {
+    if (!value) return '';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+  function fmtMs(ms) {
+    if (!Number.isFinite(ms)) return '';
+    const d = new Date(ms);
+    if (isNaN(d.getTime())) return '';
+    return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+  /** 毫秒时间戳 → 「刚刚 / N 分钟前 / N 小时前 / N 天前 / 具体日期」。 */
+  function relTime(ms) {
+    if (!Number.isFinite(ms)) return '—';
+    const diff = Date.now() - ms;
+    if (diff < 0) {
+      const futureMin = Math.round(-diff / 60000);
+      return futureMin <= 1 ? '即将' : '未来 ' + futureMin + ' 分钟';
+    }
+    if (diff < 60000) return '刚刚';
+    if (diff < 3600000) return Math.floor(diff / 60000) + ' 分钟前';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + ' 小时前';
+    const d = new Date(ms);
+    if (diff < 7 * 86400000) return Math.floor(diff / 86400000) + ' 天前';
+    return (d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function fmtBytes(bytes) {
+    if (!Number.isFinite(bytes) || bytes < 0) return '—';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let value = bytes;
+    let index = 0;
+    while (value >= 1024 && index < units.length - 1) { value /= 1024; index += 1; }
+    const shown = index === 0 ? String(Math.round(value)) : value.toFixed(value >= 100 ? 0 : 1);
+    return shown + ' ' + units[index];
+  }
+  function pct(ratio) {
+    return Number.isFinite(ratio) ? Math.round(ratio * 100) : null;
+  }
+  function shortReason(error) {
+    if (error && (error.name === 'AbortError' || error.name === 'TimeoutError')) return '超时';
+    return String((error && error.message) || error || '未知原因').slice(0, 80);
+  }
+  function timeoutSignal(ms) {
+    try {
+      return typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+        ? AbortSignal.timeout(ms)
+        : undefined;
+    } catch (error) {
+      return undefined;
+    }
+  }
+  async function fetchJson(path, timeoutMs) {
+    const response = await fetch(path, {
+      cache: 'no-store',
+      headers: { accept: 'application/json' },
+      signal: timeoutSignal(timeoutMs)
+    });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    let data;
+    try {
+      data = await response.json();
+    } catch (error) {
+      if (error && (error.name === 'AbortError' || error.name === 'TimeoutError')) throw error;
+      throw new Error('响应不是 JSON');
+    }
+    return data;
+  }
 
   /* =====================================================================
    * MOCK —— 只在**首次加载失败**时使用的兜底数据。
-   * 用兜底数据渲染的模块会在面板标题旁明确标「mock 兜底 · 原因」，绝不冒充真实数据。
-   *
-   * 真实数据来自三条**同源只读**路由（相对路径 fetch，Host 半的 lib/ 实现）：
-   *   api/cluster  本实例 interconnect 链路（集群拓扑 + 链路 chip）
-   *   api/board    共享板任务 / 事件 / 健康（Host 用 x-team-token 读板服务；token 不进页面）
-   *   api/host     本机内存 / CPU / 磁盘（node:os + fs.statfs，零外部依赖）
-   * 本页没有任何外部引用：零外链、零第三方脚本、零外部字体。
+   * 用兜底数据渲染的模块会在徽标/提示里明确标「mock 兜底 · 原因」，绝不冒充真实数据。
    * ===================================================================== */
   const MOCK = {
-    /* 6 个常用动作：只有前 5 个可点；重启 DSH 本轮保持禁用（红线）。 */
+    /* 6 个常用动作：前 5 个可点；重启 DSH 永久禁用（红线）。 */
     actions: [
-      { id: 'new-session', label: '新会话', desc: 'DSH 新会话入口（与 Ctrl+Alt+N 同一 API）', kbd: 'Ctrl+Alt+N', ico: '＋' },
-      { id: 'dispatch', label: '派发任务', desc: '面板不能直接调 mesh_* 工具，会给出替代方式', kbd: '', ico: '⇢' },
-      { id: 'board', label: '打开看板', desc: '等待共享板数据…', kbd: '', ico: '▤' },
-      { id: 'notes', label: '查记忆', desc: '探测并打开 OpenViking Studio', kbd: '', ico: '⌕' },
-      { id: 'latest-report', label: '读最新报告', desc: '读取 mesh-0.6-dev/repo/docs 最新 .md', kbd: '', ico: '▦' }
+      { id: 'new-session', label: '新会话', desc: 'DSH 新会话入口（与 Ctrl+Alt+N 同一 API）', ico: '＋' },
+      { id: 'dispatch', label: '派发', desc: '面板不能直接调 mesh_* 工具，会给出草稿替代方式', ico: '⇢' },
+      { id: 'board', label: '看板', desc: '等待共享板数据…', ico: '▤' },
+      { id: 'notes', label: '记忆', desc: '探测并打开 OpenViking Studio', ico: '⌕' },
+      { id: 'latest-report', label: '报告', desc: '读取 docs 目录最新 .md', ico: '▦' }
     ],
     disabledAction: { label: '重启 DSH', desc: '红线：不由面板重启 DSH', ico: '⟳',
       reason: '红线：面板不提供重启、结束或接管 DSH 进程的能力，按钮永久禁用。' },
@@ -653,8 +1319,10 @@
   };
 
   const STORE_KEY = 'dsh-workbench-todos-b';
-  /** 三个接口的静默刷新间隔。页面隐藏时跳过这一轮。 */
+  /** 三条数据接口的静默刷新间隔。页面隐藏时跳过这一轮。 */
   const POLL_MS = 30000;
+  /** 派活层级的刷新间隔：宿主侧还有 4 秒缓存，这里 15 秒足够且不会打满 interconnect。 */
+  const TIERS_POLL_MS = 15000;
   /** 板服务的五态 → 页面文案 / 配色类名（其余状态原样显示为「未知 · 原值」）。 */
   const TASK_STATES = {
     leased: { text: '租约中', cls: 'leased' },
@@ -664,138 +1332,66 @@
     done: { text: '已完成', cls: 'done' }
   };
   /** 顶部过期 badge 的模块名。 */
-  const MODULE_LABEL = { cluster: '链路', board: '共享板', host: '本机' };
+  const MODULE_LABEL = { cluster: '链路', board: '共享板', host: '本机', tiers: '层级' };
+  /** 派活层级状态 → 文案（与右栏图例一致）。 */
+  const TIER_STATUS = { run: '运行中', idle: '空闲', queue: '排队', blocked: '阻塞', done: '已完成' };
 
   /** 各模块状态：kind ∈ loading | real | mock | unconfigured；reason 只在 mock 时用。 */
   const state = {
     cluster: { kind: 'loading', data: null, reason: '' },
     board: { kind: 'loading', data: null, reason: '' },
     host: { kind: 'loading', data: null, reason: '' },
+    tiers: { kind: 'loading', data: null, reason: '' },
+    memory: { kind: 'idle' },
     staleReasons: {},
-    staleAt: 0
+    staleAt: 0,
+    page: 'butler',
+    tierSelectedId: ''
   };
-
-  const $ = (s, r) => (r || document).querySelector(s);
-  const pad = n => (n < 10 ? '0' + n : String(n));
-
-  /** 所有来自接口/配置的字符串都过这里再拼 HTML（板数据是外部输入）。 */
-  function esc(value) {
-    return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-    });
-  }
-  function fmtStamp(value) {
-    if (!value) return '';
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return '';
-    return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
-  }
-  function fmtMs(ms) {
-    if (!Number.isFinite(ms)) return '';
-    const d = new Date(ms);
-    if (isNaN(d.getTime())) return '';
-    return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
-  }
-  /** 毫秒时间戳 → 「刚刚 / N 分钟前 / N 小时前 / N 天前 / 具体日期」。 */
-  function relTime(ms) {
-    if (!Number.isFinite(ms)) return '—';
-    const diff = Date.now() - ms;
-    if (diff < 0) {
-      const futureMin = Math.round(-diff / 60000);
-      return futureMin <= 1 ? '即将' : '未来 ' + futureMin + ' 分钟';
-    }
-    if (diff < 60000) return '刚刚';
-    if (diff < 3600000) return Math.floor(diff / 60000) + ' 分钟前';
-    if (diff < 86400000) return Math.floor(diff / 3600000) + ' 小时前';
-    const d = new Date(ms);
-    if (diff < 7 * 86400000) return Math.floor(diff / 86400000) + ' 天前';
-    return (d.getMonth() + 1) + '-' + pad(d.getDate());
-  }
-  /** 字节 → 人类可读（页面上的磁盘/内存数字都走它）。 */
-  function fmtBytes(bytes) {
-    if (!Number.isFinite(bytes) || bytes < 0) return '—';
-    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    let value = bytes;
-    let index = 0;
-    while (value >= 1024 && index < units.length - 1) { value /= 1024; index += 1; }
-    const shown = index === 0 ? String(Math.round(value)) : value.toFixed(value >= 100 ? 0 : 1);
-    return shown + ' ' + units[index];
-  }
-  function pct(ratio) {
-    return Number.isFinite(ratio) ? Math.round(ratio * 100) : null;
-  }
-  function shortReason(error) {
-    if (error && (error.name === 'AbortError' || error.name === 'TimeoutError')) return '超时';
-    return String((error && error.message) || error || '未知原因').slice(0, 80);
-  }
 
   /* ---------------- toast ---------------- */
   let toastTimer = null;
   function toast(msg) {
     const el = $('#toast');
+    if (!el) return;
     el.textContent = msg;
     el.className = 'toast show';
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { el.className = 'toast'; }, 2200);
-  }
-
-  /* ---------------- 时钟 / 问候 ---------------- */
-  function greetingFor(h) {
-    if (h < 5) return '夜深了';
-    if (h < 9) return '早上好';
-    if (h < 12) return '上午好';
-    if (h < 14) return '中午好';
-    if (h < 18) return '下午好';
-    if (h < 23) return '晚上好';
-    return '夜深了';
-  }
-  const WEEK = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
-  let lastGreeting = '';
-  function tick() {
-    const now = new Date();
-    $('#clock').textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
-    $('#clock').setAttribute('datetime', now.toISOString());
-    const g = greetingFor(now.getHours());
-    if (g !== lastGreeting) {
-      $('#greeting').textContent = g;
-      lastGreeting = g;
-    }
-    $('#dateLine').textContent = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + ' ' + WEEK[now.getDay()];
+    toastTimer = setTimeout(function () { el.className = 'toast'; }, 2400);
   }
 
   /* =====================================================================
-   * 数据加载：三条同源只读路由 + 状态机
-   * 失败处理有两条不同路径，别混：
-   *   - 首次加载失败（此前没有好数据）→ 该模块回落 MOCK，并标「mock 兜底 · 原因」；
-   *   - 轮询失败（此前有真实数据）→ 保留上一次好数据，只在顶部 badge 标
-   *     「数据过期 · HH:MM:SS / 原因」，**不闪回 mock**。
+   * 导航：五页切换（大管家 / 任务 / 集群 / 记忆 / 设置）
    * ===================================================================== */
-  function timeoutSignal(ms) {
-    try {
-      return typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
-        ? AbortSignal.timeout(ms)
-        : undefined;
-    } catch (error) {
-      return undefined;
-    }
-  }
-  async function fetchJson(path, timeoutMs) {
-    const response = await fetch(path, {
-      cache: 'no-store',
-      headers: { accept: 'application/json' },
-      signal: timeoutSignal(timeoutMs)
+  const PAGES = ['butler', 'tasks', 'cluster', 'memory', 'settings'];
+  function setPage(name) {
+    if (PAGES.indexOf(name) === -1) name = 'butler';
+    state.page = name;
+    PAGES.forEach(function (page) {
+      const section = document.getElementById('page-' + page);
+      if (section) section.hidden = page !== name;
     });
-    if (!response.ok) throw new Error('HTTP ' + response.status);
-    let data;
-    try {
-      data = await response.json();
-    } catch (error) {
-      if (error && (error.name === 'AbortError' || error.name === 'TimeoutError')) throw error;
-      throw new Error('响应不是 JSON');
-    }
-    return data;
+    Array.prototype.forEach.call(document.querySelectorAll('.nav-item[data-page]'), function (btn) {
+      const active = btn.getAttribute('data-page') === name;
+      btn.classList.toggle('active', active);
+      if (active) btn.setAttribute('aria-current', 'page');
+      else btn.removeAttribute('aria-current');
+    });
+    hideTip();
+  }
+  function initNav() {
+    Array.prototype.forEach.call(document.querySelectorAll('.nav-item[data-page]'), function (btn) {
+      btn.addEventListener('click', function () { setPage(btn.getAttribute('data-page')); });
+    });
   }
 
+  /* =====================================================================
+   * 数据加载：四条同源只读路由 + 状态机
+   * 失败处理有两条不同路径，别混：
+   *   - 首次加载失败（此前没有好数据）→ 该模块回落 MOCK，并标「mock 兜底 · 原因」；
+   *   - 轮询失败（此前有真实数据）→ 保留上一次好数据，只在横幅标
+   *     「数据过期 · HH:MM:SS / 原因」，**不闪回 mock**。
+   * ===================================================================== */
   function noteSuccess(kind) {
     if (state.staleReasons[kind]) {
       delete state.staleReasons[kind];
@@ -807,16 +1403,18 @@
     state.staleAt = Date.now();
     renderStale();
   }
-  /** 顶部「数据过期」badge：只在轮询失败且手里还有上一次好数据时出现。 */
+  /** 数据过期横幅：只在轮询失败且手里还有上一次好数据时出现。 */
   function renderStale() {
     const chip = $('#chipStale');
+    if (!chip) return;
     const kinds = Object.keys(state.staleReasons);
     if (!kinds.length) {
       chip.hidden = true;
       return;
     }
     const reason = kinds.map(function (kind) { return MODULE_LABEL[kind] + '：' + state.staleReasons[kind]; }).join('；');
-    $('#chipStaleText').textContent = '数据过期 · ' + fmtMs(state.staleAt) + ' / ' + reason.slice(0, 120);
+    const text = $('#chipStaleText');
+    if (text) text.textContent = '数据过期 · ' + fmtMs(state.staleAt) + ' / ' + reason.slice(0, 130);
     chip.hidden = false;
   }
 
@@ -847,8 +1445,7 @@
       state.cluster = { kind: 'mock', data: null, reason: reason };
       renderClusterModule();
     }
-    renderChips();
-    renderMeta();
+    renderChrome();
   }
 
   /* ---------------- 共享板：api/board ---------------- */
@@ -888,6 +1485,7 @@
       state.board = { kind: 'mock', data: null, reason: reason };
     }
     renderBoardModule();
+    renderChrome();
   }
 
   /* ---------------- 本机：api/host ---------------- */
@@ -911,103 +1509,183 @@
       state.host = { kind: 'mock', data: null, reason: reason };
     }
     renderHostModule();
-    renderMeta();
+    renderChrome();
+  }
+
+  /* ---------------- 派活层级：api/tiers ---------------- */
+  function isTiersPayload(data) {
+    return !!data && typeof data === 'object' &&
+      !!data.root && typeof data.root === 'object' && typeof data.root.id === 'string' &&
+      Array.isArray(data.nodes);
+  }
+  async function loadTiers() {
+    try {
+      const data = await fetchJson('api/tiers', 4500);
+      if (!isTiersPayload(data)) throw new Error('结构不符');
+      state.tiers = { kind: 'real', data: data, reason: '' };
+      noteSuccess('tiers');
+    } catch (error) {
+      const reason = shortReason(error);
+      if (state.tiers.kind === 'real') {
+        noteFailure('tiers', reason);
+        return;
+      }
+      state.tiers = { kind: 'missing', data: null, reason: reason };
+    }
+    renderTiers();
+    renderChrome();
   }
 
   /* =====================================================================
-   * 渲染
+   * 渲染：顶栏 / 左栏底部 / 设置页数据源
    * ===================================================================== */
-
-  /* ---------------- 顶栏 chip / 日期行 ---------------- */
-  function setChip(id, dotClass, text) {
-    const dot = $('#chip' + id + 'Dot');
-    const label = $('#chip' + id + 'Text');
-    if (dot) dot.className = 'dot ' + dotClass;
-    if (label) label.textContent = text;
-  }
-  function renderChips() {
+  function clusterSummary() {
     const cluster = state.cluster;
     if (cluster.kind === 'real') {
       const peers = Array.isArray(cluster.data.peers) ? cluster.data.peers : [];
       const up = peers.filter(function (peer) { return peer.link === 'up'; }).length;
-      setChip('Cluster', up > 0 ? 'ok' : 'warn', 'interconnect ' + up + '/' + peers.length + ' up');
-    } else if (cluster.kind === 'mock') {
-      setChip('Cluster', 'warn', '链路 mock 兜底');
-    } else {
-      setChip('Cluster', 'unknown', 'interconnect 载入中…');
+      return {
+        self: (cluster.data.self && cluster.data.self.instanceId) || 'unknown',
+        peers: peers,
+        up: up,
+        text: peers.length + ' 台设备 · ' + up + ' 条链路 up',
+        detail: '实例 ' + ((cluster.data.self && cluster.data.self.instanceId) || 'unknown') + ' · 对端 ' + peers.length + ' 个，up ' + up
+      };
     }
-
-    const board = state.board;
-    if (board.kind === 'real') {
-      const health = board.data.health;
-      if (health && health.ok) {
-        setChip('Board', 'ok', '板 在线 · ' + health.latencyMs + 'ms');
-      } else {
-        setChip('Board', 'warn', '板 在线 · 延迟未知');
-      }
-    } else if (board.kind === 'unconfigured') {
-      setChip('Board', 'unknown', '板 未配置');
-    } else if (board.kind === 'mock') {
-      setChip('Board', 'bad', '板 不可达');
-    } else {
-      setChip('Board', 'unknown', '板 载入中…');
+    if (cluster.kind === 'mock') {
+      return { self: null, peers: [], up: 0, text: '链路数据不可用', detail: 'mock 兜底 · ' + cluster.reason };
     }
-
-    let taskDot = 'unknown';
-    let taskText = '任务 载入中…';
-    if (board.kind === 'real') {
-      const count = (board.data.tasks || []).length;
-      taskDot = 'ok';
-      taskText = '板上 ' + count + ' 任务';
-    } else if (board.kind === 'unconfigured') {
-      taskText = '任务 板未配置';
-    } else if (board.kind === 'mock') {
-      taskDot = 'warn';
-      taskText = '任务 mock 兜底';
-    }
-    setChip('Tasks', taskDot, taskText);
+    return { self: null, peers: [], up: 0, text: '链路载入中…', detail: '载入中…' };
   }
-  function renderMeta() {
-    const cluster = state.cluster;
+  function boardSummary() {
     const board = state.board;
-    $('#selfLine').textContent = '实例 ' + (
-      cluster.kind === 'real'
-        ? ((cluster.data.self && cluster.data.self.instanceId) || 'unknown')
-        : (cluster.kind === 'mock' ? 'mock 兜底' : '—')
-    );
-    let boardText = '板 —';
-    if (board.kind === 'real' && board.data.source && board.data.source.origin) {
-      boardText = '板 ' + board.data.source.origin;
-    } else if (board.kind === 'unconfigured') {
-      boardText = '板 未配置';
-    } else if (board.kind === 'mock') {
-      boardText = '板 不可达';
+    if (board.kind === 'real') {
+      const tasks = Array.isArray(board.data.tasks) ? board.data.tasks : [];
+      const health = board.data.health;
+      return {
+        count: tasks.length,
+        text: '板上 ' + tasks.length + ' 任务',
+        pill: health && health.ok ? '板 在线 · ' + health.latencyMs + 'ms' : '板 在线',
+        badge: '真实 · 共享板',
+        badgeKind: 'real',
+        detail: '在线 · ' + (((board.data.source || {}).origin) || 'origin 未给出') + ' · ' + tasks.length + ' 任务'
+      };
     }
-    $('#boardSourceLine').textContent = boardText;
+    if (board.kind === 'unconfigured') {
+      return { count: 0, text: '板未配置', pill: '板 未配置', badge: '板未配置', badgeKind: 'mock', detail: '未配置（profile 里 config.board.endpoint 为空）' };
+    }
+    if (board.kind === 'mock') {
+      return { count: null, text: '板不可达', pill: '板 不可达', badge: 'mock 兜底 · 板不可达', badgeKind: 'mock', detail: 'mock 兜底 · 不可达：' + board.reason };
+    }
+    return { count: null, text: '板载入中…', pill: '板载入中…', badge: '载入中…', badgeKind: 'loading', detail: '载入中…' };
+  }
+  function hostSummary() {
+    const host = state.host;
+    if (host.kind === 'real') {
+      const memory = host.data.memory || {};
+      const cpu = host.data.cpu || {};
+      const os = host.data.os || {};
+      const usedPct = pct(memory.ratio);
+      return {
+        pill: usedPct !== null ? '内存 ' + usedPct + '%' : '内存 —',
+        detail: (host.data.hostname || '—') + ' · ' + (os.platform || '—') + ' · CPU ' +
+          (Number.isFinite(cpu.count) ? cpu.count + ' 核' : '—') + ' · 开机 ' +
+          (Number.isFinite(os.uptimeSec) ? Math.round(os.uptimeSec / 3600) + ' 小时' : '—')
+      };
+    }
+    if (host.kind === 'mock') return { pill: '本机不可用', detail: 'mock 兜底 · ' + host.reason };
+    return { pill: '本机载入中…', detail: '载入中…' };
+  }
+  function tiersSummary() {
+    const tiers = state.tiers;
+    if (tiers.kind === 'real') {
+      const source = tiers.data.source || {};
+      const remote = Array.isArray(source.remote) ? source.remote : [];
+      const up = remote.filter(function (row) { return row.link === 'up'; }).length;
+      const note = source.cached === true ? ' · 缓存 ' + Math.round((source.ageMs || 0) / 1000) + 's' : '';
+      return '本机 ' + (source.local || '—') + ' + 远端 interconnect.list（up ' + up + '/' + remote.length + '）' + note;
+    }
+    if (tiers.kind === 'loading') return '载入中…';
+    const reason = tiers.reason || '不可用';
+    return /404/.test(reason) ? 'api/tiers 路由尚未加载（HTTP 404）：新版 Host 需重启 DSH' : '降级 · ' + reason;
+  }
+  function renderChrome() {
+    const cluster = clusterSummary();
+    const board = boardSummary();
+    const host = hostSummary();
 
-    const stamps = [];
-    if (cluster.kind === 'real' && cluster.data.generatedAt) stamps.push(Date.parse(cluster.data.generatedAt));
-    if (board.kind === 'real' && board.data.generatedAt) stamps.push(Date.parse(board.data.generatedAt));
-    if (state.host.kind === 'real' && state.host.data.generatedAt) stamps.push(Date.parse(state.host.data.generatedAt));
-    const valid = stamps.filter(function (value) { return Number.isFinite(value); });
-    $('#dataStamp').textContent = valid.length ? '数据 ' + fmtStamp(new Date(Math.max.apply(null, valid)).toISOString()) : '数据 —';
+    const statDevices = $('#statDevices');
+    if (statDevices) statDevices.textContent = cluster.text;
+    const statBoard = $('#statBoard');
+    if (statBoard) statBoard.textContent = board.text;
+
+    const sfDev = $('#sfDev');
+    if (sfDev) sfDev.textContent = cluster.self || '—';
+    const sfSub = $('#sfSub');
+    if (sfSub) {
+      sfSub.textContent = cluster.text;
+      sfSub.title = state.cluster.kind === 'mock' ? 'mock 兜底 · ' + state.cluster.reason : '';
+    }
+    const sfDot = $('#sfDot');
+    if (sfDot) sfDot.className = 'dot ' + (state.cluster.kind === 'real' ? 'run' : (state.cluster.kind === 'mock' ? 'queue' : 'idle'));
+
+    const navTasks = $('#navTasksCount');
+    if (navTasks) {
+      if (state.board.kind === 'real') { navTasks.hidden = false; navTasks.textContent = String(board.count); }
+      else navTasks.hidden = true;
+    }
+    const navCluster = $('#navClusterCount');
+    if (navCluster) {
+      if (state.cluster.kind === 'real') { navCluster.hidden = false; navCluster.textContent = cluster.up + '/' + cluster.peers.length; }
+      else navCluster.hidden = true;
+    }
+
+    const pillBoard = $('#pillBoard');
+    if (pillBoard) pillBoard.textContent = board.pill;
+    const pillHost = $('#pillHost');
+    if (pillHost) pillHost.textContent = host.pill;
+
+    const setVersion = $('#setVersion');
+    if (setVersion) setVersion.textContent = '0.4.0';
+    const setBoard = $('#setBoard');
+    if (setBoard) setBoard.textContent = board.detail;
+    const setCluster = $('#setCluster');
+    if (setCluster) setCluster.textContent = state.cluster.kind === 'real'
+      ? 'interconnect 正常 · ' + cluster.detail
+      : cluster.detail;
+    const setHost = $('#setHost');
+    if (setHost) setHost.textContent = host.detail;
+    const setTiersSource = $('#setTiersSource');
+    if (setTiersSource) setTiersSource.textContent = tiersSummary();
+
+    const boardBadge = $('#boardBadge');
+    const boardBadgeText = $('#boardBadgeText');
+    if (boardBadge && boardBadgeText) {
+      boardBadge.setAttribute('data-kind', board.badgeKind);
+      boardBadgeText.textContent = board.badge + (state.board.kind === 'mock' ? '（' + state.board.reason.slice(0, 40) + '）' : '');
+    }
+    const recentHint = $('#recentHint');
+    if (recentHint) {
+      recentHint.textContent = state.board.kind === 'real'
+        ? '共享板 ' + (((state.board.data.source || {}).origin) || '') + ' · 只读 · 30 秒刷新'
+        : board.detail;
+      recentHint.title = recentHint.textContent;
+    }
+    const clusterHint = $('#clusterHint');
+    if (clusterHint) clusterHint.textContent = state.cluster.kind === 'real' ? '数据：api/cluster · 只读' : cluster.detail;
+    markState();
   }
 
   /* =====================================================================
-   * ① 常用动作 —— 真实动作
+   * 常用动作 —— 真实动作（0.3.0 通道原样保留）
    *
    * 三条通道，按「谁有权限」拆开，页面只发动作 id，绝不放任意路径/命令：
    *   DSH 客户端（panel-action postMessage → lib/client.js 执行）
-   *     new-session      uiWorkspace.startSession()（Ctrl+Alt+N 同一个 API）
-   *     dispatch         面板没有 mesh_* 工具通道 → 如实「暂不支持」+ 草稿替代按钮
-   *     dispatch-draft   uiWorkspace.startSession(undefined,{prompt}) 打开草稿
+   *     new-session / dispatch / dispatch-draft
    *   宿主 action 路由（同源 POST api/action → lib/actions.js 执行）
-   *     probe-memory     真探测 OpenViking，可达才由本页打开 Studio
-   *     latest-report    真读最新 .md，内容显示在本页「最新报告」
-   *     open-reports-folder  explorer.exe 打开固定目录
+   *     probe-memory / latest-report / open-reports-folder
    *   页面本地
-   *     board            用 api/board 已拿到的真实 origin window.open；不可达只给原因
-   *
+   *     board（用 api/board 已拿到的真实 origin 打开）
    * 回执只有四种状态：成功 / 失败 / 暂不支持 / 进行中；不存在本地假回执。
    * ===================================================================== */
   const RECEIPT_STATES = { ok: '成功', fail: '失败', unsupported: '暂不支持', pending: '进行中' };
@@ -1018,42 +1696,6 @@
   const pendingClientActions = new Map();
   let clientActionSeq = 0;
 
-  function renderActions() {
-    const html = MOCK.actions.map(function (action) {
-      return '<li><button class="action" type="button" data-action="' + action.id + '">' +
-        '<span class="ico" aria-hidden="true">' + action.ico + '</span>' +
-        '<span class="txt"><b>' + action.label + '</b><span>' + esc(action.desc) + '</span></span>' +
-        (action.kbd ? '<kbd>' + action.kbd + '</kbd>' : '') +
-      '</button></li>';
-    }).join('') +
-      '<li><button class="action" type="button" disabled aria-describedby="disabledReason">' +
-        '<span class="ico" aria-hidden="true">' + MOCK.disabledAction.ico + '</span>' +
-        '<span class="txt"><b>' + MOCK.disabledAction.label + '</b><span id="disabledReason">' + esc(MOCK.disabledAction.desc) + '</span></span>' +
-        '<span class="soon">禁用</span>' +
-      '</button></li>';
-    $('#actionList').innerHTML = html;
-    $('#actionList').addEventListener('click', function (event) {
-      const button = event.target.closest('[data-action]');
-      if (!button) return;
-      fireAction(button.getAttribute('data-action'));
-    });
-  }
-  /** 「打开看板」的地址来自 api/board 的 source.origin。按钮始终可点：不可达时点一下给出原因回执，不静默置灰。 */
-  function renderBoardAction() {
-    const button = $('#actionList [data-action="board"]');
-    if (!button) return;
-    const desc = button.querySelector('.txt span');
-    const board = state.board;
-    if (board.kind === 'real' && board.data.source && board.data.source.origin) {
-      desc.textContent = '共享板 ' + board.data.source.origin;
-    } else if (board.kind === 'unconfigured') {
-      desc.textContent = '板未配置（点击查看原因）';
-    } else if (board.kind === 'mock') {
-      desc.textContent = '板不可达（点击查看原因）';
-    } else {
-      desc.textContent = '等待共享板数据…';
-    }
-  }
   function actionById(id) {
     return MOCK.actions.filter(function (item) { return item.id === id; })[0] || null;
   }
@@ -1068,13 +1710,45 @@
     const now = new Date();
     return pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
   }
-
-  function addReceipt(id, state, text, hint) {
+  function renderActions() {
+    const list = $('#actionList');
+    if (!list) return;
+    list.innerHTML = MOCK.actions.map(function (action) {
+      return '<button class="action" type="button" data-action="' + action.id + '" aria-label="' + esc(action.label + '：' + action.desc) + '" title="' + esc(action.desc) + '">' +
+        '<span class="act-ico" aria-hidden="true">' + action.ico + '</span>' +
+        '<span class="act-label">' + esc(action.label) + '</span>' +
+      '</button>';
+    }).join('');
+    if (!list.dataset.bound) {
+      list.dataset.bound = '1';
+      list.addEventListener('click', function (event) {
+        const button = event.target.closest('[data-action]');
+        if (!button) return;
+        fireAction(button.getAttribute('data-action'));
+      });
+    }
+  }
+  /** 「看板」按钮的地址来自 api/board 的 source.origin。按钮始终可点：不可达时点一下给出原因回执，不静默置灰。 */
+  function renderBoardAction() {
+    const button = $('#actionList [data-action="board"]');
+    if (!button) return;
+    const board = state.board;
+    if (board.kind === 'real' && board.data.source && board.data.source.origin) {
+      button.title = '打开共享板 ' + board.data.source.origin;
+    } else if (board.kind === 'unconfigured') {
+      button.title = '板未配置（点击查看原因）';
+    } else if (board.kind === 'mock') {
+      button.title = '板不可达（点击查看原因）';
+    } else {
+      button.title = '等待共享板数据…';
+    }
+  }
+  function addReceipt(id, stateName, text, hint) {
     const receipt = {
       id: 'action-' + Date.now() + '-' + receipts.length,
       time: clockTime(),
       label: actionLabel(id),
-      state: state,
+      state: stateName,
       text: text,
       hint: hint || null,
       link: null
@@ -1096,11 +1770,12 @@
   /** 回执列表：全部用 DOM 构建 + textContent，动态 URL 只进 href（不拼 HTML）。 */
   function renderReceipts() {
     const list = $('#receiptList');
+    if (!list) return;
     list.innerHTML = '';
     if (!receipts.length) {
       const placeholder = document.createElement('li');
       placeholder.className = 'placeholder';
-      placeholder.textContent = '还没有动作。点击上方按钮，真实结果（成功 / 失败 / 暂不支持）会记在这里。';
+      placeholder.textContent = '还没有动作。点下面的按钮，真实结果（成功 / 失败 / 暂不支持）会记在这里。';
       list.appendChild(placeholder);
     } else {
       receipts.forEach(function (receipt) {
@@ -1115,10 +1790,10 @@
         label.textContent = receipt.label;
         body.appendChild(label);
         body.appendChild(document.createTextNode(' '));
-        const state = document.createElement('span');
-        state.className = 'r-state ' + receipt.state;
-        state.textContent = RECEIPT_STATES[receipt.state] || receipt.state;
-        body.appendChild(state);
+        const badge = document.createElement('span');
+        badge.className = 'r-state ' + receipt.state;
+        badge.textContent = RECEIPT_STATES[receipt.state] || receipt.state;
+        body.appendChild(badge);
         const text = document.createElement('span');
         text.className = 'r-text';
         text.textContent = receipt.text;
@@ -1150,9 +1825,9 @@
         list.appendChild(li);
       });
     }
-    $('#clearReceipt').disabled = receipts.length === 0;
+    const clear = $('#clearReceipt');
+    if (clear) clear.disabled = receipts.length === 0;
   }
-
   /** 打开新标签页；返回是否真的打开了（弹窗被拦时 false）。 */
   function openExternal(url) {
     try {
@@ -1171,7 +1846,6 @@
       return '*';
     }
   }
-
   /** DSH 客户端动作：postMessage 给父窗口（lib/client.js 收），requestId 等回执；超时如实报。 */
   function callClient(action) {
     return new Promise(function (resolvePromise) {
@@ -1205,7 +1879,6 @@
     pendingClientActions.delete(requestId);
     pending.resolve(data);
   });
-
   /** 宿主 action 路由：同源 POST api/action，body 只有白名单动作 id。 */
   async function postAction(action) {
     let response;
@@ -1245,14 +1918,9 @@
     }
     return data;
   }
-
-  /** ① 新会话：交给 DSH 客户端服务（真入口，与 Ctrl+Alt+N 同一个 API）。 */
   function runNewSession() { return callClient('new-session'); }
-  /** ② 派发任务：面板没有 mesh_* 工具通道，如实返回 + 草稿替代。 */
   function runDispatch() { return callClient('dispatch'); }
-  /** ②b 替代：打开新会话并填入 mesh_dispatch 提示草稿（草稿不自动发送）。 */
   function runDispatchDraft() { return callClient('dispatch-draft'); }
-  /** ③ 打开看板：真实 origin 来自 api/board；不可达只给原因，不静默。 */
   function runOpenBoard() {
     const board = state.board;
     if (board.kind === 'real' && board.data && board.data.source && typeof board.data.source.origin === 'string') {
@@ -1268,10 +1936,14 @@
     }
     return { ok: false, code: 'board-loading', reason: '共享板数据还没载入完成，稍后再点。' };
   }
-  /** ④ 查记忆：先让宿主真探测 OpenViking，可达才打开，不可达回原因。 */
+  /** 记忆探测：先让宿主真探测 OpenViking，可达才打开，不可达回原因。 */
   async function runOpenMemory() {
+    state.memory = { kind: 'probing' };
+    renderMemory();
     const probe = await postAction('probe-memory');
     if (!probe || probe.ok !== true) {
+      state.memory = { kind: 'fail', reason: (probe && probe.reason) || 'OpenViking 探测失败' };
+      renderMemory();
       return {
         ok: false,
         unsupported: !!(probe && probe.code === 'action-route-missing'),
@@ -1281,11 +1953,14 @@
     }
     const url = probe.url;
     if (openExternal(url)) {
+      state.memory = { kind: 'ok', origin: probe.origin, latencyMs: probe.latencyMs };
+      renderMemory();
       return { ok: true, detail: '已在新标签页打开 OpenViking Studio（' + probe.origin + '，探测 ' + probe.latencyMs + 'ms）' };
     }
+    state.memory = { kind: 'ok', origin: probe.origin, latencyMs: probe.latencyMs };
+    renderMemory();
     return { ok: false, code: 'popup-blocked', reason: '浏览器拦截了新窗口，未能打开 ' + url, link: { href: url, label: '手动打开 OpenViking Studio' } };
   }
-  /** ⑤ 读最新报告：宿主真读文件，内容显示在本页（不依赖 .md 默认打开方式）。 */
   async function runLatestReport() {
     const result = await postAction('latest-report');
     if (!result || result.ok !== true) {
@@ -1305,9 +1980,7 @@
       hint: { action: 'open-reports-folder', label: '在资源管理器中打开报告目录' }
     };
   }
-  /** ⑤b 回执里的二级动作：在资源管理器打开固定报告目录。 */
   function runOpenReportsFolder() { return postAction('open-reports-folder'); }
-  /** 重启 DSH：红线，永久禁用；这里只是兜底（正常点不到）。 */
   function runRestart() {
     return { ok: false, unsupported: true, code: 'red-line', reason: '红线：面板不允许重启、结束或接管 DSH 进程。' };
   }
@@ -1321,7 +1994,6 @@
     'open-reports-folder': runOpenReportsFolder,
     'restart-dsh': runRestart
   };
-
   /** 报告预览：把宿主读到的真实内容渲染到 #reportPanel。 */
   function showReport(result) {
     const panel = $('#reportPanel');
@@ -1330,7 +2002,6 @@
     $('#reportMeta').textContent = (file.name || '报告') + ' · ' + (file.mtime ? fmtMs(file.mtime) : '—') + ' · ' + fmtBytes(file.size) + (result.truncated === true ? ' · 截断' : '');
     $('#reportContent').textContent = typeof result.content === 'string' ? result.content : '';
     panel.hidden = false;
-    if (typeof panel.scrollIntoView === 'function') panel.scrollIntoView({ block: 'nearest' });
   }
   function receiptMessage(result) {
     if (!result) return '无结果';
@@ -1350,17 +2021,37 @@
     const stateText = result && result.ok === true ? '成功' : (result && result.unsupported === true ? '暂不支持' : '失败');
     toast(actionLabel(id) + '：' + stateText + ' · ' + receiptMessage(result).slice(0, 60));
   }
-  $('#closeReport').addEventListener('click', function () { $('#reportPanel').hidden = true; });
-  $('#clearReceipt').addEventListener('click', function () {
-    receipts.length = 0;
+  function initActions() {
+    renderActions();
     renderReceipts();
-    toast('动作回执已清空');
-  });
+    const closeReport = $('#closeReport');
+    if (closeReport) closeReport.addEventListener('click', function () { $('#reportPanel').hidden = true; });
+    const clear = $('#clearReceipt');
+    if (clear) clear.addEventListener('click', function () {
+      receipts.length = 0;
+      renderReceipts();
+      toast('动作回执已清空');
+    });
+    const prompt = $('#prompt');
+    if (prompt) prompt.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        toast('示例对话不支持发送；请用左侧快捷动作做真实操作');
+      }
+    });
+    const send = $('#sendBtn');
+    if (send) send.addEventListener('click', function () { toast('示例对话，不可发送'); });
+    const memoryProbe = $('#memoryProbe');
+    if (memoryProbe) memoryProbe.addEventListener('click', function () { fireAction('notes'); });
+  }
 
-  /* ---------------- ② 任务 / 事件流 标签页 ---------------- */
+  /* =====================================================================
+   * 任务 / 事件（共享板同源只读）
+   * ===================================================================== */
   function tabSelect(id) {
     const tabs = [$('#tab-tasks'), $('#tab-events')];
     tabs.forEach(function (tab) {
+      if (!tab) return;
       const selected = tab.id === id;
       tab.setAttribute('aria-selected', String(selected));
       tab.tabIndex = selected ? 0 : -1;
@@ -1368,9 +2059,10 @@
       if (panel) panel.hidden = !selected;
     });
   }
-  function initTabs() {
+  function initBoardTabs() {
     const tabs = [$('#tab-tasks'), $('#tab-events')];
     tabs.forEach(function (tab, index) {
+      if (!tab) return;
       tab.addEventListener('click', function () { tabSelect(tab.id); });
       tab.addEventListener('keydown', function (event) {
         let next = null;
@@ -1387,7 +2079,6 @@
       });
     });
   }
-
   function taskStateInfo(task) {
     const key = String((task && task.state) || 'unknown');
     const known = TASK_STATES[key];
@@ -1436,6 +2127,7 @@
   }
   function setModuleHint(id, mock, text) {
     const el = $('#' + id);
+    if (!el) return;
     el.textContent = text;
     el.className = 'hint' + (mock ? ' is-mock' : '');
   }
@@ -1443,6 +2135,7 @@
     const board = state.board;
     const list = $('#taskList');
     const empty = $('#taskEmpty');
+    if (!list || !empty) return;
     let rows = null;
     if (board.kind === 'real') rows = Array.isArray(board.data.tasks) ? board.data.tasks : [];
     else if (board.kind === 'mock') rows = MOCK.tasks;
@@ -1451,7 +2144,8 @@
       list.innerHTML = '';
       empty.hidden = false;
       empty.textContent = '载入中…';
-      $('#taskTabCount').textContent = '';
+      const count = $('#taskTabCount');
+      if (count) count.textContent = '';
       return;
     }
     list.innerHTML = rows.map(function (row, i) { return taskItem(row, i); }).join('');
@@ -1461,12 +2155,14 @@
         ? '板未配置：profile 里给 dsh-html-panel 加 config.board.endpoint / token'
         : (board.kind === 'mock' ? 'mock 兜底 · ' + board.reason : '板上暂无任务');
     }
-    $('#taskTabCount').textContent = rows.length ? String(rows.length) : '';
+    const count = $('#taskTabCount');
+    if (count) count.textContent = rows.length ? String(rows.length) : '';
   }
   function renderEvents() {
     const board = state.board;
     const list = $('#eventList');
     const empty = $('#eventEmpty');
+    if (!list || !empty) return;
     let rows = null;
     if (board.kind === 'real') rows = Array.isArray(board.data.events) ? board.data.events : [];
     else if (board.kind === 'mock') rows = MOCK.events;
@@ -1475,7 +2171,8 @@
       list.innerHTML = '';
       empty.hidden = false;
       empty.textContent = '载入中…';
-      $('#eventTabCount').textContent = '';
+      const count = $('#eventTabCount');
+      if (count) count.textContent = '';
       return;
     }
     list.innerHTML = rows.map(eventItem).join('');
@@ -1485,115 +2182,26 @@
         ? '板未配置，没有事件源'
         : (board.kind === 'mock' ? 'mock 兜底 · ' + board.reason : '暂无事件');
     }
-    $('#eventTabCount').textContent = rows.length ? String(rows.length) : '';
-  }
-  function renderRecentHint() {
-    const board = state.board;
-    if (board.kind === 'real') {
-      setModuleHint('recentHint', false, '共享板 ' + ((board.data.source && board.data.source.origin) || '') + ' · 只读');
-    } else if (board.kind === 'unconfigured') {
-      setModuleHint('recentHint', false, '板未配置');
-    } else if (board.kind === 'mock') {
-      setModuleHint('recentHint', true, 'mock 兜底 · ' + board.reason);
-    } else {
-      setModuleHint('recentHint', false, '载入中…');
-    }
+    const count = $('#eventTabCount');
+    if (count) count.textContent = rows.length ? String(rows.length) : '';
   }
   function renderBoardModule() {
     renderTasks();
     renderEvents();
-    renderRecentHint();
-    renderBoardHealth();
     renderBoardAction();
-    renderChips();
-    renderMeta();
+    renderChrome();
   }
 
-  /* ---------------- ③ 系统小部件（本机只读） ---------------- */
-  function diskRow(disk) {
-    const total = Number.isFinite(disk.totalBytes) ? disk.totalBytes : null;
-    const free = Number.isFinite(disk.freeBytes) ? disk.freeBytes : null;
-    const usedPct = pct(disk.ratio);
-    if (total === null || free === null || usedPct === null) {
-      return '<div class="disk-row"><div class="dr"><span class="name">' + esc(disk.mount) + '</span>' +
-        '<span class="amt">读取失败 · ' + esc(disk.error || 'unknown') + '</span></div></div>';
-    }
-    const barClass = usedPct >= 50 ? 'amber' : 'green';
-    return '<div class="disk-row">' +
-      '<div class="dr"><span class="name">' + esc(disk.mount) + '</span>' +
-        '<span class="amt">已用 ' + esc(fmtBytes(total - free)) + ' / ' + esc(fmtBytes(total)) + ' · ' + usedPct + '%</span></div>' +
-      '<div class="wbar ' + barClass + '" role="progressbar" aria-label="' + esc(disk.label) + ' 已用 ' + usedPct + '%" ' +
-        'aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + usedPct + '"><span style="width:' + usedPct + '%"></span></div>' +
-    '</div>';
-  }
+  /* =====================================================================
+   * 本机小部件（设置页数据源 + composer 状态条）
+   * ===================================================================== */
   function renderHostModule() {
-    const host = state.host;
-    const data = host.kind === 'real' ? host.data : (host.kind === 'mock' ? MOCK.host : null);
-    const loading = data === null;
-
-    if (loading) {
-      $('#diskRows').innerHTML = '<div class="empty-hint">载入中…</div>';
-      $('#memTotal').textContent = '—';
-      $('#memUsed').textContent = '—';
-      $('#memRatio').textContent = '';
-      $('#memBar').style.width = '0%';
-    } else {
-      const disks = Array.isArray(data.disks) ? data.disks : [];
-      $('#diskRows').innerHTML = disks.length
-        ? disks.map(diskRow).join('')
-        : '<div class="empty-hint">没有可读磁盘</div>';
-      const total = data.memory && Number.isFinite(data.memory.totalBytes) ? data.memory.totalBytes : null;
-      const free = data.memory && Number.isFinite(data.memory.freeBytes) ? data.memory.freeBytes : null;
-      const used = total !== null && free !== null ? total - free : null;
-      const usedPct = data.memory ? pct(data.memory.ratio) : null;
-      $('#memTotal').textContent = total !== null ? fmtBytes(total) : '—';
-      $('#memUsed').textContent = used !== null ? fmtBytes(used) : '—';
-      $('#memRatio').textContent = usedPct !== null ? usedPct + '%' : '';
-      $('#memBar').style.width = (usedPct === null ? 0 : usedPct) + '%';
-      $('#memBar').parentElement.setAttribute('aria-valuenow', usedPct === null ? '0' : String(usedPct));
-    }
-    if (host.kind === 'mock') {
-      setModuleHint('widgetsHint', true, 'mock 兜底 · ' + host.reason);
-      $('#osLine').textContent = '兜底示例数据';
-    } else if (host.kind === 'real') {
-      setModuleHint('widgetsHint', false, '本机 · 只读');
-      const os = host.data.os || {};
-      const cpu = host.data.cpu || {};
-      $('#osLine').textContent = (host.data.hostname || '—') + ' · ' + (os.platform || '—') +
-        ' · CPU ' + (Number.isFinite(cpu.count) ? cpu.count + ' 核' : '—') +
-        ' · 开机 ' + (Number.isFinite(os.uptimeSec) ? Math.round(os.uptimeSec / 3600) + ' 小时' : '—');
-    } else {
-      setModuleHint('widgetsHint', false, '本机 · 只读');
-      $('#osLine').textContent = '载入中…';
-    }
-  }
-  function renderBoardHealth() {
-    const board = state.board;
-    let source = '—';
-    let value = '—';
-    let note = '最近一次 /health 延迟';
-    if (board.kind === 'real') {
-      source = '板 在线';
-      const health = board.data.health;
-      if (health && health.ok) {
-        value = health.latencyMs + ' ms';
-      } else {
-        value = '—';
-        note = '未取到 /health 延迟';
-      }
-    } else if (board.kind === 'unconfigured') {
-      source = '板 未配置';
-      note = 'config.board.endpoint 为空';
-    } else if (board.kind === 'mock') {
-      source = '板 不可达';
-      note = 'mock 兜底 · ' + board.reason;
-    }
-    $('#boardHealthSrc').textContent = source;
-    $('#boardLat').textContent = value;
-    $('#boardLatNote').textContent = note;
+    renderChrome();
   }
 
-  /* ---------------- ④ 集群拓扑（inline SVG；真实 api/cluster + MOCK 兜底） ---------------- */
+  /* =====================================================================
+   * 集群拓扑（inline SVG；真实 api/cluster + MOCK 兜底）
+   * ===================================================================== */
   const TOPO_STATUS = { online: '在线', offline: '离线', unknown: '未知' };
   const TOPO_SLOT_IDS = MOCK.topology.nodes.map(function (node) { return node.id; });
 
@@ -1673,10 +2281,14 @@
     };
   }
   function setTopoBadge(kind, text, stamp) {
-    $('#topoSource').setAttribute('data-state', kind);
-    $('#topoDot').className = 'dot ' + (kind === 'real' ? 'ok' : (kind === 'mock' ? 'warn' : 'unknown'));
-    $('#topoSourceText').textContent = text;
-    $('#topoStamp').textContent = stamp ? '生成 ' + stamp : '';
+    const source = $('#topoSource');
+    const dot = $('#topoDot');
+    const textEl = $('#topoSourceText');
+    const stampEl = $('#topoStamp');
+    if (source) source.setAttribute('data-state', kind);
+    if (dot) dot.className = 'dot ' + (kind === 'real' ? 'run' : (kind === 'mock' ? 'queue' : 'idle'));
+    if (textEl) textEl.textContent = text;
+    if (stampEl) stampEl.textContent = stamp ? '生成 ' + stamp : '';
   }
   function renderTopology(view) {
     const NODE_W = 192;
@@ -1685,14 +2297,17 @@
     const byId = {};
     view.nodes.forEach(function (node) { byId[node.id] = node; });
 
-    $('#topoEdges').innerHTML = view.edges.map(function (pair) {
+    const edges = $('#topoEdges');
+    const nodes = $('#topoNodes');
+    if (!edges || !nodes) return;
+    edges.innerHTML = view.edges.map(function (pair) {
       const a = byId[pair[0]];
       const b = byId[pair[1]];
       if (!a || !b) return '';
       return '<line class="edge" x1="' + a.cx + '" y1="' + a.cy + '" x2="' + b.cx + '" y2="' + b.cy + '"></line>';
     }).join('');
 
-    $('#topoNodes').innerHTML = view.nodes.map(function (node) {
+    nodes.innerHTML = view.nodes.map(function (node) {
       const x = node.cx - NODE_W / 2;
       const y = node.cy - NODE_H / 2;
       const labelX = node.anchor === 'middle' ? node.cx : (node.anchor === 'start' ? x : x + NODE_W);
@@ -1705,23 +2320,78 @@
     }).join('');
 
     const pending = view.pending;
-    $('#topoNodes').insertAdjacentHTML('beforeend',
+    nodes.insertAdjacentHTML('beforeend',
       '<g class="pending" tabindex="0" role="img" aria-label="待接入节点，未知">' +
         '<title>' + esc(pending.title) + '</title>' +
         '<circle class="pending-dot" cx="' + pending.cx + '" cy="' + pending.cy + '" r="' + pending.r + '"></circle>' +
         '<text class="pending-label" x="' + (pending.cx + pending.r + 10) + '" y="' + (pending.cy + 4) + '">' + esc(pending.label) + ' · 未知</text>' +
       '</g>');
 
-    $('#topoTitle').textContent = view.title;
+    const topoTitle = $('#topoTitle');
+    if (topoTitle) topoTitle.textContent = view.title;
 
     const others = $('#topoOthers');
-    if (view.others.length === 0) {
-      others.hidden = true;
-      others.textContent = '';
-    } else {
-      others.hidden = false;
-      others.textContent = '其它已配置对端：' + view.others.join('、');
+    if (others) {
+      if (view.others.length === 0) {
+        others.hidden = true;
+        others.textContent = '';
+      } else {
+        others.hidden = false;
+        others.textContent = '其它已配置对端：' + view.others.join('、');
+      }
     }
+  }
+  function devRow(label, instance, stateText, cls, origin, role) {
+    const dotClass = cls === 'up' ? 'run' : (cls === 'down' ? 'idle' : 'unknown');
+    return '<div class="dev-row" title="' + esc(role || '') + '">' +
+      '<i class="dot ' + dotClass + '" aria-hidden="true"></i>' +
+      '<b>' + esc(label) + '</b>' +
+      '<span class="dev-id">' + esc(instance) + '</span>' +
+      '<span class="dev-origin">' + esc(origin || '—') + '</span>' +
+      '<span class="dev-link ' + cls + '">' + esc(stateText) + '</span>' +
+    '</div>';
+  }
+  function renderClusterList() {
+    const container = $('#clusterList');
+    if (!container) return;
+    const cluster = state.cluster;
+    if (cluster.kind === 'loading') {
+      container.innerHTML = '<p class="empty-hint">载入中…</p>';
+      return;
+    }
+    let selfId = null;
+    const peerById = {};
+    if (cluster.kind === 'real') {
+      selfId = cluster.data.self.instanceId;
+      cluster.data.peers.forEach(function (peer) { peerById[peer.instanceId] = peer; });
+    }
+    const rows = [];
+    MOCK.topology.nodes.forEach(function (slot) {
+      const isSelf = slot.id === selfId;
+      const peer = peerById[slot.id] || null;
+      let stateText = '未在 interconnect 配置';
+      let cls = 'unknown';
+      let origin = '';
+      if (cluster.kind === 'mock') {
+        stateText = 'mock 兜底 · ' + cluster.reason;
+        origin = '—';
+      } else if (isSelf) {
+        stateText = '本实例';
+        cls = 'up';
+        origin = '—';
+      } else if (peer) {
+        stateText = peer.link === 'up' ? '链路 up' : '链路 down';
+        cls = peer.link;
+        origin = peer.origin || '未配置或动态';
+      }
+      rows.push(devRow(slot.label, slot.id, stateText, cls, origin, slot.role));
+    });
+    Object.keys(peerById).forEach(function (instanceId) {
+      if (TOPO_SLOT_IDS.indexOf(instanceId) !== -1) return;
+      const peer = peerById[instanceId];
+      rows.push(devRow(instanceId, instanceId, peer.link === 'up' ? '链路 up' : '链路 down', peer.link, peer.origin || '未配置或动态', '其它已配置对端'));
+    });
+    container.innerHTML = rows.join('') || '<p class="empty-hint">没有可显示的设备</p>';
   }
   function renderClusterModule() {
     const cluster = state.cluster;
@@ -1731,10 +2401,390 @@
     } else if (cluster.kind === 'mock') {
       renderTopology(mockView());
       setTopoBadge('mock', 'mock 兜底 · 真实数据不可用：' + cluster.reason, '');
+    } else {
+      renderTopology(mockView());
+      setTopoBadge('loading', '真实数据载入中…', '');
+    }
+    renderClusterList();
+  }
+
+  /* =====================================================================
+   * 右栏：派活层级（T0 大管家 → T1 活会话 → T2/T3 子代理）
+   * 数据来源：api/tiers（本机活会话 + 子代理血缘 + 远端 interconnect.list）。
+   * ===================================================================== */
+  function buildTierView() {
+    const tiers = state.tiers;
+    if (tiers.kind === 'loading') {
+      return {
+        tree: { tier: 0, id: 'root', name: '大管家', device: '—', status: 'run', statusText: '运行中', start: '—',
+          task: '层级数据载入中…', meta: [], children: [], emptyNote: '载入中…', emptySub: '正在读取活会话与子代理血缘' },
+        counts: null, degraded: '', source: null
+      };
+    }
+    if (tiers.kind !== 'real') {
+      const reason = tiers.reason || '层级数据不可用';
+      const hint = /404/.test(reason)
+        ? 'api/tiers 路由尚未加载（HTTP 404）：新版 Host 需重启 DSH 后生效'
+        : reason;
+      return {
+        tree: { tier: 0, id: 'root', name: '大管家', device: 'pc-ky614', status: 'run', statusText: '运行中', start: '—',
+          task: '层级数据不可用', meta: [], children: [], emptyNote: '层级数据不可用', emptySub: hint },
+        counts: null, degraded: hint, source: null
+      };
+    }
+    const data = tiers.data;
+    const root = data.root || {};
+    const rawNodes = Array.isArray(data.nodes) ? data.nodes : [];
+    const byParent = new Map();
+    rawNodes.forEach(function (node) {
+      if (!node || typeof node.id !== 'string') return;
+      const parent = typeof node.parentId === 'string' ? node.parentId : '';
+      if (!byParent.has(parent)) byParent.set(parent, []);
+      byParent.get(parent).push(node);
+    });
+    const counts = { 1: 0, 2: 0, 3: 0 };
+    const seen = new Set();
+    const attached = new Set();
+    let guard = 0;
+    function convert(node, fallbackTier) {
+      if (!node || typeof node.id !== 'string' || seen.has(node.id) || guard > 400) return null;
+      guard += 1;
+      seen.add(node.id);
+      attached.add(node.id);
+      const tier = Number.isInteger(node.tier) && node.tier >= 1 ? node.tier : fallbackTier;
+      const status = TIER_STATUS[node.status] ? node.status : 'idle';
+      const start = node.startedAt ? fmtStamp(node.startedAt) : '';
+      const kids = (byParent.get(node.id) || []).map(function (kid) { return convert(kid, tier + 1); }).filter(Boolean);
+      const kind = node.kind === 'subagent' ? '子代理' : '会话';
+      return {
+        tier: tier,
+        id: node.id,
+        name: String(node.title || node.id),
+        device: String(node.device || '—'),
+        status: status,
+        statusText: TIER_STATUS[status],
+        start: start || '—',
+        task: kind + (start ? ' · 开始 ' + start : ''),
+        meta: kids.length ? [kids.length + ' 个子代理'] : [],
+        children: kids,
+        emptyNote: tier === 1 && kids.length === 0 ? '暂无活子代理' : '',
+        emptySub: tier === 1 && kids.length === 0 ? '该会话目前没有正在运行的子代理' : ''
+      };
+    }
+    const rootId = typeof root.id === 'string' ? root.id : 'pc-ky614';
+    const children = (byParent.get(rootId) || []).map(function (node) { return convert(node, 1); }).filter(Boolean);
+    // 父节点不在树里的节点挂到 T1，宁可多一个节点也不丢。
+    rawNodes.forEach(function (node) {
+      if (!node || typeof node.id !== 'string' || attached.has(node.id)) return;
+      const extra = convert(node, 1);
+      if (extra) {
+        extra.tier = 1;
+        if (extra.children && extra.children.length) extra.emptyNote = '';
+        children.push(extra);
+      }
+    });
+    // 计数按最终树 walk 推导（不在 convert 里累加，避免孤儿节点被计两次）。
+    const walkCounts = function (node) {
+      if (node.tier === 1) counts[1] += 1;
+      else if (node.tier === 2) counts[2] += 1;
+      else if (node.tier >= 3) counts[3] += 1;
+      node.children.forEach(walkCounts);
+    };
+    children.forEach(walkCounts);
+    const tree = {
+      tier: 0, id: 'root', name: String(root.label || '大管家'), device: String(root.device || rootId),
+      status: 'run', statusText: '运行中', start: root.startedAt ? fmtStamp(root.startedAt) : '—',
+      task: '本实例 · T1 会话 ' + counts[1] + ' 个',
+      meta: ['T1×' + counts[1], 'T2×' + counts[2], 'T3+×' + counts[3]],
+      children: children,
+      emptyNote: children.length === 0 ? '暂无活会话' : '',
+      emptySub: children.length === 0 ? '本机与其它设备都没有活会话（或链路 down，见集群页）' : ''
+    };
+    const degraded = data.degraded && typeof data.degraded.reason === 'string' ? data.degraded.reason : '';
+    return { tree: tree, counts: counts, degraded: degraded, source: data.source || null, generatedAt: data.generatedAt };
+  }
+
+  /** 层级节点 → HTML。所有外部文本都过 esc()；动态值只进 data-*，不进可执行位置。 */
+  function renderNode(n) {
+    const level = Math.min(n.tier, 3);
+    const kids = n.children && n.children.length ? n.children : null;
+    const fold = kids
+      ? '<button class="fold" type="button" aria-expanded="true" aria-label="折叠或展开子节点"><svg class="i"><use href="#i-chev"></use></svg></button>'
+      : '';
+    const meta = n.meta && n.meta.length
+      ? '<div class="nmeta">' + n.meta.map(function (m) { return '<span>' + esc(m) + '</span>'; }).join('') + '</div>'
+      : '';
+    const head = '<div class="head" tabindex="0" role="treeitem" aria-level="' + (n.tier + 1) + '"' + (kids ? ' aria-expanded="true"' : '') + '>' +
+      '<span class="badge" aria-hidden="true">T' + n.tier + '</span>' +
+      '<div class="card">' +
+        '<div class="nrow"><i class="dot ' + n.status + '"></i><span class="nname" title="' + esc(n.name) + '">' + esc(n.name) + '</span>' +
+          '<span class="nst ' + n.status + '">' + esc(n.statusText || TIER_STATUS[n.status] || '空闲') + '</span>' + fold + '</div>' +
+        '<div class="nsub"><span class="dev"><svg class="i"><use href="#i-monitor"></use></svg>' + esc(n.device) + '</span>' +
+          '<span class="ntask">' + esc(n.task) + '</span></div>' +
+        meta +
+      '</div>' +
+    '</div>';
+    let kidsHtml = '';
+    if (kids) {
+      kidsHtml = '<div class="kids" role="group">' + kids.map(renderNode).join('') + '</div>';
+    } else if (n.emptyNote) {
+      kidsHtml = '<div class="kids"><div class="empty"><span class="empty-t">' + esc(n.emptyNote) + '</span><span>' + esc(n.emptySub || '') + '</span></div></div>';
+    }
+    return '<div class="node lv' + level + '" role="none" data-id="' + esc(n.id) + '" data-name="' + esc(n.name) + '" data-device="' + esc(n.device) +
+      '" data-level="T' + n.tier + '" data-status="' + esc(n.statusText || '') + '" data-task="' + esc(n.task) + '" data-start="' + esc(n.start || '—') + '">' +
+      head + kidsHtml + '</div>';
+  }
+
+  function clearTierSelection() {
+    const tree = $('#tree');
+    if (!tree) return;
+    tree.classList.remove('has-sel');
+    Array.prototype.forEach.call(tree.querySelectorAll('.node'), function (node) {
+      node.classList.remove('sel', 'path', 'sub');
+    });
+  }
+  function applyTierSelection() {
+    clearTierSelection();
+    const tree = $('#tree');
+    const id = state.tierSelectedId;
+    if (!tree || !id) return;
+    let node = null;
+    Array.prototype.forEach.call(tree.querySelectorAll('.node'), function (candidate) {
+      if (node === null && candidate.getAttribute('data-id') === id) node = candidate;
+    });
+    if (!node) { state.tierSelectedId = ''; return; }
+    node.classList.add('sel');
+    let parent = node;
+    while (parent) {
+      parent.classList.add('path');
+      parent = parent.parentElement ? parent.parentElement.closest('.node') : null;
+    }
+    Array.prototype.forEach.call(node.querySelectorAll('.node'), function (kid) { kid.classList.add('sub'); });
+    tree.classList.add('has-sel');
+  }
+  function renderTiers() {
+    const view = buildTierView();
+    const tree = $('#tree');
+    if (tree) {
+      tree.innerHTML = renderNode(view.tree);
+      applyTierSelection();
+    }
+    const counts = view.counts;
+    const cntT0 = $('#cntT0');
+    if (cntT0) cntT0.textContent = counts ? '1' : (state.tiers.kind === 'loading' ? '–' : '1');
+    const cntT1 = $('#cntT1');
+    if (cntT1) cntT1.textContent = counts ? String(counts[1]) : '–';
+    const cntT2 = $('#cntT2');
+    if (cntT2) cntT2.textContent = counts ? String(counts[2]) : '–';
+    const cntT3 = $('#cntT3');
+    if (cntT3) cntT3.textContent = counts ? String(counts[3]) : '–';
+    const ckT3 = $('#ckT3');
+    if (ckT3) ckT3.textContent = counts && counts[3] > 0 ? 'T3+' : 'T3';
+
+    const degradedBadge = $('#tierDegraded');
+    if (degradedBadge) {
+      if (view.degraded) {
+        degradedBadge.hidden = false;
+        degradedBadge.textContent = '降级';
+        degradedBadge.title = '层级数据降级：' + view.degraded;
+      } else {
+        degradedBadge.hidden = true;
+        degradedBadge.removeAttribute('title');
+      }
+    }
+    const hhDesc = $('#hhDesc');
+    if (hhDesc) hhDesc.textContent = view.degraded ? '按层级组织，设备仅作标签 · 数据有缺口' : '按层级组织，设备仅作标签';
+    const hint = $('#tierHint');
+    if (hint) hint.textContent = view.degraded
+      ? '数据缺口：' + view.degraded.slice(0, 120)
+      : '点击节点高亮 T0→… 上级路径 · T2/T3 可折叠';
+    const sourceHint = $('#tierSourceHint');
+    if (sourceHint) {
+      if (view.source) {
+        const remote = Array.isArray(view.source.remote) ? view.source.remote : [];
+        const up = remote.filter(function (row) { return row.link === 'up'; }).length;
+        sourceHint.textContent = '数据：' + (view.source.local || '—') + ' + 远端 ' + up + '/' + remote.length + ' · 15 秒刷新';
+      } else {
+        sourceHint.textContent = '数据：活会话 + 子代理血缘';
+      }
+    }
+    const drawerCount = $('#drawerCount');
+    if (drawerCount) drawerCount.textContent = counts ? 'T1×' + counts[1] : 'T1×—';
+    const pillTiers = $('#pillTiers');
+    if (pillTiers) pillTiers.textContent = counts
+      ? 'T1×' + counts[1] + ' · T2×' + counts[2] + ' · T3+×' + counts[3]
+      : '层级不可用';
+    renderChrome();
+  }
+
+  /* ---------- 右栏交互：折叠 / 选中上级路径 / tooltip ---------- */
+  const tip = $('#tip');
+  let tipNode = null;
+  function hideTip() {
+    if (!tip) return;
+    tip.classList.remove('show');
+    tipNode = null;
+  }
+  function tipRow(key, value, mono) {
+    const row = document.createElement('div');
+    row.className = 'tip-r';
+    const k = document.createElement('span');
+    k.className = 'k';
+    k.textContent = key;
+    const v = document.createElement('span');
+    v.className = 'v' + (mono ? ' mono' : '');
+    v.textContent = value;
+    row.appendChild(k);
+    row.appendChild(v);
+    return row;
+  }
+  function fillTip(node) {
+    if (!tip) return;
+    const data = node.dataset;
+    tip.innerHTML = '';
+    const title = document.createElement('div');
+    title.className = 'tip-t';
+    const level = document.createElement('span');
+    level.className = 'tip-lv';
+    level.textContent = data.level || '';
+    const name = document.createElement('span');
+    name.textContent = data.name || '';
+    title.appendChild(level);
+    title.appendChild(name);
+    tip.appendChild(title);
+    tip.appendChild(tipRow('设备', data.device || '—', true));
+    tip.appendChild(tipRow('状态', data.status || '—'));
+    tip.appendChild(tipRow('任务', data.task || '—'));
+    tip.appendChild(tipRow('开始', data.start || '—', true));
+    tip.classList.add('show');
+  }
+  function initTierInteractions() {
+    const tree = $('#tree');
+    const scroll = $('#hierScroll');
+    if (tree) {
+      tree.addEventListener('click', function (event) {
+        const fold = event.target.closest('.fold');
+        if (fold) {
+          event.stopPropagation();
+          const node = fold.closest('.node');
+          if (!node) return;
+          const collapsed = node.classList.toggle('collapsed');
+          fold.setAttribute('aria-expanded', String(!collapsed));
+          hideTip();
+          return;
+        }
+        const head = event.target.closest('.head');
+        if (!head) { state.tierSelectedId = ''; applyTierSelection(); return; }
+        const node = head.parentElement;
+        if (!node) return;
+        const id = node.getAttribute('data-id') || '';
+        state.tierSelectedId = state.tierSelectedId === id ? '' : id;
+        applyTierSelection();
+      });
+      tree.addEventListener('keydown', function (event) {
+        if (!event.target.classList || !event.target.classList.contains('head')) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          event.target.click();
+        }
+      });
+    }
+    if (scroll && tip) {
+      scroll.addEventListener('mousemove', function (event) {
+        const node = event.target.closest ? event.target.closest('.node') : null;
+        if (!node) { hideTip(); return; }
+        if (node !== tipNode) {
+          tipNode = node;
+          fillTip(node);
+        }
+        const w = tip.offsetWidth;
+        const h = tip.offsetHeight;
+        let x = event.clientX + 16;
+        let y = event.clientY + 18;
+        if (x + w > window.innerWidth - 10) x = event.clientX - w - 16;
+        if (y + h > window.innerHeight - 10) y = event.clientY - h - 14;
+        tip.style.left = Math.max(8, x) + 'px';
+        tip.style.top = Math.max(8, y) + 'px';
+      });
+      scroll.addEventListener('mouseleave', hideTip);
+      scroll.addEventListener('scroll', hideTip, { passive: true });
     }
   }
 
-  /* ---------------- ⑤ 待办（localStorage） ---------------- */
+  /* ---------- 窄屏抽屉 ---------- */
+  function openDrawer() {
+    document.body.classList.add('drawer');
+    const btn = $('#drawerBtn');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+    hideTip();
+  }
+  function closeDrawer() {
+    document.body.classList.remove('drawer');
+    const btn = $('#drawerBtn');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+  function initDrawer() {
+    const drawerBtn = $('#drawerBtn');
+    const headBtn = $('#headHierBtn');
+    const hierClose = $('#hierClose');
+    const mask = $('#mask');
+    if (drawerBtn) drawerBtn.addEventListener('click', openDrawer);
+    if (headBtn) headBtn.addEventListener('click', openDrawer);
+    if (hierClose) hierClose.addEventListener('click', closeDrawer);
+    if (mask) mask.addEventListener('click', closeDrawer);
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 1200) closeDrawer();
+    });
+  }
+
+  /* ---------- 对话 / 轨迹 tab ---------- */
+  function selectDialogueTab(name) {
+    const tabs = [$('#tab-dialogue'), $('#tab-trajectory')];
+    tabs.forEach(function (tab) {
+      if (!tab) return;
+      const on = tab.getAttribute('data-tab') === name;
+      tab.classList.toggle('active', on);
+      tab.setAttribute('aria-selected', String(on));
+    });
+    const dialogue = $('#traceDialogue');
+    const trajectory = $('#traceTrajectory');
+    if (dialogue) dialogue.hidden = name === 'trajectory';
+    if (trajectory) trajectory.hidden = name !== 'trajectory';
+    hideTip();
+  }
+  function initDialogueTabs() {
+    const tabs = [$('#tab-dialogue'), $('#tab-trajectory')];
+    tabs.forEach(function (tab) {
+      if (!tab) return;
+      tab.addEventListener('click', function () { selectDialogueTab(tab.getAttribute('data-tab')); });
+    });
+  }
+
+  /* =====================================================================
+   * 记忆页状态
+   * ===================================================================== */
+  function renderMemory() {
+    const mem = state.memory || { kind: 'idle' };
+    const stateEl = $('#memoryState');
+    const badge = $('#memoryBadge');
+    const badgeText = $('#memoryBadgeText');
+    if (stateEl) {
+      if (mem.kind === 'ok') stateEl.textContent = '可达：' + mem.origin + '（探测 ' + mem.latencyMs + 'ms）—— 已尝试打开 Studio 新标签页。';
+      else if (mem.kind === 'fail') stateEl.textContent = '不可达：' + mem.reason;
+      else if (mem.kind === 'probing') stateEl.textContent = '探测中…（宿主动作路由 probe-memory）';
+      else stateEl.textContent = '未探测：点「探测并打开 Studio」会走宿主动作路由 api/action 真探测 OpenViking，可达才打开新标签页。';
+    }
+    if (badge && badgeText) {
+      if (mem.kind === 'ok') { badge.setAttribute('data-kind', 'real'); badgeText.textContent = '可达'; }
+      else if (mem.kind === 'fail') { badge.setAttribute('data-kind', 'missing'); badgeText.textContent = '不可达'; }
+      else if (mem.kind === 'probing') { badge.setAttribute('data-kind', 'mock'); badgeText.textContent = '探测中'; }
+      else { badge.setAttribute('data-kind', 'idle'); badgeText.textContent = '未探测'; }
+    }
+  }
+
+  /* =====================================================================
+   * 待办（localStorage，0.3.0 能力保留）
+   * ===================================================================== */
   let storageOk = true;
   let todos = [];
   function loadTodos() {
@@ -1773,6 +2823,7 @@
   }
   function updateStoreHint() {
     const hint = $('#storeHint');
+    if (!hint) return;
     if (storageOk) {
       hint.className = 'store-hint';
       hint.textContent = '待办保存在 localStorage（' + STORE_KEY + '），刷新页面不丢。';
@@ -1783,6 +2834,7 @@
   }
   function renderTodos() {
     const list = $('#todoList');
+    if (!list) return;
     list.innerHTML = '';
     todos.forEach(function (todo) {
       const li = document.createElement('li');
@@ -1818,10 +2870,14 @@
       list.appendChild(li);
     });
     const left = todos.filter(function (todo) { return !todo.done; }).length;
-    $('#todoCount').textContent = todos.length + ' 项';
-    $('#todoSummary').textContent = left + ' 项未完成 / 共 ' + todos.length + ' 项';
-    $('#todoEmpty').hidden = todos.length !== 0;
-    $('#clearDone').disabled = todos.every(function (todo) { return !todo.done; });
+    const count = $('#todoCount');
+    if (count) count.textContent = todos.length + ' 项';
+    const summary = $('#todoSummary');
+    if (summary) summary.textContent = left + ' 项未完成 / 共 ' + todos.length + ' 项';
+    const empty = $('#todoEmpty');
+    if (empty) empty.hidden = todos.length !== 0;
+    const clear = $('#clearDone');
+    if (clear) clear.disabled = todos.every(function (todo) { return !todo.done; });
   }
   function addTodo(text) {
     const clean = text.trim().slice(0, 80);
@@ -1834,13 +2890,16 @@
   function initTodos() {
     loadTodos();
     renderTodos();
-    $('#todoForm').addEventListener('submit', function (event) {
+    const form = $('#todoForm');
+    if (form) form.addEventListener('submit', function (event) {
       event.preventDefault();
-      addTodo($('#todoInput').value);
-      $('#todoInput').value = '';
-      $('#todoInput').focus();
+      const input = $('#todoInput');
+      addTodo(input.value);
+      input.value = '';
+      input.focus();
     });
-    $('#clearDone').addEventListener('click', function () {
+    const clear = $('#clearDone');
+    if (clear) clear.addEventListener('click', function () {
       const count = todos.filter(function (todo) { return todo.done; }).length;
       if (!count) return;
       todos = todos.filter(function (todo) { return !todo.done; });
@@ -1850,7 +2909,7 @@
     });
   }
 
-  /* ---------------- 事件委托：任务行展开 / 收起 ---------------- */
+  /* ---------- 事件委托：任务行展开 / 收起 ---------- */
   function toggleItem(button) {
     const expanded = button.getAttribute('aria-expanded') === 'true';
     button.setAttribute('aria-expanded', String(!expanded));
@@ -1858,31 +2917,70 @@
     if (detail) detail.hidden = expanded;
   }
 
-  /* ---------------- 初始化 ---------------- */
+  /* =====================================================================
+   * 初始化
+   * ===================================================================== */
   function refreshAll() {
     loadCluster();
     loadBoard();
     loadHost();
+    loadTiers();
   }
-  renderActions();
-  renderReceipts();
-  initTabs();
-  renderTopology(mockView());          // 载入中的骨架；badge 明确写「载入中」，不是 mock 兜底
-  setTopoBadge('loading', '真实数据载入中…', '');
-  renderHostModule();
-  renderBoardModule();
+  function setDatasetFlag(kind, value) {
+    try { document.body.dataset[kind] = value; } catch (error) { /* 旧内核无 dataset 也不影响功能 */ }
+  }
+  function markState() {
+    setDatasetFlag('cluster', state.cluster.kind);
+    setDatasetFlag('board', state.board.kind);
+    setDatasetFlag('host', state.host.kind);
+    setDatasetFlag('tiers', state.tiers.kind);
+    setDatasetFlag('page', state.page);
+  }
+
+  initNav();
+  initActions();
+  initBoardTabs();
+  initDialogueTabs();
   initTodos();
-  $('#taskList').addEventListener('click', function (event) {
+  initTierInteractions();
+  initDrawer();
+  renderTopology(mockView());
+  setTopoBadge('loading', '真实数据载入中…', '');
+  renderTiers();
+  renderMemory();
+  renderChrome();
+  renderBoardModule();
+  renderHostModule();
+  setPage('butler');
+  markState();
+
+  const refreshBtn = $('#refreshBtn');
+  if (refreshBtn) refreshBtn.addEventListener('click', function () {
+    refreshAll();
+    toast('已请求刷新：链路 / 共享板 / 本机 / 层级');
+  });
+  const taskList = $('#taskList');
+  if (taskList) taskList.addEventListener('click', function (event) {
     const button = event.target.closest('.item-row');
     if (button) toggleItem(button);
   });
-  tick();
-  setInterval(tick, 1000);
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+      closeDrawer();
+      hideTip();
+    }
+  });
   refreshAll();
   setInterval(function () {
     if (document.hidden) return;       // 页面隐藏时跳过这一轮，回来还有上一次真实数据
-    refreshAll();
+    loadCluster();
+    loadBoard();
+    loadHost();
   }, POLL_MS);
+  setInterval(function () {
+    if (document.hidden) return;
+    loadTiers();
+  }, TIERS_POLL_MS);
 })();
 </script>
 </body>

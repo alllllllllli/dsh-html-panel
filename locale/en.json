@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "HTML panel",
-    "description": "Adds a sidebar row that opens a standalone HTML page from this plugin's own public/ directory in the main area."
+    "title": "Butler Console",
+    "description": "Adds a sidebar row named Butler Console that opens the DSH console page (five-page navigation, live data, and a T0–T3 dispatch hierarchy)."
   }
 }

@@ -157,7 +157,7 @@ test('apply() mounts the slots and listens for panel messages without touching D
   assert.equal(registrations.length, 2)
   assert.equal(registrations[0].options.key, 'dsh-html-panel')
   assert.equal(registrations[1].options.id, 'dsh-html-panel')
-  assert.equal(registrations[1].options.label, 'HTML 面板')
+  assert.equal(registrations[1].options.label, '大管家')
   const messageListeners = listeners.filter(item => item.name === 'message')
   assert.equal(messageListeners.length, 1, '只注册一个 message 监听')
   // 非本面板 iframe 的消息（source 不匹配）不能触发任何动作

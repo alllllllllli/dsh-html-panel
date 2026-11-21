@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "HTML 面板",
-    "description": "在侧边栏增加一行，点开后在主区域用 iframe 加载本插件 public/ 目录里的独立 HTML 页面。"
+    "title": "大管家",
+    "description": "侧栏增加「大管家」入口：打开 DSH 控制台页面（左导航五页 / 中栏实时数据 / 右栏 T0–T3 派活层级）。"
   }
 }

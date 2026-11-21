@@ -1,15 +1,15 @@
 {
   "file": "public/index.html",
-  "bytes": 91681,
-  "sha256": "ba448f024e566b9a2216879fb74504470e2f67a2f06a0e0439246d85cadcd7a7",
-  "checks": 116,
+  "bytes": 156626,
+  "sha256": "94d080e87b83f6440b47dfaadce37ee4f54e428ed9ef95e554ae468a42d34ee4",
+  "checks": 139,
   "failed": 0,
   "pass": true,
   "results": [
     {
       "name": "文件存在且非空",
       "ok": true,
-      "detail": "91681 B"
+      "detail": "156626 B"
     },
     {
       "name": "无 UTF-8 BOM",
@@ -28,6 +28,16 @@
     },
     {
       "name": "lang=zh-CN",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "深色主题声明",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "viewport 声明",
       "ok": true,
       "detail": ""
     },
@@ -72,7 +82,7 @@
       "detail": ""
     },
     {
-      "name": "无外部引用：WebSocket",
+      "name": "无外部引用：new WebSocket",
       "ok": true,
       "detail": ""
     },
@@ -87,27 +97,32 @@
       "detail": "共 0 个 url()，均为空或 data:"
     },
     {
-      "name": "href 仅站内锚点",
+      "name": "href 仅站内锚点 / SVG use",
       "ok": true,
-      "detail": "#main"
+      "detail": "38 个 href"
     },
     {
       "name": "fetch 只有同源相对路径",
       "ok": true,
-      "detail": "共 2 处 fetch，无字面量外链"
+      "detail": "共 2 处 fetch"
     },
     {
-      "name": "三个同源路由都读了",
+      "name": "四条只读路由都读了",
       "ok": true,
-      "detail": "实际：api/cluster, api/board, api/host"
+      "detail": "实际：api/cluster, api/board, api/host, api/tiers"
     },
     {
       "name": "api 路径都是相对路径",
       "ok": true,
-      "detail": "api/cluster | api/board | api/host"
+      "detail": "api/cluster | api/board | api/host | api/tiers"
     },
     {
       "name": "没有写死任何 api 外部地址",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "写动作只走同源 POST api/action",
       "ok": true,
       "detail": ""
     },
@@ -129,7 +144,7 @@
     {
       "name": "CSS 花括号配平",
       "ok": true,
-      "detail": "208 { / 208 }"
+      "detail": "405 { / 405 }"
     },
     {
       "name": "内联 JS 语法可解析",
@@ -143,6 +158,206 @@
     },
     {
       "name": "JS 有自执行入口",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "页面标题是「大管家」",
+      "ok": true,
+      "detail": "大管家 · DSH 控制台"
+    },
+    {
+      "name": "品牌名是「大管家」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "品牌副标 BUTLER CONSOLE",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "页面不再出现「HTML 面板」入口名",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "页面不出现「快捷工作台」旧名",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "三栏结构（side / chat / hier）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "五页导航（大管家/任务/集群/记忆/设置）",
+      "ok": true,
+      "detail": "butler,tasks,cluster,memory,settings"
+    },
+    {
+      "name": "导航项文案 + data-page：大管家",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "导航项文案 + data-page：任务",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "导航项文案 + data-page：集群",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "导航项文案 + data-page：记忆",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "导航项文案 + data-page：设置",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "五个页面容器都在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "DSH token：DSH bg-base",
+      "ok": true,
+      "detail": "--bg-base:rgb(21,21,23)"
+    },
+    {
+      "name": "DSH token：DSH sidebar-fill",
+      "ok": true,
+      "detail": "--sidebar-fill:rgb(27,27,28)"
+    },
+    {
+      "name": "DSH token：DSH 侧栏选中灰底",
+      "ok": true,
+      "detail": "--sidebar-active:rgb(67,69,74)"
+    },
+    {
+      "name": "DSH token：DSH business-primary 蓝",
+      "ok": true,
+      "detail": "--accent:rgb(122,170,255)"
+    },
+    {
+      "name": "DSH token：DSH 会话列宽",
+      "ok": true,
+      "detail": "--chat-w:clamp(680px,64%,920px)"
+    },
+    {
+      "name": "当前导航项用 DSH 灰底而非绿色",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "900/窄屏抽屉断点（≤1200px）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "窄屏二次断点（≤980px）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "prefers-reduced-motion 降级动画",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "示例对话 badge 在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "示例轨迹也标注",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "示例 badge 说明不是真实聊天",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "对话/轨迹 tab 在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "对话与轨迹两个容器在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "DSH 风格会话区（已启动卡 / 思考 / composer）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "composer 里挂真实快捷动作容器",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "层级 chip T0–T3 都在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "层级降级 badge 在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "层级树容器 role=tree",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "层级状态图例五态",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "节点渲染函数在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "节点文本全部过 esc()",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "折叠 / 选中上级路径 / tooltip 代码都在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "数据来自 api/tiers（真实层级）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "层级降级不编节点：404 文案在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "900 抽屉开关三件套",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "设备只是标签（节点内 .dev chip）",
       "ok": true,
       "detail": ""
     },
@@ -187,11 +402,6 @@
       "detail": ""
     },
     {
-      "name": "MOCK 主机数据含磁盘与内存",
-      "ok": true,
-      "detail": ""
-    },
-    {
       "name": "TASK_STATES 五态映射在",
       "ok": true,
       "detail": ""
@@ -207,17 +417,7 @@
       "detail": ""
     },
     {
-      "name": "事件流渲染函数在",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "任务渲染函数在",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "事件字段齐全（时间/任务/节点/类型/文本）",
+      "name": "任务/事件渲染函数在",
       "ok": true,
       "detail": ""
     },
@@ -227,102 +427,22 @@
       "detail": ""
     },
     {
-      "name": "顶栏不含 mock 字样",
+      "name": "事件字段齐全（时间/任务/节点/类型/文本）",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "无假值残留：DSH 0.4.0",
+      "name": "任务/事件 tab 与面板 id 齐全",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "无假值残留：127.0.0.1:13090",
+      "name": "板状态 badge 接真实状态",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "无假值残留：共享板 13090",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "无假值残留：p95 34ms",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "无假值残留：已用 43 / 80 GB",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "无假值残留：18.4 GB",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "chip 三件套 + 过期 badge",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "三 chip 均有 dot 与文案节点",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "chip 文案来自真实字段（up 计数 / 健康延迟 / 任务数）",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "顶栏日期行接真实字段",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "日期行文案来自 self / source.origin",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "无「最近文档」残留",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "事件流标签在",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "小部件落点 id 齐全",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "磁盘/内存走 fmtBytes 与 ratio",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "板健康取 /health 延迟",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "小部件定位「本机 · 只读」",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "已删除假 sparkline",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "mock 兜底标注在",
+      "name": "数据过期横幅（轮询失败保留旧数据）",
       "ok": true,
       "detail": ""
     },
@@ -332,42 +452,22 @@
       "detail": ""
     },
     {
-      "name": "轮询失败保留上一次好数据（不重渲染 mock）",
+      "name": "轮询失败不闪回 mock",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "过期 badge 文案格式",
+      "name": "30 秒静默轮询 + 页面隐藏跳过",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "30 秒静默轮询",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "页面隐藏时跳过轮询",
+      "name": "层级单独 15 秒轮询",
       "ok": true,
       "detail": ""
     },
     {
       "name": "接口请求有超时控制",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "常用动作的看板地址动态化",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "看板动作不可达时不置灰（点击给原因）",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "没有本地假回执文案",
       "ok": true,
       "detail": ""
     },
@@ -407,11 +507,6 @@
       "detail": ""
     },
     {
-      "name": "宿主动作路由走同源 POST",
-      "ok": true,
-      "detail": ""
-    },
-    {
       "name": "宿主动作三件套在页面用到",
       "ok": true,
       "detail": ""
@@ -447,7 +542,7 @@
       "detail": ""
     },
     {
-      "name": "动作面板脚注说明真实通道",
+      "name": "动作通道说明在设置页",
       "ok": true,
       "detail": ""
     },
@@ -467,7 +562,7 @@
       "detail": ""
     },
     {
-      "name": "拓扑四槽位 id 齐全",
+      "name": "拓扑四槽位 id",
       "ok": true,
       "detail": ""
     },
@@ -502,27 +597,12 @@
       "detail": ""
     },
     {
-      "name": "其它已配置对端一行",
-      "ok": true,
-      "detail": ""
-    },
-    {
       "name": "使用 inline SVG（非 canvas）",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "拓扑 SVG 有 viewBox",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "拓扑 SVG 有 preserveAspectRatio",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "拓扑 SVG 有 <title>/<desc>",
+      "name": "拓扑 SVG 有 viewBox / preserveAspectRatio / title / desc",
       "ok": true,
       "detail": ""
     },
@@ -537,14 +617,44 @@
       "detail": ""
     },
     {
-      "name": "关键 id 齐全",
+      "name": "设备/链路列表接真实字段",
       "ok": true,
-      "detail": "19 个都在"
+      "detail": ""
     },
     {
-      "name": "页面 id 不重复",
+      "name": "记忆页真探测入口",
       "ok": true,
-      "detail": "71 个静态 id"
+      "detail": ""
+    },
+    {
+      "name": "记忆状态文案来自真实回执",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "设置页版本是 0.4.0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "设置页列出四条路由",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "设置页数据源接真实字段",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "设置页写明重启要求",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "本机小部件接 api/host 真值",
+      "ok": true,
+      "detail": ""
     },
     {
       "name": "localStorage 待办键存在",
@@ -552,37 +662,42 @@
       "detail": ""
     },
     {
-      "name": "时钟定时器存在",
+      "name": "待办表单/列表/计数 id 齐全",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "动作回执仍在本页内存",
+      "name": "待办在任务页（五页导航内）",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "标签页切换仍在",
+      "name": "关键 id 齐全",
       "ok": true,
-      "detail": ""
+      "detail": "68 个都在"
     },
     {
-      "name": "暗色主题变量存在",
+      "name": "页面 id 不重复",
       "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "系统字体栈（无外链字体）",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "窄宽适配（900px 断点）",
-      "ok": true,
-      "detail": ""
+      "detail": "131 个静态 id"
     },
     {
       "name": "XSS 防护：动态文本过 esc()",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "导航切换函数与五页联动",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "刷新按钮真刷新四条路由",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "渲染状态写进 body.dataset（无头自检用）",
       "ok": true,
       "detail": ""
     }

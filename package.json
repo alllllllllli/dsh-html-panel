@@ -1,8 +1,8 @@
 {
   "name": "dsh-html-panel",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
-  "description": "A sidebar row that opens a standalone HTML page (public/index.html) served by this plugin's own Host route and shown in an iframe; the page reads real cluster, shared-board and local-host data from same-origin read-only routes, and its action buttons run real work through the DSH client services (new session / draft) and a whitelisted Host action route (OpenViking probe, latest report, reports folder).",
+  "description": "大管家 (Butler Console): a DSH sidebar entry that opens a standalone HTML console page served by this plugin's own Host route and shown in an iframe. Three columns — five-page navigation (butler/tasks/cluster/memory/settings), a DSH-style conversation page whose composer hosts real quick actions, and a right-hand T0→T1→T2→T3 dispatch hierarchy built from live sessions, real subagent lineage (session origin/parentSession) and interconnect.list() for peers. Same-origin read-only routes: api/cluster, api/board, api/host, api/tiers; the only write path is POST api/action with a whitelisted action id.",
   "type": "module",
   "icon": "./icon.svg",
   "main": "lib/index.js",
@@ -21,6 +21,7 @@
     "lib/board.js",
     "lib/boardmap.js",
     "lib/host.js",
+    "lib/tiers.js",
     "public",
     "locale/*.json",
     "cordis.patch.yml",
