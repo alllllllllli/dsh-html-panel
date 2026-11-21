@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#14161a">
-<meta name="description" content="DSH 快捷工作台 / 启动页（集群拓扑接同源真实 interconnect 数据，其余为 mock 兜底）">
+<meta name="description" content="DSH 快捷工作台 / 启动页（集群拓扑、共享板任务/事件、本机磁盘与内存均接同源真实数据，失败才标 mock 兜底）">
 <title>快捷工作台 · DSH</title>
-<!-- 版本 B / v5：v4 快捷工作台 + 集群拓扑（inline SVG）。内联 CSS/JS，零外链；
-     唯一网络请求是同源相对路径 api/cluster（Host 半的只读路由），失败时退回本页 mock。 -->
+<!-- 版本 B / v6：v5 工作台 + 三条同源只读数据源 + 静默轮询。
+     内联 CSS/JS，零外链；唯一网络请求是三个同源相对路径 api/cluster、api/board、api/host，
+     各自失败时该模块退回本页 MOCK 并明确标注「mock 兜底 · 原因」；轮询失败保留上一次好数据。 -->
 <style>
   :root{
     --bg:#14161a;
@@ -178,10 +179,13 @@
   .chev{color:var(--dim);font-size:11px;flex:0 0 auto;transition:transform .12s}
   .item-row[aria-expanded="true"] .chev{transform:rotate(90deg)}
   .st{font-size:10.5px;font-weight:600;border-radius:5px;padding:1px 6px;border:1px solid transparent;white-space:nowrap;flex:0 0 auto}
-  .st.working{color:var(--info);background:var(--info-soft);border-color:rgba(95,179,242,.3)}
+  /* 共享板五态配色（其余原始状态一律走 unknown，并保留原始值） */
+  .st.leased{color:var(--info);background:var(--info-soft);border-color:rgba(95,179,242,.3)}
+  .st.awaiting{color:var(--warn);background:var(--warn-soft);border-color:rgba(231,169,78,.3)}
+  .st.undelivered{color:var(--dim);background:rgba(139,147,161,.12);border-color:rgba(139,147,161,.3)}
+  .st.stale{color:var(--bad);background:var(--bad-soft);border-color:rgba(242,113,122,.3)}
   .st.done{color:var(--ok);background:var(--ok-soft);border-color:rgba(62,207,142,.3)}
-  .st.blocked{color:var(--bad);background:var(--bad-soft);border-color:rgba(242,113,122,.3)}
-  .st.open{color:var(--warn);background:var(--warn-soft);border-color:rgba(231,169,78,.3)}
+  .st.unknown{color:var(--violet);background:var(--violet-soft);border-color:rgba(180,140,255,.3)}
   .item-detail{
     margin:0 4px 8px 4px;background:#14171d;border:1px solid var(--line);border-left:2px solid #3d4a63;
     border-radius:8px;padding:8px 10px;font-size:11.5px;color:var(--muted);line-height:1.6;
@@ -197,6 +201,18 @@
     background:rgba(180,140,255,.12);border:1px solid rgba(180,140,255,.28);color:var(--violet);
   }
   .empty-hint{font-size:11.5px;color:var(--dim);margin:8px 0 0}
+  .empty-hint[hidden]{display:none}
+  /* 事件流（api/board 的 events）：时间 / 任务 / 节点 / 类型 / 正文 */
+  .evt{padding:7px 4px}
+  .evt-row{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .evt-time{font-family:var(--mono);font-size:11px;color:var(--dim);flex:0 0 auto}
+  .evt-kind{font-size:10.5px;color:var(--cyan);border:1px solid rgba(79,214,200,.25);background:rgba(79,214,200,.08);border-radius:5px;padding:0 5px;white-space:nowrap}
+  .evt-rel{margin-left:auto;font-size:10.5px;color:var(--dim);white-space:nowrap}
+  .evt-text{display:block;font-size:12px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+  .evt-meta{display:block;font-size:10.5px;color:var(--dim);margin-top:1px;overflow-wrap:anywhere}
+  /* mock 兜底标注：琥珀色，和「真实」视觉上必须能区分开 */
+  .hint.is-mock{color:var(--warn)}
+  .chip-status[hidden]{display:none}
 
   /* ---------- 系统小部件 ---------- */
   .widget-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -213,9 +229,6 @@
   .disk-row .dr{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:11.5px}
   .disk-row .dr .name{color:var(--muted);font-family:var(--mono);font-size:11px}
   .disk-row .dr .amt{color:var(--dim);font-size:10.5px;font-variant-numeric:tabular-nums}
-  .spark{display:block;margin-top:4px}
-  .spark polyline{fill:none;stroke:var(--cyan);stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
-  .spark .area{fill:rgba(79,214,200,.10);stroke:none}
 
   /* ---------- 集群拓扑（inline SVG；节点状态只靠边框色区分） ---------- */
   .topo-panel{margin:0 0 12px}
@@ -351,9 +364,18 @@
   </div>
   <div class="spacer"></div>
   <div class="status-chips">
-    <span class="chip-status"><span class="dot ok" aria-hidden="true"></span>DSH mock 在线</span>
-    <span class="chip-status"><span class="dot ok" aria-hidden="true"></span>共享板 13090 · 11ms</span>
-    <span class="chip-status"><span class="dot bad" aria-hidden="true"></span>s5 离线</span>
+    <span class="chip-status" id="chipCluster" data-state="loading" title="本实例 interconnect 链路（同源 api/cluster）">
+      <span class="dot unknown" id="chipClusterDot" aria-hidden="true"></span><span id="chipClusterText">interconnect 载入中…</span>
+    </span>
+    <span class="chip-status" id="chipBoard" data-state="loading" title="共享板健康与最近一次请求延迟（同源 api/board）">
+      <span class="dot unknown" id="chipBoardDot" aria-hidden="true"></span><span id="chipBoardText">板 载入中…</span>
+    </span>
+    <span class="chip-status" id="chipTasks" data-state="loading" title="共享板任务数（同源 api/board）">
+      <span class="dot unknown" id="chipTasksDot" aria-hidden="true"></span><span id="chipTasksText">任务 载入中…</span>
+    </span>
+    <span class="chip-status" id="chipStale" hidden aria-live="polite" title="轮询失败：页面保留上一次好数据">
+      <span class="dot warn" aria-hidden="true"></span><span id="chipStaleText"></span>
+    </span>
   </div>
 </header>
 
@@ -362,9 +384,9 @@
     <h2><span id="greeting">你好</span>，<span class="who">ky614</span></h2>
     <p>
       <span id="dateLine">—</span>
-      <span class="sep">·</span>mcloud
-      <span class="sep">·</span>共享板 <code>127.0.0.1:13090</code>
-      <span class="sep">·</span>DSH 0.4.0
+      <span class="sep">·</span><span id="selfLine">实例 —</span>
+      <span class="sep">·</span><span id="boardSourceLine">板 —</span>
+      <span class="sep">·</span><span id="dataStamp">数据 —</span>
     </p>
   </div>
   <div class="clock-box">
@@ -374,7 +396,7 @@
 </div>
 
 <main id="main" tabindex="-1">
-  <noscript><p class="panel">此页面需要启用 JavaScript（集群数据来自同源只读接口 api/cluster，取不到时用本页 mock；不会访问外部网络）。</p></noscript>
+  <noscript><p class="panel">此页面需要启用 JavaScript（集群、共享板、本机数据都来自同源只读接口 api/cluster、api/board、api/host；取不到时用本页 mock 并标注；不会访问外部网络）。</p></noscript>
 
   <!-- 集群拓扑：SVG 骨架 + 脚本填充节点/连线（inline SVG，非 canvas）。
        数据：同源 api/cluster 返回的真实 interconnect 链路；取不到时用 MOCK.topology 渲染并标 mock 兜底。 -->
@@ -427,59 +449,52 @@
       </section>
     </div>
 
-    <!-- ② 最近任务 / 文档 -->
+    <!-- ② 最近任务 / 事件流（共享板同源只读数据） -->
     <div class="col">
       <section class="panel" aria-labelledby="recent-h">
         <div class="panel-head">
-          <h2 id="recent-h">最近任务与文档</h2>
-          <span class="hint">共享板 + 报告目录（mock）</span>
+          <h2 id="recent-h">最近任务与事件</h2>
+          <span class="hint" id="recentHint" aria-live="polite">载入中…</span>
         </div>
-        <div class="tabs" role="tablist" aria-label="最近任务与最近文档">
+        <div class="tabs" role="tablist" aria-label="最近任务与事件流">
           <button class="tab" role="tab" id="tab-tasks" aria-controls="panel-tasks" aria-selected="true" tabindex="0">最近任务<span class="n" id="taskTabCount"></span></button>
-          <button class="tab" role="tab" id="tab-docs" aria-controls="panel-docs" aria-selected="false" tabindex="-1">最近文档<span class="n" id="docTabCount"></span></button>
+          <button class="tab" role="tab" id="tab-events" aria-controls="panel-events" aria-selected="false" tabindex="-1">事件流<span class="n" id="eventTabCount"></span></button>
         </div>
         <div class="tab-panel" role="tabpanel" id="panel-tasks" aria-labelledby="tab-tasks" tabindex="0">
           <ul class="item-list" id="taskList"></ul>
-          <p class="empty-hint">点任务行展开验收口径与证据数；状态取自共享板生命周期。</p>
+          <p class="empty-hint" id="taskEmpty" hidden>板上暂无任务</p>
         </div>
-        <div class="tab-panel" role="tabpanel" id="panel-docs" aria-labelledby="tab-docs" tabindex="0" hidden>
-          <ul class="item-list" id="docList"></ul>
-          <p class="empty-hint">文档按修改时间倒序；展开可看摘要与完整路径。</p>
+        <div class="tab-panel" role="tabpanel" id="panel-events" aria-labelledby="tab-events" tabindex="0" hidden>
+          <ul class="item-list" id="eventList"></ul>
+          <p class="empty-hint" id="eventEmpty" hidden>暂无事件</p>
         </div>
+        <p class="panel-foot"><span>共享板只读接口 · 每 30 秒静默刷新</span></p>
       </section>
     </div>
 
-    <!-- ③ 系统小部件 + 待办 -->
+    <!-- ③ 系统小部件（本机只读数据） + 待办 -->
     <div class="col c">
       <section class="panel" aria-labelledby="widgets-h">
         <div class="panel-head">
-          <h2 id="widgets-h">系统小部件</h2>
-          <span class="hint">本地 mock · 只读</span>
+          <h2 id="widgets-h">本机状态</h2>
+          <span class="hint" id="widgetsHint" aria-live="polite">本机 · 只读</span>
         </div>
         <div class="widget-grid">
           <div class="widget span2">
-            <div class="wk"><span>磁盘</span><span>C: 系统盘 · D: 数据盘</span></div>
-            <div class="disk-row">
-              <div class="dr"><span class="name">C:</span><span class="amt">已用 43 / 80 GB</span></div>
-              <div class="wbar amber" role="img" aria-label="C 盘已用 54%"><span style="width:54%"></span></div>
-            </div>
-            <div class="disk-row">
-              <div class="dr"><span class="name">D:</span><span class="amt">已用 0.3 / 22.3 TB</span></div>
-              <div class="wbar green" role="img" aria-label="D 盘已用 1%"><span style="width:1%"></span></div>
-            </div>
+            <div class="wk"><span>磁盘</span><span id="osLine">载入中…</span></div>
+            <div id="diskRows"><div class="empty-hint">载入中…</div></div>
           </div>
           <div class="widget">
-            <div class="wk"><span>内存</span><span>32 GB</span></div>
-            <div class="wv">18.4 GB<small>58%</small></div>
-            <div class="wbar" role="img" aria-label="内存已用 58%"><span style="width:58%"></span></div>
+            <div class="wk"><span>内存</span><span id="memTotal">—</span></div>
+            <div class="wv"><span id="memUsed">—</span><small id="memRatio"></small></div>
+            <div class="wbar" role="progressbar" aria-label="内存已用" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="memBar" style="width:0%"></span></div>
           </div>
           <div class="widget">
-            <div class="wk"><span>板延迟</span><span>p95 34ms</span></div>
-            <div class="wv"><span id="boardLat">11</span> ms<small>近 200 次采样</small></div>
-            <svg class="spark" id="latSpark" width="100%" height="20" viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true" focusable="false"></svg>
+            <div class="wk"><span>板健康</span><span id="boardHealthSrc">—</span></div>
+            <div class="wv"><span id="boardLat">—</span><small id="boardLatNote">最近一次 /health 延迟</small></div>
           </div>
         </div>
-        <p class="panel-foot">磁盘与内存为占位卡；延迟每 5 秒在 mock 序列上滚动一格。</p>
+        <p class="panel-foot">数据来自同源只读路由 api/host 与本机 statfs · 零外链、零外部依赖</p>
       </section>
 
       <section class="panel" aria-labelledby="todo-h">
@@ -513,13 +528,14 @@
   'use strict';
 
   /* =====================================================================
-   * MOCK —— 全部演示数据集中在这里，不含任何 token / key / 密码。
-   * 集群拓扑已接真实数据：本页载入时 fetch 同源 api/cluster，成功就用真实
-   * interconnect 链路渲染（renderTopology 只有一份逻辑）；失败/超时/形状不符
-   * 才退回本段 MOCK.topology，并在面板上明确标「mock 兜底」。
-   * 其余（动作、任务、文档、磁盘/内存/延迟、待办种子）仍是 mock，未接真实源。
-   * 真实接入：动作按钮改回调 DSH 客户端命令；任务/文档取自共享板与报告目录；
-   * 磁盘/内存/延迟取自本机探测。渲染与交互逻辑不用改。
+   * MOCK —— 只在**首次加载失败**时使用的兜底数据。
+   * 用兜底数据渲染的模块会在面板标题旁明确标「mock 兜底 · 原因」，绝不冒充真实数据。
+   *
+   * 真实数据来自三条**同源只读**路由（相对路径 fetch，Host 半的 lib/ 实现）：
+   *   api/cluster  本实例 interconnect 链路（集群拓扑 + 链路 chip）
+   *   api/board    共享板任务 / 事件 / 健康（Host 用 x-team-token 读板服务；token 不进页面）
+   *   api/host     本机内存 / CPU / 磁盘（node:os + fs.statfs，零外部依赖）
+   * 本页没有任何外部引用：零外链、零第三方脚本、零外部字体。
    * ===================================================================== */
   const MOCK = {
     actions: [
@@ -527,8 +543,8 @@
         intent: 'POST /api/sessions', detail: '新建会话并切到默认工作区' },
       { id: 'dispatch', label: '派发任务', desc: '把任务卡投给对端会话', kbd: '', ico: '⇢',
         intent: 'mesh_dispatch(taskId, instanceId)', detail: '选择对端实例与会话后投递' },
-      { id: 'board', label: '打开看板', desc: '共享板 127.0.0.1:13090', kbd: '', ico: '▤',
-        intent: 'GET /api/tasks', detail: '只读打开共享板任务列表' },
+      { id: 'board', label: '打开看板', desc: '等待共享板数据…', kbd: '', ico: '▤',
+        intent: 'GET /task/list', detail: '只读打开共享板任务列表' },
       { id: 'notes', label: '查记事', desc: 'OpenViking 记忆检索', kbd: '', ico: '⌕',
         intent: 'POST /api/search', detail: '按关键词检索长期记忆与资源' },
       { id: 'latest-report', label: '读最新报告', desc: 'mesh-dev/reports 按时间倒序', kbd: '', ico: '▦',
@@ -536,61 +552,57 @@
     ],
     disabledAction: { label: '重启 DSH', desc: '本轮红线：不许重启 / 结束进程', ico: '⟳',
       reason: '本轮任务明确禁止重启或结束 DSH 进程，因此按钮保持禁用（禁用态示例，不是坏按钮）。' },
+    /* 兜底任务：字段形状与 api/board 的 tasks 一致，只是内容是示例。 */
     tasks: [
-      { id: 't-4b2e9a01', title: '核对板服务 0.4.0 监听地址', state: 'working', stateText: '进行中',
-        owner: 'verifier', updated: '2 分钟前', evidence: '1 / 3 条证据',
-        acceptance: '监听地址、schema 4、/health 三处取证；每项都要可采信证据。',
-        note: '当前 1 条证据为 fail（/health 超时 2s），门禁已拒过一次完成。' },
-      { id: 't-9fa02b13', title: '汇总 0.4.0 升级清单', state: 'done', stateText: '已完成',
-        owner: 'verifier', updated: '4 分钟前', evidence: '3 / 3 条证据',
-        acceptance: '列出 0.4.0 变更点并标注风险；独立复核通过。',
-        note: '已完成：证据全部可采信，复核人 ≠ 上报人。' },
-      { id: 't-2a90f3c7', title: 'dsh-team-mesh 0.4.0 双机验证', state: 'working', stateText: '进行中',
-        owner: 'dev-core', updated: '12 分钟前', evidence: '2 / 3 条证据',
-        acceptance: 'mcloud 与 server 各起一次实例，互发消息并核对回执。',
-        note: '还差一条链路延迟证据。' },
-      { id: 't-7c1d0e42', title: 'B 版 HTML 面板（集群总览 / 工作台）', state: 'working', stateText: '进行中',
-        owner: 'design-b', updated: '18 分钟前', evidence: '1 / 2 条证据',
-        acceptance: '两个单文件页面 + notes + 截图 + 自检报告。',
-        note: '正在做 v3 / v4 两版页面。' },
-      { id: 't-5e77a0c1', title: '清理 11-14 临时验证目录', state: 'blocked', stateText: '阻塞',
-        owner: 'repo-keeper2', updated: '1 小时前', evidence: '0 / 2 条证据',
-        acceptance: '只删本轮生成的临时目录，删前核对绝对路径。',
-        note: '阻塞：server 上有同名备份目录，需先确认哪份可删。' },
-      { id: 't-3f04d8aa', title: '给板服务加 /metrics 端点', state: 'open', stateText: '待认领',
-        owner: '—', updated: '2 小时前', evidence: '0 / 3 条证据',
-        acceptance: '暴露 sweep/GC/限流/审计计数，格式与现有 JSON 一致。',
-        note: '未认领，可由空闲节点接手。' }
+      { id: 'mock-task-1', title: '示例任务：核对板服务监听地址', state: 'leased', owner: 'example-owner',
+        node: 'example-node', evidenceCount: 2, acceptance: ['示例验收标准：三处取证', '示例验收标准：可复核'],
+        brief: 'mock 兜底数据，不是真实任务。', lifecycle: 'working', ackState: 'acked', updatedAt: Date.now() - 120000 },
+      { id: 'mock-task-2', title: '示例任务：汇总升级清单', state: 'done', owner: 'example-owner',
+        node: 'example-node', evidenceCount: 3, acceptance: ['示例验收标准：列出变更点'],
+        brief: 'mock 兜底数据，不是真实任务。', lifecycle: 'done', ackState: 'acked', updatedAt: Date.now() - 240000 },
+      { id: 'mock-task-3', title: '示例任务：双机互发验证', state: 'awaiting', owner: null,
+        node: null, evidenceCount: 1, acceptance: ['示例验收标准：互发消息并核对回执'],
+        brief: 'mock 兜底数据，不是真实任务。', lifecycle: 'open', ackState: 'pending', updatedAt: Date.now() - 420000 },
+      { id: 'mock-task-4', title: '示例任务：清理临时验证目录', state: 'undelivered', owner: null,
+        node: null, evidenceCount: 0, acceptance: ['示例验收标准：删前核对绝对路径'],
+        brief: 'mock 兜底数据，不是真实任务。', lifecycle: 'open', ackState: 'none', updatedAt: Date.now() - 900000 },
+      { id: 'mock-task-5', title: '示例任务：给板服务加观测端点', state: 'stale', owner: 'example-owner',
+        node: 'example-node', evidenceCount: 1, acceptance: ['示例验收标准：暴露计数且格式一致'],
+        brief: 'mock 兜底数据，不是真实任务。', lifecycle: 'working', ackState: 'acked', updatedAt: Date.now() - 3600000 },
+      { id: 'mock-task-6', title: '示例任务：已取消的历史任务', state: 'canceled', owner: null,
+        node: null, evidenceCount: 0, acceptance: [], brief: 'mock 兜底数据，不是真实任务。',
+        lifecycle: 'canceled', ackState: 'none', updatedAt: Date.now() - 7200000 }
     ],
-    docs: [
-      { name: 'board-hardening.md', ext: 'md', size: '17.6 KB', updated: '昨天 23:41',
-        path: 'mesh-dev\\reports\\board-hardening.md',
-        note: '板服务硬化：完成门禁、租约收养、限流与 GC 的验收记录。' },
-      { name: 'core-dispatcher.md', ext: 'md', size: '16.5 KB', updated: '昨天 21:08',
-        path: 'mesh-dev\\reports\\core-dispatcher.md',
-        note: '派发器行为：任务卡投递、ack 窗口、超时判定。' },
-      { name: 'two-machine-verify.md', ext: 'md', size: '13.1 KB', updated: '昨天 19:36',
-        path: 'mesh-dev\\reports\\two-machine-verify.md',
-        note: 'mcloud ↔ server 双机互发验证与证据清单。' },
-      { name: 'deploy-docs-0.4.0.md', ext: 'md', size: '10.8 KB', updated: '昨天 17:52',
-        path: 'mesh-dev\\reports\\deploy-docs-0.4.0.md',
-        note: '0.4.0 部署文档与回滚步骤。' },
-      { name: 'lease-adoption.md', ext: 'md', size: '9.5 KB', updated: '11-14 20:15',
-        path: 'mesh-dev\\reports\\lease-adoption.md',
-        note: '租约收养路由：过期租约接管与审计事件。' }
-    ],
-    latency: [12, 11, 14, 10, 13, 11, 9, 12, 15, 11, 10, 11],
+    /* 兜底事件流：字段形状与 api/board 的 events 一致（at 毫秒，最近在前）。 */
+    events: Array.from({ length: 8 }, function (_, index) {
+      return {
+        task: index < 5 ? 'mock-task-' + (index + 1) : '',
+        at: Date.now() - (index + 1) * 90000,
+        kind: index % 2 === 0 ? 'task.created' : 'task.reported',
+        node: index % 2 === 0 ? 'example-owner' : 'example-worker',
+        text: '示例事件正文 ' + (index + 1) + '（mock 兜底数据，不是真实事件）',
+        seq: 100 - index
+      };
+    }),
+    /* 兜底本机数据：字段形状与 api/host 一致，只是内容是示例。 */
+    host: {
+      generatedAt: new Date().toISOString(),
+      hostname: 'mock-host（兜底示例）',
+      os: { platform: 'mock', release: '0.0.0-mock', uptimeSec: 0 },
+      memory: { totalBytes: 34359738368, freeBytes: 13743895347, ratio: 0.6 },
+      cpu: { count: 12, load1: 0 },
+      disks: [
+        { mount: 'C:', label: 'C: 系统盘', totalBytes: 155692564480, freeBytes: 107374182400, ratio: 0.31 },
+        { mount: 'D:', label: 'D: 数据盘', totalBytes: 1030792151040, freeBytes: 579820584960, ratio: 0.44 }
+      ]
+    },
     todosSeed: [
       { text: '确认 pc-ky614 隧道 13087 端口', done: false },
-      { text: '核对板服务监听地址（t-4b2e9a01）', done: false },
+      { text: '核对板服务监听地址', done: false },
       { text: '通读两个 HTML 版本的 notes', done: true },
-      { text: '收尾 v3 / v4 截图与自检报告', done: false }
+      { text: '收尾截图与自检报告', done: false }
     ],
-    /* 集群拓扑（mock 兜底）。status 只用 online / offline / unknown 三种；
-       cx / cy 是 1000×300 画布上的节点中心，labelPos 决定名字标在框上方还是下方。
-       这四个 id 是固定槽位：/api/cluster 的 peers 按 instanceId 与它们匹配
-       （mcloud 顶部居中、pc-ky614 下排左、server 下排中、s5 下排右）。
-       这里的 status 只在「真实数据不可用」时渲染，并会被明确标成 mock。 */
+    /* 集群拓扑（mock 兜底）。status 只用 online / offline / unknown 三种。 */
     topology: {
       nodes: [
         { id: 'mcloud', label: 'mcloud', cx: 500, cy: 60, labelPos: 'above', anchor: 'middle', status: 'online',
@@ -602,15 +614,87 @@
         { id: 's5', label: 's5', cx: 874, cy: 186, labelPos: 'above', anchor: 'end', status: 'offline',
           role: '步步高 S5 平板 · DSH Mobile' }
       ],
-      /* 连线：mcloud 星型连三台 + pc-ky614—server—s5 横向链。布局是固定的，与真实链路状态无关。 */
       edges: [['mcloud', 'pc-ky614'], ['mcloud', 'server'], ['mcloud', 's5'], ['pc-ky614', 'server'], ['server', 's5']],
       pending: { cx: 500, cy: 272, r: 16, label: '待接入', role: '未登记的待接入设备' }
     }
   };
 
   const STORE_KEY = 'dsh-workbench-todos-b';
+  /** 三个接口的静默刷新间隔。页面隐藏时跳过这一轮。 */
+  const POLL_MS = 30000;
+  /** 板服务的五态 → 页面文案 / 配色类名（其余状态原样显示为「未知 · 原值」）。 */
+  const TASK_STATES = {
+    leased: { text: '租约中', cls: 'leased' },
+    awaiting: { text: '等回执', cls: 'awaiting' },
+    undelivered: { text: '未送达', cls: 'undelivered' },
+    stale: { text: '已过期', cls: 'stale' },
+    done: { text: '已完成', cls: 'done' }
+  };
+  /** 顶部过期 badge 的模块名。 */
+  const MODULE_LABEL = { cluster: '链路', board: '共享板', host: '本机' };
+
+  /** 各模块状态：kind ∈ loading | real | mock | unconfigured；reason 只在 mock 时用。 */
+  const state = {
+    cluster: { kind: 'loading', data: null, reason: '' },
+    board: { kind: 'loading', data: null, reason: '' },
+    host: { kind: 'loading', data: null, reason: '' },
+    staleReasons: {},
+    staleAt: 0
+  };
+
   const $ = (s, r) => (r || document).querySelector(s);
   const pad = n => (n < 10 ? '0' + n : String(n));
+
+  /** 所有来自接口/配置的字符串都过这里再拼 HTML（板数据是外部输入）。 */
+  function esc(value) {
+    return String(value === null || value === undefined ? '' : value).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmtStamp(value) {
+    if (!value) return '';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+  function fmtMs(ms) {
+    if (!Number.isFinite(ms)) return '';
+    const d = new Date(ms);
+    if (isNaN(d.getTime())) return '';
+    return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+  /** 毫秒时间戳 → 「刚刚 / N 分钟前 / N 小时前 / N 天前 / 具体日期」。 */
+  function relTime(ms) {
+    if (!Number.isFinite(ms)) return '—';
+    const diff = Date.now() - ms;
+    if (diff < 0) {
+      const futureMin = Math.round(-diff / 60000);
+      return futureMin <= 1 ? '即将' : '未来 ' + futureMin + ' 分钟';
+    }
+    if (diff < 60000) return '刚刚';
+    if (diff < 3600000) return Math.floor(diff / 60000) + ' 分钟前';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + ' 小时前';
+    const d = new Date(ms);
+    if (diff < 7 * 86400000) return Math.floor(diff / 86400000) + ' 天前';
+    return (d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  /** 字节 → 人类可读（页面上的磁盘/内存数字都走它）。 */
+  function fmtBytes(bytes) {
+    if (!Number.isFinite(bytes) || bytes < 0) return '—';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let value = bytes;
+    let index = 0;
+    while (value >= 1024 && index < units.length - 1) { value /= 1024; index += 1; }
+    const shown = index === 0 ? String(Math.round(value)) : value.toFixed(value >= 100 ? 0 : 1);
+    return shown + ' ' + units[index];
+  }
+  function pct(ratio) {
+    return Number.isFinite(ratio) ? Math.round(ratio * 100) : null;
+  }
+  function shortReason(error) {
+    if (error && (error.name === 'AbortError' || error.name === 'TimeoutError')) return '超时';
+    return String((error && error.message) || error || '未知原因').slice(0, 80);
+  }
 
   /* ---------------- toast ---------------- */
   let toastTimer = null;
@@ -646,14 +730,244 @@
     $('#dateLine').textContent = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + ' ' + WEEK[now.getDay()];
   }
 
+  /* =====================================================================
+   * 数据加载：三条同源只读路由 + 状态机
+   * 失败处理有两条不同路径，别混：
+   *   - 首次加载失败（此前没有好数据）→ 该模块回落 MOCK，并标「mock 兜底 · 原因」；
+   *   - 轮询失败（此前有真实数据）→ 保留上一次好数据，只在顶部 badge 标
+   *     「数据过期 · HH:MM:SS / 原因」，**不闪回 mock**。
+   * ===================================================================== */
+  function timeoutSignal(ms) {
+    try {
+      return typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+        ? AbortSignal.timeout(ms)
+        : undefined;
+    } catch (error) {
+      return undefined;
+    }
+  }
+  async function fetchJson(path, timeoutMs) {
+    const response = await fetch(path, {
+      cache: 'no-store',
+      headers: { accept: 'application/json' },
+      signal: timeoutSignal(timeoutMs)
+    });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    let data;
+    try {
+      data = await response.json();
+    } catch (error) {
+      if (error && (error.name === 'AbortError' || error.name === 'TimeoutError')) throw error;
+      throw new Error('响应不是 JSON');
+    }
+    return data;
+  }
+
+  function noteSuccess(kind) {
+    if (state.staleReasons[kind]) {
+      delete state.staleReasons[kind];
+      renderStale();
+    }
+  }
+  function noteFailure(kind, reason) {
+    state.staleReasons[kind] = reason;
+    state.staleAt = Date.now();
+    renderStale();
+  }
+  /** 顶部「数据过期」badge：只在轮询失败且手里还有上一次好数据时出现。 */
+  function renderStale() {
+    const chip = $('#chipStale');
+    const kinds = Object.keys(state.staleReasons);
+    if (!kinds.length) {
+      chip.hidden = true;
+      return;
+    }
+    const reason = kinds.map(function (kind) { return MODULE_LABEL[kind] + '：' + state.staleReasons[kind]; }).join('；');
+    $('#chipStaleText').textContent = '数据过期 · ' + fmtMs(state.staleAt) + ' / ' + reason.slice(0, 120);
+    chip.hidden = false;
+  }
+
+  /* ---------------- 集群：api/cluster ---------------- */
+  function isClusterPayload(data) {
+    return !!data && typeof data === 'object' &&
+      typeof data.interconnect === 'boolean' &&
+      !!data.self && typeof data.self.instanceId === 'string' &&
+      Array.isArray(data.peers) &&
+      data.peers.every(function (p) { return !!p && typeof p === 'object' && typeof p.instanceId === 'string'; });
+  }
+  async function loadCluster() {
+    try {
+      const data = await fetchJson('api/cluster', 5000);
+      if (!isClusterPayload(data)) throw new Error('结构不符');
+      if (data.interconnect !== true || data.error) {
+        throw new Error(data.error || '本实例没有 interconnect 服务');
+      }
+      state.cluster = { kind: 'real', data: data, reason: '' };
+      noteSuccess('cluster');
+      renderClusterModule();
+    } catch (error) {
+      const reason = shortReason(error);
+      if (state.cluster.kind === 'real') {
+        noteFailure('cluster', reason);
+        return;
+      }
+      state.cluster = { kind: 'mock', data: null, reason: reason };
+      renderClusterModule();
+    }
+    renderChips();
+    renderMeta();
+  }
+
+  /* ---------------- 共享板：api/board ---------------- */
+  function isBoardPayload(data) {
+    return !!data && typeof data === 'object' &&
+      typeof data.configured === 'boolean' &&
+      (data.configured !== true || (
+        !!data.source && typeof data.source.origin === 'string' &&
+        Array.isArray(data.tasks) &&
+        Array.isArray(data.events)
+      ));
+  }
+  async function loadBoard() {
+    try {
+      const data = await fetchJson('api/board', 8000);
+      if (!isBoardPayload(data)) throw new Error('结构不符');
+      if (data.configured !== true) {
+        state.board = { kind: 'unconfigured', data: data, reason: '' };
+        noteSuccess('board');
+      } else if (data.error) {
+        const reason = String(data.error.code || 'board-error') + ' · ' + String(data.error.message || '未知错误');
+        if (state.board.kind === 'real') {
+          noteFailure('board', reason);
+          return;
+        }
+        state.board = { kind: 'mock', data: null, reason: reason };
+      } else {
+        state.board = { kind: 'real', data: data, reason: '' };
+        noteSuccess('board');
+      }
+    } catch (error) {
+      const reason = shortReason(error);
+      if (state.board.kind === 'real') {
+        noteFailure('board', reason);
+        return;
+      }
+      state.board = { kind: 'mock', data: null, reason: reason };
+    }
+    renderBoardModule();
+  }
+
+  /* ---------------- 本机：api/host ---------------- */
+  function isHostPayload(data) {
+    return !!data && typeof data === 'object' &&
+      Array.isArray(data.disks) &&
+      !!data.memory && typeof data.memory === 'object';
+  }
+  async function loadHost() {
+    try {
+      const data = await fetchJson('api/host', 5000);
+      if (!isHostPayload(data)) throw new Error('结构不符');
+      state.host = { kind: 'real', data: data, reason: '' };
+      noteSuccess('host');
+    } catch (error) {
+      const reason = shortReason(error);
+      if (state.host.kind === 'real') {
+        noteFailure('host', reason);
+        return;
+      }
+      state.host = { kind: 'mock', data: null, reason: reason };
+    }
+    renderHostModule();
+    renderMeta();
+  }
+
+  /* =====================================================================
+   * 渲染
+   * ===================================================================== */
+
+  /* ---------------- 顶栏 chip / 日期行 ---------------- */
+  function setChip(id, dotClass, text) {
+    const dot = $('#chip' + id + 'Dot');
+    const label = $('#chip' + id + 'Text');
+    if (dot) dot.className = 'dot ' + dotClass;
+    if (label) label.textContent = text;
+  }
+  function renderChips() {
+    const cluster = state.cluster;
+    if (cluster.kind === 'real') {
+      const peers = Array.isArray(cluster.data.peers) ? cluster.data.peers : [];
+      const up = peers.filter(function (peer) { return peer.link === 'up'; }).length;
+      setChip('Cluster', up > 0 ? 'ok' : 'warn', 'interconnect ' + up + '/' + peers.length + ' up');
+    } else if (cluster.kind === 'mock') {
+      setChip('Cluster', 'warn', '链路 mock 兜底');
+    } else {
+      setChip('Cluster', 'unknown', 'interconnect 载入中…');
+    }
+
+    const board = state.board;
+    if (board.kind === 'real') {
+      const health = board.data.health;
+      if (health && health.ok) {
+        setChip('Board', 'ok', '板 在线 · ' + health.latencyMs + 'ms');
+      } else {
+        setChip('Board', 'warn', '板 在线 · 延迟未知');
+      }
+    } else if (board.kind === 'unconfigured') {
+      setChip('Board', 'unknown', '板 未配置');
+    } else if (board.kind === 'mock') {
+      setChip('Board', 'bad', '板 不可达');
+    } else {
+      setChip('Board', 'unknown', '板 载入中…');
+    }
+
+    let taskDot = 'unknown';
+    let taskText = '任务 载入中…';
+    if (board.kind === 'real') {
+      const count = (board.data.tasks || []).length;
+      taskDot = 'ok';
+      taskText = '板上 ' + count + ' 任务';
+    } else if (board.kind === 'unconfigured') {
+      taskText = '任务 板未配置';
+    } else if (board.kind === 'mock') {
+      taskDot = 'warn';
+      taskText = '任务 mock 兜底';
+    }
+    setChip('Tasks', taskDot, taskText);
+  }
+  function renderMeta() {
+    const cluster = state.cluster;
+    const board = state.board;
+    $('#selfLine').textContent = '实例 ' + (
+      cluster.kind === 'real'
+        ? ((cluster.data.self && cluster.data.self.instanceId) || 'unknown')
+        : (cluster.kind === 'mock' ? 'mock 兜底' : '—')
+    );
+    let boardText = '板 —';
+    if (board.kind === 'real' && board.data.source && board.data.source.origin) {
+      boardText = '板 ' + board.data.source.origin;
+    } else if (board.kind === 'unconfigured') {
+      boardText = '板 未配置';
+    } else if (board.kind === 'mock') {
+      boardText = '板 不可达';
+    }
+    $('#boardSourceLine').textContent = boardText;
+
+    const stamps = [];
+    if (cluster.kind === 'real' && cluster.data.generatedAt) stamps.push(Date.parse(cluster.data.generatedAt));
+    if (board.kind === 'real' && board.data.generatedAt) stamps.push(Date.parse(board.data.generatedAt));
+    if (state.host.kind === 'real' && state.host.data.generatedAt) stamps.push(Date.parse(state.host.data.generatedAt));
+    const valid = stamps.filter(function (value) { return Number.isFinite(value); });
+    $('#dataStamp').textContent = valid.length ? '数据 ' + fmtStamp(new Date(Math.max.apply(null, valid)).toISOString()) : '数据 —';
+  }
+
   /* ---------------- ① 常用动作 ---------------- */
   const receipts = [];
   function renderActions() {
-    const html = MOCK.actions.map(function (a) {
-      return '<li><button class="action" type="button" data-action="' + a.id + '">' +
-        '<span class="ico" aria-hidden="true">' + a.ico + '</span>' +
-        '<span class="txt"><b>' + a.label + '</b><span>' + a.desc + '</span></span>' +
-        (a.kbd ? '<kbd>' + a.kbd + '</kbd>' : '') +
+    const html = MOCK.actions.map(function (action) {
+      return '<li><button class="action" type="button" data-action="' + action.id + '">' +
+        '<span class="ico" aria-hidden="true">' + action.ico + '</span>' +
+        '<span class="txt"><b>' + action.label + '</b><span>' + action.desc + '</span></span>' +
+        (action.kbd ? '<kbd>' + action.kbd + '</kbd>' : '') +
       '</button></li>';
     }).join('') +
       '<li><button class="action" type="button" disabled aria-describedby="disabledReason">' +
@@ -662,33 +976,49 @@
         '<span class="soon">禁用</span>' +
       '</button></li>';
     $('#actionList').innerHTML = html;
-    $('#actionList').addEventListener('click', function (e) {
-      const btn = e.target.closest('[data-action]');
-      if (!btn) return;
-      fireAction(btn.getAttribute('data-action'));
+    $('#actionList').addEventListener('click', function (event) {
+      const button = event.target.closest('[data-action]');
+      if (!button) return;
+      fireAction(button.getAttribute('data-action'));
     });
+  }
+  /** 「打开看板」的地址来自 api/board 的 source.origin；拿不到就置灰，绝不留假地址。 */
+  function renderBoardAction() {
+    const button = $('#actionList [data-action="board"]');
+    if (!button) return;
+    const desc = button.querySelector('.txt span');
+    const board = state.board;
+    if (board.kind === 'real' && board.data.source && board.data.source.origin) {
+      button.disabled = false;
+      button.removeAttribute('aria-disabled');
+      desc.textContent = '共享板 ' + board.data.source.origin;
+    } else {
+      button.disabled = true;
+      button.setAttribute('aria-disabled', 'true');
+      desc.textContent = board.kind === 'unconfigured' ? '板未配置' : (board.kind === 'mock' ? '板不可达' : '等待共享板数据…');
+    }
   }
   function renderReceipts() {
     const list = $('#receiptList');
     if (!receipts.length) {
       list.innerHTML = '<li class="placeholder">还没有动作。点击上方按钮，这里会记录一条本地回执（不会发起真实请求）。</li>';
     } else {
-      list.innerHTML = receipts.map(function (r) {
-        return '<li><span class="t">' + r.time + '</span><span><b>' + r.label + '</b> · 演示回执：将调用 <code>' +
-          r.intent + '</code>（未发送请求）</span></li>';
+      list.innerHTML = receipts.map(function (receipt) {
+        return '<li><span class="t">' + receipt.time + '</span><span><b>' + receipt.label + '</b> · 演示回执：将调用 <code>' +
+          receipt.intent + '</code>（未发送请求）</span></li>';
       }).join('');
     }
     $('#clearReceipt').disabled = receipts.length === 0;
   }
   function fireAction(id) {
-    const a = MOCK.actions.filter(function (x) { return x.id === id; })[0];
-    if (!a) return;
+    const action = MOCK.actions.filter(function (item) { return item.id === id; })[0];
+    if (!action) return;
     const now = new Date();
     const time = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
-    receipts.unshift({ time: time, label: a.label, intent: a.intent });
+    receipts.unshift({ time: time, label: action.label, intent: action.intent });
     if (receipts.length > 5) receipts.length = 5;
     renderReceipts();
-    toast(a.label + '：' + a.detail + '（演示，未发送）');
+    toast(action.label + '：' + action.detail + '（演示，未发送）');
   }
   $('#clearReceipt').addEventListener('click', function () {
     receipts.length = 0;
@@ -696,9 +1026,9 @@
     toast('动作回执已清空');
   });
 
-  /* ---------------- ② 任务 / 文档 标签页 ---------------- */
+  /* ---------------- ② 任务 / 事件流 标签页 ---------------- */
   function tabSelect(id) {
-    const tabs = [$('#tab-tasks'), $('#tab-docs')];
+    const tabs = [$('#tab-tasks'), $('#tab-events')];
     tabs.forEach(function (tab) {
       const selected = tab.id === id;
       tab.setAttribute('aria-selected', String(selected));
@@ -708,18 +1038,18 @@
     });
   }
   function initTabs() {
-    const tabs = [$('#tab-tasks'), $('#tab-docs')];
-    tabs.forEach(function (tab, i) {
+    const tabs = [$('#tab-tasks'), $('#tab-events')];
+    tabs.forEach(function (tab, index) {
       tab.addEventListener('click', function () { tabSelect(tab.id); });
-      tab.addEventListener('keydown', function (e) {
-        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-          e.preventDefault();
-          const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
-          tabSelect(next.id);
-          next.focus();
-        } else if (e.key === 'Home' || e.key === 'End') {
-          e.preventDefault();
-          const next = e.key === 'Home' ? tabs[0] : tabs[tabs.length - 1];
+      tab.addEventListener('keydown', function (event) {
+        let next = null;
+        if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+          next = tabs[(index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+        } else if (event.key === 'Home' || event.key === 'End') {
+          next = event.key === 'Home' ? tabs[0] : tabs[tabs.length - 1];
+        }
+        if (next) {
+          event.preventDefault();
           tabSelect(next.id);
           next.focus();
         }
@@ -727,77 +1057,353 @@
     });
   }
 
-  function taskItem(t) {
-    const detailId = 'task-detail-' + t.id;
+  function taskStateInfo(task) {
+    const key = String((task && task.state) || 'unknown');
+    const known = TASK_STATES[key];
+    if (known) return known;
+    const raw = (task && (task.lifecycle || key)) || 'unknown';
+    return { text: '未知 · ' + raw, cls: 'unknown' };
+  }
+  function taskItem(task, index) {
+    const info = taskStateInfo(task);
+    const detailId = 'task-detail-' + index;
+    const owner = task.owner || '—';
+    const node = task.node || '—';
+    const evidence = Number.isFinite(task.evidenceCount) ? task.evidenceCount + ' 条证据' : '证据 —';
+    const acceptance = Array.isArray(task.acceptance) && task.acceptance.length
+      ? task.acceptance.map(function (line) { return '<div class="row"><b>验收</b><span>' + esc(line) + '</span></div>'; }).join('')
+      : '<div class="row"><b>验收</b><span>—</span></div>';
+    const brief = task.brief ? '<div class="row"><b>说明</b><span>' + esc(task.brief) + '</span></div>' : '';
     return '<li class="item">' +
       '<button class="item-row" type="button" aria-expanded="false" aria-controls="' + detailId + '">' +
-        '<span class="st ' + t.state + '">' + t.stateText + '</span>' +
+        '<span class="st ' + info.cls + '">' + esc(info.text) + '</span>' +
         '<span class="item-main">' +
-          '<span class="item-title">' + t.title + '</span>' +
-          '<span class="item-meta"><code>' + t.id + '</code> · ' + t.owner + ' · ' + t.updated + ' · ' + t.evidence + '</span>' +
+          '<span class="item-title">' + esc(task.title || '(无标题)') + '</span>' +
+          '<span class="item-meta"><code>' + esc(task.id || '—') + '</code> · ' + esc(owner) + ' · 节点 ' + esc(node) +
+            ' · ' + esc(evidence) + ' · 更新 ' + esc(relTime(task.updatedAt)) + '</span>' +
         '</span>' +
         '<span class="chev" aria-hidden="true">▸</span>' +
       '</button>' +
       '<div class="item-detail" id="' + detailId + '" hidden>' +
-        '<div class="row"><b>验收</b><span>' + t.acceptance + '</span></div>' +
-        '<div class="row"><b>备注</b><span>' + t.note + '</span></div>' +
+        '<div class="row"><b>原始状态</b><span>' + esc((task.lifecycle || 'unknown') + (task.ackState ? ' · 回执 ' + task.ackState : '')) + '</span></div>' +
+        (task.updatedAt ? '<div class="row"><b>更新时间</b><span>' + esc(fmtMs(task.updatedAt)) + '</span></div>' : '') +
+        (Number.isFinite(task.leaseDeadline) ? '<div class="row"><b>租约到期</b><span>' + esc(fmtMs(task.leaseDeadline)) + '</span></div>' : '') +
+        acceptance + brief +
       '</div>' +
     '</li>';
   }
-  function docItem(d) {
-    const detailId = 'doc-detail-' + d.name.replace(/[^\w-]/g, '');
-    return '<li class="item">' +
-      '<button class="item-row" type="button" aria-expanded="false" aria-controls="' + detailId + '">' +
-        '<span class="doc-ico" aria-hidden="true">' + d.ext.toUpperCase() + '</span>' +
-        '<span class="item-main">' +
-          '<span class="item-title">' + d.name + '</span>' +
-          '<span class="item-meta">' + d.size + ' · ' + d.updated + '</span>' +
-        '</span>' +
-        '<span class="chev" aria-hidden="true">▸</span>' +
-      '</button>' +
-      '<div class="item-detail" id="' + detailId + '" hidden>' +
-        '<div class="row"><b>摘要</b><span>' + d.note + '</span></div>' +
-        '<div class="row"><b>路径</b><span class="path">' + d.path + '</span></div>' +
+  function eventItem(event) {
+    return '<li class="item evt">' +
+      '<div class="evt-row">' +
+        '<span class="evt-time">' + esc(fmtMs(event.at) || '—') + '</span>' +
+        '<span class="evt-kind">' + esc(event.kind || 'event') + '</span>' +
+        '<span class="evt-rel">' + esc(relTime(event.at)) + '</span>' +
       '</div>' +
+      '<span class="evt-text">' + esc(event.text || '（无正文）') + '</span>' +
+      '<span class="evt-meta">任务 ' + esc(event.task || '—') + ' · 节点 ' + esc(event.node || '—') + '</span>' +
     '</li>';
   }
-  function toggleItem(btn) {
-    const expanded = btn.getAttribute('aria-expanded') === 'true';
-    btn.setAttribute('aria-expanded', String(!expanded));
-    const detail = document.getElementById(btn.getAttribute('aria-controls'));
-    if (detail) detail.hidden = expanded;
+  function setModuleHint(id, mock, text) {
+    const el = $('#' + id);
+    el.textContent = text;
+    el.className = 'hint' + (mock ? ' is-mock' : '');
   }
-  function renderRecent() {
-    $('#taskList').innerHTML = MOCK.tasks.map(taskItem).join('');
-    $('#docList').innerHTML = MOCK.docs.map(docItem).join('');
-    $('#taskTabCount').textContent = MOCK.tasks.length;
-    $('#docTabCount').textContent = MOCK.docs.length;
-    ['#taskList', '#docList'].forEach(function (sel) {
-      $(sel).addEventListener('click', function (e) {
-        const btn = e.target.closest('.item-row');
-        if (btn) toggleItem(btn);
-      });
+  function renderTasks() {
+    const board = state.board;
+    const list = $('#taskList');
+    const empty = $('#taskEmpty');
+    let rows = null;
+    if (board.kind === 'real') rows = Array.isArray(board.data.tasks) ? board.data.tasks : [];
+    else if (board.kind === 'mock') rows = MOCK.tasks;
+    else if (board.kind === 'unconfigured') rows = [];
+    if (rows === null) {
+      list.innerHTML = '';
+      empty.hidden = false;
+      empty.textContent = '载入中…';
+      $('#taskTabCount').textContent = '';
+      return;
+    }
+    list.innerHTML = rows.map(function (row, i) { return taskItem(row, i); }).join('');
+    empty.hidden = rows.length > 0;
+    if (!rows.length) {
+      empty.textContent = board.kind === 'unconfigured'
+        ? '板未配置：profile 里给 dsh-html-panel 加 config.board.endpoint / token'
+        : (board.kind === 'mock' ? 'mock 兜底 · ' + board.reason : '板上暂无任务');
+    }
+    $('#taskTabCount').textContent = rows.length ? String(rows.length) : '';
+  }
+  function renderEvents() {
+    const board = state.board;
+    const list = $('#eventList');
+    const empty = $('#eventEmpty');
+    let rows = null;
+    if (board.kind === 'real') rows = Array.isArray(board.data.events) ? board.data.events : [];
+    else if (board.kind === 'mock') rows = MOCK.events;
+    else if (board.kind === 'unconfigured') rows = [];
+    if (rows === null) {
+      list.innerHTML = '';
+      empty.hidden = false;
+      empty.textContent = '载入中…';
+      $('#eventTabCount').textContent = '';
+      return;
+    }
+    list.innerHTML = rows.map(eventItem).join('');
+    empty.hidden = rows.length > 0;
+    if (!rows.length) {
+      empty.textContent = board.kind === 'unconfigured'
+        ? '板未配置，没有事件源'
+        : (board.kind === 'mock' ? 'mock 兜底 · ' + board.reason : '暂无事件');
+    }
+    $('#eventTabCount').textContent = rows.length ? String(rows.length) : '';
+  }
+  function renderRecentHint() {
+    const board = state.board;
+    if (board.kind === 'real') {
+      setModuleHint('recentHint', false, '共享板 ' + ((board.data.source && board.data.source.origin) || '') + ' · 只读');
+    } else if (board.kind === 'unconfigured') {
+      setModuleHint('recentHint', false, '板未配置');
+    } else if (board.kind === 'mock') {
+      setModuleHint('recentHint', true, 'mock 兜底 · ' + board.reason);
+    } else {
+      setModuleHint('recentHint', false, '载入中…');
+    }
+  }
+  function renderBoardModule() {
+    renderTasks();
+    renderEvents();
+    renderRecentHint();
+    renderBoardHealth();
+    renderBoardAction();
+    renderChips();
+    renderMeta();
+  }
+
+  /* ---------------- ③ 系统小部件（本机只读） ---------------- */
+  function diskRow(disk) {
+    const total = Number.isFinite(disk.totalBytes) ? disk.totalBytes : null;
+    const free = Number.isFinite(disk.freeBytes) ? disk.freeBytes : null;
+    const usedPct = pct(disk.ratio);
+    if (total === null || free === null || usedPct === null) {
+      return '<div class="disk-row"><div class="dr"><span class="name">' + esc(disk.mount) + '</span>' +
+        '<span class="amt">读取失败 · ' + esc(disk.error || 'unknown') + '</span></div></div>';
+    }
+    const barClass = usedPct >= 50 ? 'amber' : 'green';
+    return '<div class="disk-row">' +
+      '<div class="dr"><span class="name">' + esc(disk.mount) + '</span>' +
+        '<span class="amt">已用 ' + esc(fmtBytes(total - free)) + ' / ' + esc(fmtBytes(total)) + ' · ' + usedPct + '%</span></div>' +
+      '<div class="wbar ' + barClass + '" role="progressbar" aria-label="' + esc(disk.label) + ' 已用 ' + usedPct + '%" ' +
+        'aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + usedPct + '"><span style="width:' + usedPct + '%"></span></div>' +
+    '</div>';
+  }
+  function renderHostModule() {
+    const host = state.host;
+    const data = host.kind === 'real' ? host.data : (host.kind === 'mock' ? MOCK.host : null);
+    const loading = data === null;
+
+    if (loading) {
+      $('#diskRows').innerHTML = '<div class="empty-hint">载入中…</div>';
+      $('#memTotal').textContent = '—';
+      $('#memUsed').textContent = '—';
+      $('#memRatio').textContent = '';
+      $('#memBar').style.width = '0%';
+    } else {
+      const disks = Array.isArray(data.disks) ? data.disks : [];
+      $('#diskRows').innerHTML = disks.length
+        ? disks.map(diskRow).join('')
+        : '<div class="empty-hint">没有可读磁盘</div>';
+      const total = data.memory && Number.isFinite(data.memory.totalBytes) ? data.memory.totalBytes : null;
+      const free = data.memory && Number.isFinite(data.memory.freeBytes) ? data.memory.freeBytes : null;
+      const used = total !== null && free !== null ? total - free : null;
+      const usedPct = data.memory ? pct(data.memory.ratio) : null;
+      $('#memTotal').textContent = total !== null ? fmtBytes(total) : '—';
+      $('#memUsed').textContent = used !== null ? fmtBytes(used) : '—';
+      $('#memRatio').textContent = usedPct !== null ? usedPct + '%' : '';
+      $('#memBar').style.width = (usedPct === null ? 0 : usedPct) + '%';
+      $('#memBar').parentElement.setAttribute('aria-valuenow', usedPct === null ? '0' : String(usedPct));
+    }
+    if (host.kind === 'mock') {
+      setModuleHint('widgetsHint', true, 'mock 兜底 · ' + host.reason);
+      $('#osLine').textContent = '兜底示例数据';
+    } else if (host.kind === 'real') {
+      setModuleHint('widgetsHint', false, '本机 · 只读');
+      const os = host.data.os || {};
+      const cpu = host.data.cpu || {};
+      $('#osLine').textContent = (host.data.hostname || '—') + ' · ' + (os.platform || '—') +
+        ' · CPU ' + (Number.isFinite(cpu.count) ? cpu.count + ' 核' : '—') +
+        ' · 开机 ' + (Number.isFinite(os.uptimeSec) ? Math.round(os.uptimeSec / 3600) + ' 小时' : '—');
+    } else {
+      setModuleHint('widgetsHint', false, '本机 · 只读');
+      $('#osLine').textContent = '载入中…';
+    }
+  }
+  function renderBoardHealth() {
+    const board = state.board;
+    let source = '—';
+    let value = '—';
+    let note = '最近一次 /health 延迟';
+    if (board.kind === 'real') {
+      source = '板 在线';
+      const health = board.data.health;
+      if (health && health.ok) {
+        value = health.latencyMs + ' ms';
+      } else {
+        value = '—';
+        note = '未取到 /health 延迟';
+      }
+    } else if (board.kind === 'unconfigured') {
+      source = '板 未配置';
+      note = 'config.board.endpoint 为空';
+    } else if (board.kind === 'mock') {
+      source = '板 不可达';
+      note = 'mock 兜底 · ' + board.reason;
+    }
+    $('#boardHealthSrc').textContent = source;
+    $('#boardLat').textContent = value;
+    $('#boardLatNote').textContent = note;
+  }
+
+  /* ---------------- ④ 集群拓扑（inline SVG；真实 api/cluster + MOCK 兜底） ---------------- */
+  const TOPO_STATUS = { online: '在线', offline: '离线', unknown: '未知' };
+  const TOPO_SLOT_IDS = MOCK.topology.nodes.map(function (node) { return node.id; });
+
+  function mockView() {
+    const topo = MOCK.topology;
+    return {
+      nodes: topo.nodes.map(function (node) {
+        const stateText = TOPO_STATUS[node.status] || '未知';
+        return {
+          id: node.id, label: node.label, cx: node.cx, cy: node.cy, labelPos: node.labelPos, anchor: node.anchor,
+          status: node.status, self: false, statusText: stateText,
+          title: node.label + ' · ' + stateText + '（mock 示例）\n角色：' + node.role +
+            '\n说明：mock 兜底，未取到真实 interconnect 数据'
+        };
+      }),
+      edges: topo.edges,
+      pending: {
+        cx: topo.pending.cx, cy: topo.pending.cy, r: topo.pending.r, label: topo.pending.label,
+        title: '待接入节点 · 未知（mock 示例）\n说明：mock 兜底，未取到真实 interconnect 数据'
+      },
+      others: [],
+      title: 'DSH 集群拓扑（mock 兜底 · 未取到真实数据）'
+    };
+  }
+  function realView(data) {
+    const topo = MOCK.topology;
+    const selfId = data.self.instanceId;
+    const peerById = {};
+    data.peers.forEach(function (peer) { peerById[peer.instanceId] = peer; });
+    const stamp = fmtStamp(data.generatedAt);
+    const nodes = topo.nodes.map(function (slot) {
+      const isSelf = slot.id === selfId;
+      const peer = peerById[slot.id] || null;
+      let status;
+      let statusText;
+      if (isSelf) {
+        status = 'online';
+        statusText = '在线（本实例）';
+      } else if (peer) {
+        status = peer.link === 'up' ? 'online' : 'offline';
+        statusText = peer.link === 'up' ? '在线（链路 up）' : '离线（链路 down）';
+      } else {
+        status = 'unknown';
+        statusText = '未知（未在 interconnect 配置）';
+      }
+      const lines = [slot.label + ' · ' + statusText, '实例：' + slot.id + (isSelf ? '（本实例）' : '')];
+      if (peer) {
+        lines.push('origin：' + (peer.origin || '未配置或无固定 host:port'));
+        lines.push('链路：' + (peer.link === 'up' ? 'up' : 'down'));
+      } else if (!isSelf) {
+        lines.push('说明：未在 interconnect 配置');
+      }
+      lines.push('角色：' + slot.role);
+      if (stamp) lines.push('数据时间：' + stamp);
+      return {
+        id: slot.id, label: slot.label, cx: slot.cx, cy: slot.cy, labelPos: slot.labelPos, anchor: slot.anchor,
+        status: status, statusText: statusText, self: isSelf, title: lines.join('\n')
+      };
     });
+    const otherParts = data.peers.filter(function (peer) {
+      return TOPO_SLOT_IDS.indexOf(peer.instanceId) === -1;
+    }).map(function (peer) {
+      return peer.instanceId + '（' + (peer.link === 'up' ? 'up' : 'down') + '）';
+    });
+    if (selfId !== 'unknown' && TOPO_SLOT_IDS.indexOf(selfId) === -1) {
+      otherParts.unshift('本实例 ' + selfId + '（up）');
+    }
+    return {
+      nodes: nodes,
+      edges: topo.edges,
+      pending: {
+        cx: topo.pending.cx, cy: topo.pending.cy, r: topo.pending.r, label: topo.pending.label,
+        title: '待接入节点 · 未知\n说明：未登记的待接入设备，不在 interconnect 配置中'
+      },
+      others: otherParts,
+      title: 'DSH 集群拓扑 · 真实 interconnect 数据' + (stamp ? '（生成 ' + stamp + '）' : '')
+    };
+  }
+  function setTopoBadge(kind, text, stamp) {
+    $('#topoSource').setAttribute('data-state', kind);
+    $('#topoDot').className = 'dot ' + (kind === 'real' ? 'ok' : (kind === 'mock' ? 'warn' : 'unknown'));
+    $('#topoSourceText').textContent = text;
+    $('#topoStamp').textContent = stamp ? '生成 ' + stamp : '';
+  }
+  function renderTopology(view) {
+    const NODE_W = 192;
+    const NODE_H = 60;
+    const NODE_RX = 14;
+    const byId = {};
+    view.nodes.forEach(function (node) { byId[node.id] = node; });
+
+    $('#topoEdges').innerHTML = view.edges.map(function (pair) {
+      const a = byId[pair[0]];
+      const b = byId[pair[1]];
+      if (!a || !b) return '';
+      return '<line class="edge" x1="' + a.cx + '" y1="' + a.cy + '" x2="' + b.cx + '" y2="' + b.cy + '"></line>';
+    }).join('');
+
+    $('#topoNodes').innerHTML = view.nodes.map(function (node) {
+      const x = node.cx - NODE_W / 2;
+      const y = node.cy - NODE_H / 2;
+      const labelX = node.anchor === 'middle' ? node.cx : (node.anchor === 'start' ? x : x + NODE_W);
+      const labelY = node.labelPos === 'above' ? y - 12 : y + NODE_H + 22;
+      return '<g class="node" tabindex="0" role="img" aria-label="' + esc(node.label + '，' + node.statusText) + '">' +
+        '<title>' + esc(node.title) + '</title>' +
+        '<text class="node-label" x="' + labelX + '" y="' + labelY + '" text-anchor="' + node.anchor + '">' + esc(node.label) + '</text>' +
+        '<rect class="node-rect ' + node.status + '" x="' + x + '" y="' + y + '" width="' + NODE_W + '" height="' + NODE_H + '" rx="' + NODE_RX + '"></rect>' +
+      '</g>';
+    }).join('');
+
+    const pending = view.pending;
+    $('#topoNodes').insertAdjacentHTML('beforeend',
+      '<g class="pending" tabindex="0" role="img" aria-label="待接入节点，未知">' +
+        '<title>' + esc(pending.title) + '</title>' +
+        '<circle class="pending-dot" cx="' + pending.cx + '" cy="' + pending.cy + '" r="' + pending.r + '"></circle>' +
+        '<text class="pending-label" x="' + (pending.cx + pending.r + 10) + '" y="' + (pending.cy + 4) + '">' + esc(pending.label) + ' · 未知</text>' +
+      '</g>');
+
+    $('#topoTitle').textContent = view.title;
+
+    const others = $('#topoOthers');
+    if (view.others.length === 0) {
+      others.hidden = true;
+      others.textContent = '';
+    } else {
+      others.hidden = false;
+      others.textContent = '其它已配置对端：' + view.others.join('、');
+    }
+  }
+  function renderClusterModule() {
+    const cluster = state.cluster;
+    if (cluster.kind === 'real') {
+      renderTopology(realView(cluster.data));
+      setTopoBadge('real', '真实 · interconnect', fmtStamp(cluster.data.generatedAt));
+    } else if (cluster.kind === 'mock') {
+      renderTopology(mockView());
+      setTopoBadge('mock', 'mock 兜底 · 真实数据不可用：' + cluster.reason, '');
+    }
   }
 
-  /* ---------------- ③ 板延迟滚动 ---------------- */
-  function sparkPoints(series) {
-    const w = 100, h = 20, max = Math.max.apply(null, series), min = Math.min.apply(null, series);
-    const span = Math.max(1, max - min);
-    return series.map(function (v, i) {
-      const x = (i / (series.length - 1)) * w;
-      const y = h - ((v - min) / span) * (h - 4) - 2;
-      return x.toFixed(1) + ',' + y.toFixed(1);
-    }).join(' ');
-  }
-  function drawSpark() {
-    const pts = sparkPoints(MOCK.latency);
-    const area = '0,20 ' + pts + ' 100,20';
-    $('#latSpark').innerHTML = '<polygon class="area" points="' + area + '"></polygon><polyline points="' + pts + '"></polyline>';
-    $('#boardLat').textContent = String(MOCK.latency[MOCK.latency.length - 1]);
-  }
-
-  /* ---------------- ③ 待办（localStorage） ---------------- */
+  /* ---------------- ⑤ 待办（localStorage） ---------------- */
   let storageOk = true;
   let todos = [];
   function loadTodos() {
@@ -807,19 +1413,19 @@
       if (raw) {
         const arr = JSON.parse(raw);
         if (Array.isArray(arr)) {
-          loaded = arr.filter(function (t) { return t && typeof t.text === 'string'; }).map(function (t) {
-            return { id: String(t.id || Math.random()), text: String(t.text).slice(0, 80), done: !!t.done };
+          loaded = arr.filter(function (todo) { return todo && typeof todo.text === 'string'; }).map(function (todo) {
+            return { id: String(todo.id || Math.random()), text: String(todo.text).slice(0, 80), done: !!todo.done };
           });
         }
       }
-    } catch (e) {
+    } catch (error) {
       storageOk = false;
     }
     if (loaded && loaded.length) {
       todos = loaded;
     } else {
-      todos = MOCK.todosSeed.map(function (t, i) {
-        return { id: 'seed-' + i, text: t.text, done: t.done };
+      todos = MOCK.todosSeed.map(function (todo, index) {
+        return { id: 'seed-' + index, text: todo.text, done: todo.done };
       });
       saveTodos();
     }
@@ -829,7 +1435,7 @@
     try {
       window.localStorage.setItem(STORE_KEY, JSON.stringify(todos));
       storageOk = true;
-    } catch (e) {
+    } catch (error) {
       storageOk = false;
     }
     updateStoreHint();
@@ -847,44 +1453,44 @@
   function renderTodos() {
     const list = $('#todoList');
     list.innerHTML = '';
-    todos.forEach(function (t) {
+    todos.forEach(function (todo) {
       const li = document.createElement('li');
-      li.className = 'todo' + (t.done ? ' is-done' : '');
+      li.className = 'todo' + (todo.done ? ' is-done' : '');
       const cb = document.createElement('input');
       cb.type = 'checkbox';
-      cb.checked = t.done;
-      cb.id = 'todo-cb-' + t.id;
-      cb.setAttribute('aria-label', '标记完成：' + t.text);
+      cb.checked = todo.done;
+      cb.id = 'todo-cb-' + todo.id;
+      cb.setAttribute('aria-label', '标记完成：' + todo.text);
       cb.addEventListener('change', function () {
-        t.done = cb.checked;
+        todo.done = cb.checked;
         saveTodos();
         renderTodos();
-        toast(cb.checked ? '已完成：' + t.text : '已恢复：' + t.text);
+        toast(cb.checked ? '已完成：' + todo.text : '已恢复：' + todo.text);
       });
       const label = document.createElement('label');
       label.htmlFor = cb.id;
-      label.textContent = t.text;
+      label.textContent = todo.text;
       const del = document.createElement('button');
       del.type = 'button';
       del.className = 'del';
       del.textContent = '✕';
-      del.setAttribute('aria-label', '删除待办：' + t.text);
+      del.setAttribute('aria-label', '删除待办：' + todo.text);
       del.addEventListener('click', function () {
-        todos = todos.filter(function (x) { return x.id !== t.id; });
+        todos = todos.filter(function (item) { return item.id !== todo.id; });
         saveTodos();
         renderTodos();
-        toast('已删除：' + t.text);
+        toast('已删除：' + todo.text);
       });
       li.appendChild(cb);
       li.appendChild(label);
       li.appendChild(del);
       list.appendChild(li);
     });
-    const left = todos.filter(function (t) { return !t.done; }).length;
+    const left = todos.filter(function (todo) { return !todo.done; }).length;
     $('#todoCount').textContent = todos.length + ' 项';
     $('#todoSummary').textContent = left + ' 项未完成 / 共 ' + todos.length + ' 项';
     $('#todoEmpty').hidden = todos.length !== 0;
-    $('#clearDone').disabled = todos.every(function (t) { return !t.done; });
+    $('#clearDone').disabled = todos.every(function (todo) { return !todo.done; });
   }
   function addTodo(text) {
     const clean = text.trim().slice(0, 80);
@@ -897,239 +1503,55 @@
   function initTodos() {
     loadTodos();
     renderTodos();
-    $('#todoForm').addEventListener('submit', function (e) {
-      e.preventDefault();
+    $('#todoForm').addEventListener('submit', function (event) {
+      event.preventDefault();
       addTodo($('#todoInput').value);
       $('#todoInput').value = '';
       $('#todoInput').focus();
     });
     $('#clearDone').addEventListener('click', function () {
-      const n = todos.filter(function (t) { return t.done; }).length;
-      if (!n) return;
-      todos = todos.filter(function (t) { return !t.done; });
+      const count = todos.filter(function (todo) { return todo.done; }).length;
+      if (!count) return;
+      todos = todos.filter(function (todo) { return !todo.done; });
       saveTodos();
       renderTodos();
-      toast('已清除 ' + n + ' 项已完成待办');
+      toast('已清除 ' + count + ' 项已完成待办');
     });
   }
 
-  /* ---------------- ④ 集群拓扑（inline SVG；真实 /api/cluster 数据 + MOCK 兜底） ----------------
-   * 数据流：mockView() 先渲染 ──fetch('api/cluster')──> realView(data) 再渲染。
-   * 两个 build 产出同一种视图模型，renderTopology 只有一份；节点状态只由视图模型决定。
-   * 真实数据里没有心跳这类字段，所以 title 只写实例 / origin / 链路 / 本实例标记 / 数据时间。
-   * ------------------------------------------------------------------------- */
-  const TOPO_STATUS = { online: '在线', offline: '离线', unknown: '未知' };
-  const TOPO_SLOT_IDS = MOCK.topology.nodes.map(function (n) { return n.id; });
-
-  function esc(value) {
-    return String(value).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
-    });
-  }
-  function fmtStamp(value) {
-    if (!value) return '';
-    const d = new Date(value);
-    if (isNaN(d.getTime())) return '';
-    return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
-  }
-
-  /* mock 兜底视图：布局与状态都来自 MOCK.topology，title 明确写「mock 示例」 */
-  function mockView() {
-    const topo = MOCK.topology;
-    return {
-      nodes: topo.nodes.map(function (n) {
-        const state = TOPO_STATUS[n.status] || '未知';
-        return {
-          id: n.id, label: n.label, cx: n.cx, cy: n.cy, labelPos: n.labelPos, anchor: n.anchor,
-          status: n.status, self: false, statusText: state,
-          title: n.label + ' · ' + state + '（mock 示例）\n角色：' + n.role +
-            '\n说明：mock 兜底，未取到真实 interconnect 数据',
-        };
-      }),
-      edges: topo.edges,
-      pending: {
-        cx: topo.pending.cx, cy: topo.pending.cy, r: topo.pending.r, label: topo.pending.label,
-        title: '待接入节点 · 未知（mock 示例）\n说明：mock 兜底，未取到真实 interconnect 数据',
-      },
-      others: [],
-      title: 'DSH 集群拓扑（mock 兜底 · 未取到真实数据）',
-    };
-  }
-
-  /* 真实视图：四个固定槽位按 instanceId 匹配 peers；
-     up→在线、down→离线、不在 peers→未知（虚线）；不在槽位里的已配置对端进「其它」一行。 */
-  function realView(data) {
-    const topo = MOCK.topology;
-    const selfId = data.self.instanceId;
-    const peerById = {};
-    data.peers.forEach(function (p) { peerById[p.instanceId] = p; });
-    const stamp = fmtStamp(data.generatedAt);
-    const nodes = topo.nodes.map(function (slot) {
-      const self = slot.id === selfId;
-      const peer = peerById[slot.id] || null;
-      let status, statusText;
-      if (self) {
-        status = 'online';
-        statusText = '在线（本实例）';
-      } else if (peer) {
-        status = peer.link === 'up' ? 'online' : 'offline';
-        statusText = peer.link === 'up' ? '在线（链路 up）' : '离线（链路 down）';
-      } else {
-        status = 'unknown';
-        statusText = '未知（未在 interconnect 配置）';
-      }
-      const lines = [slot.label + ' · ' + statusText, '实例：' + slot.id + (self ? '（本实例）' : '')];
-      if (peer) {
-        lines.push('origin：' + (peer.origin || '未配置或无固定 host:port'));
-        lines.push('链路：' + (peer.link === 'up' ? 'up' : 'down'));
-      } else if (!self) {
-        lines.push('说明：未在 interconnect 配置');
-      }
-      lines.push('角色：' + slot.role);
-      if (stamp) lines.push('数据时间：' + stamp);
-      return {
-        id: slot.id, label: slot.label, cx: slot.cx, cy: slot.cy, labelPos: slot.labelPos, anchor: slot.anchor,
-        status: status, statusText: statusText, self: self, title: lines.join('\n'),
-      };
-    });
-    const otherParts = data.peers.filter(function (p) {
-      return TOPO_SLOT_IDS.indexOf(p.instanceId) === -1;
-    }).map(function (p) {
-      return p.instanceId + '（' + (p.link === 'up' ? 'up' : 'down') + '）';
-    });
-    if (selfId !== 'unknown' && TOPO_SLOT_IDS.indexOf(selfId) === -1) {
-      otherParts.unshift('本实例 ' + selfId + '（up）');
-    }
-    return {
-      nodes: nodes,
-      edges: topo.edges,
-      pending: {
-        cx: topo.pending.cx, cy: topo.pending.cy, r: topo.pending.r, label: topo.pending.label,
-        title: '待接入节点 · 未知\n说明：未登记的待接入设备，不在 interconnect 配置中',
-      },
-      others: otherParts,
-      title: 'DSH 集群拓扑 · 真实 interconnect 数据' + (stamp ? '（生成 ' + stamp + '）' : ''),
-    };
-  }
-
-  function setTopoBadge(kind, text, stamp) {
-    $('#topoSource').setAttribute('data-state', kind);
-    $('#topoDot').className = 'dot ' + (kind === 'real' ? 'ok' : (kind === 'mock' ? 'warn' : 'unknown'));
-    $('#topoSourceText').textContent = text;
-    $('#topoStamp').textContent = stamp ? '生成 ' + stamp : '';
-  }
-
-  function renderTopology(view) {
-    const NODE_W = 192, NODE_H = 60, NODE_RX = 14;
-    const byId = {};
-    view.nodes.forEach(function (n) { byId[n.id] = n; });
-
-    /* 先画连线，再把节点框盖上去：线条自动止于框边，不用手算交点 */
-    $('#topoEdges').innerHTML = view.edges.map(function (pair) {
-      const a = byId[pair[0]], b = byId[pair[1]];
-      if (!a || !b) return '';
-      return '<line class="edge" x1="' + a.cx + '" y1="' + a.cy + '" x2="' + b.cx + '" y2="' + b.cy + '"></line>';
-    }).join('');
-
-    $('#topoNodes').innerHTML = view.nodes.map(function (n) {
-      const x = n.cx - NODE_W / 2;
-      const y = n.cy - NODE_H / 2;
-      const labelX = n.anchor === 'middle' ? n.cx : (n.anchor === 'start' ? x : x + NODE_W);
-      const labelY = n.labelPos === 'above' ? y - 12 : y + NODE_H + 22;
-      return '<g class="node" tabindex="0" role="img" aria-label="' + esc(n.label + '，' + n.statusText) + '">' +
-        '<title>' + esc(n.title) + '</title>' +
-        '<text class="node-label" x="' + labelX + '" y="' + labelY + '" text-anchor="' + n.anchor + '">' + esc(n.label) + '</text>' +
-        '<rect class="node-rect ' + n.status + '" x="' + x + '" y="' + y + '" width="' + NODE_W + '" height="' + NODE_H + '" rx="' + NODE_RX + '"></rect>' +
-      '</g>';
-    }).join('');
-
-    const p = view.pending;
-    $('#topoNodes').insertAdjacentHTML('beforeend',
-      '<g class="pending" tabindex="0" role="img" aria-label="待接入节点，未知">' +
-        '<title>' + esc(p.title) + '</title>' +
-        '<circle class="pending-dot" cx="' + p.cx + '" cy="' + p.cy + '" r="' + p.r + '"></circle>' +
-        '<text class="pending-label" x="' + (p.cx + p.r + 10) + '" y="' + (p.cy + 4) + '">' + esc(p.label) + ' · 未知</text>' +
-      '</g>');
-
-    $('#topoTitle').textContent = view.title;
-
-    const others = $('#topoOthers');
-    if (view.others.length === 0) {
-      others.hidden = true;
-      others.textContent = '';
-    } else {
-      others.hidden = false;
-      others.textContent = '其它已配置对端：' + view.others.join('、');
-    }
-  }
-
-  /* 形状校验：契约不符就当没取到，绝不让坏数据进渲染 */
-  function isClusterPayload(data) {
-    return !!data && typeof data === 'object' &&
-      typeof data.interconnect === 'boolean' &&
-      !!data.self && typeof data.self.instanceId === 'string' &&
-      Array.isArray(data.peers) &&
-      data.peers.every(function (p) { return !!p && typeof p === 'object' && typeof p.instanceId === 'string'; });
-  }
-  function shortReason(error) {
-    if (error && (error.name === 'AbortError' || error.name === 'TimeoutError')) return '超时 3s';
-    return String((error && error.message) || error || '未知原因').slice(0, 80);
-  }
-  function topologyFallback(reason) {
-    renderTopology(mockView());
-    setTopoBadge('mock', 'mock 兜底 · 真实数据不可用：' + reason);
-  }
-
-  async function loadCluster() {
-    let data;
-    try {
-      const signal = typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
-        ? AbortSignal.timeout(3000)
-        : undefined;
-      const response = await fetch('api/cluster', {
-        cache: 'no-store',
-        headers: { accept: 'application/json' },
-        signal: signal,
-      });
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      try {
-        data = await response.json();
-      } catch (error) {
-        // 读到一半被 3s 超时打断：保留超时语义，别误报成「不是 JSON」
-        if (error && (error.name === 'AbortError' || error.name === 'TimeoutError')) throw error;
-        throw new Error('响应不是 JSON');
-      }
-    } catch (error) {
-      topologyFallback(shortReason(error));
-      return;
-    }
-    if (!isClusterPayload(data)) { topologyFallback('结构不符'); return; }
-    if (data.interconnect !== true || data.error) {
-      topologyFallback(data.error || '本实例没有 interconnect 服务');
-      return;
-    }
-    const stamp = fmtStamp(data.generatedAt);
-    renderTopology(realView(data));
-    setTopoBadge('real', '真实 · interconnect', stamp);
+  /* ---------------- 事件委托：任务行展开 / 收起 ---------------- */
+  function toggleItem(button) {
+    const expanded = button.getAttribute('aria-expanded') === 'true';
+    button.setAttribute('aria-expanded', String(!expanded));
+    const detail = document.getElementById(button.getAttribute('aria-controls'));
+    if (detail) detail.hidden = expanded;
   }
 
   /* ---------------- 初始化 ---------------- */
+  function refreshAll() {
+    loadCluster();
+    loadBoard();
+    loadHost();
+  }
   renderActions();
   renderReceipts();
   initTabs();
-  renderRecent();
-  renderTopology(mockView());   // 先画 mock 兜底，避免空白；真实数据到了再覆盖
-  loadCluster();
-  drawSpark();
+  renderTopology(mockView());          // 载入中的骨架；badge 明确写「载入中」，不是 mock 兜底
+  setTopoBadge('loading', '真实数据载入中…', '');
+  renderHostModule();
+  renderBoardModule();
   initTodos();
+  $('#taskList').addEventListener('click', function (event) {
+    const button = event.target.closest('.item-row');
+    if (button) toggleItem(button);
+  });
   tick();
   setInterval(tick, 1000);
+  refreshAll();
   setInterval(function () {
-    const last = MOCK.latency[MOCK.latency.length - 1];
-    const next = Math.min(22, Math.max(6, last + (Math.random() < 0.5 ? -1 : 1)));
-    MOCK.latency = MOCK.latency.slice(1).concat([next]);
-    drawSpark();
-  }, 5000);
+    if (document.hidden) return;       // 页面隐藏时跳过这一轮，回来还有上一次真实数据
+    refreshAll();
+  }, POLL_MS);
 })();
 </script>
 </body>

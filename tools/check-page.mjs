@@ -5,14 +5,14 @@
  * 用法: node tools/check-page.mjs [页面文件] [--json <输出文件>]
  *       默认页面是本包的 public/index.html。
  *
- * 和上一版检查的区别（本轮页面接了同源真实数据）：
- *   - 仍然**禁止任何外部 URL**（http(s)://、协议相对地址、<link>、@import、
- *     <script src>、<img src>、<iframe>、XHR、WebSocket、非 data: 的 url()）；
- *   - `fetch()` 从「一律禁止」改成「只允许同源相对路径」：逐个检查 fetch 的字符串
- *     参数，带 scheme 或 `//` 开头就失败，并要求页面确实 fetch 了 `api/cluster`；
- *   - 新增真实数据落点断言：mockView / realView 都在、renderTopology 接视图模型、
- *     四槽位 id 与 5 条边、badge 元素齐全、title 里不许再出现「最后心跳」。
- *
+ * 本轮（v6，页面接三条真实数据源）新增的检查：
+ *   - `fetch()` 仍只允许**同源相对路径**：页面通过 fetchJson('api/...') 读
+ *     api/cluster、api/board、api/host，三者缺一不可；任何带 scheme / `//` 的地址失败；
+ *   - 顶栏不许再出现假值：`DSH 0.4.0`、`127.0.0.1:13090`、`共享板 13090` 一律失败；
+ *   - 「最近文档」已改成「事件流」：docList / tab-docs 残留失败；
+ *   - 五态（leased/awaiting/undelivered/stale/done）的 CSS 类与 JS 映射都在；
+ *   - mock 兜底 / 数据过期 / 30 秒轮询 / 页面隐藏跳过 等行为字符串在；
+ *   - 本机小部件与三个顶栏 chip 的落点 id 齐全。
  * 检查项任一失败退出码 1。
  */
 import { readFile, writeFile } from 'node:fs/promises'
@@ -76,16 +76,20 @@ const hrefs = [...html.matchAll(/\bhref\s*=\s*["']([^"']*)["']/gi)].map(m => m[1
 const badHrefs = hrefs.filter(h => !h.startsWith('#') && !/^data:/i.test(h))
 check('href 仅站内锚点', badHrefs.length === 0, badHrefs.join(' | ') || hrefs.join(' | ') || '无 href')
 
-/* ---------- 3. fetch 只允许同源相对路径 ---------- */
+/* ---------- 3. fetch 只允许同源相对路径；三个 api 路由都要读 ---------- */
 const fetchArgs = [...html.matchAll(/\bfetch\s*\(\s*([^)]*)/g)].map(m => m[1].trim())
 const externalFetch = fetchArgs.filter(arg => {
   const literal = /^['"`]([^'"`]*)['"`]/.exec(arg)
-  if (!literal) return false // 变量参数：页面里没有，出现就当外部查询人工复核
+  if (!literal) return false // 变量参数：本页走 fetchJson(path)，路径常量在下面单独校验
   const value = literal[1].trim()
   return /^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith('//')
 })
-check('fetch 只有同源相对路径', fetchArgs.length > 0 && externalFetch.length === 0, externalFetch.join(' | ') || '共 ' + fetchArgs.length + ' 处 fetch，参数均为相对路径')
-check('页面 fetch 的是 api/cluster', fetchArgs.some(arg => /^['"`]api\/cluster['"`]/.test(arg)), fetchArgs.join(' | '))
+check('fetch 只有同源相对路径', fetchArgs.length > 0 && externalFetch.length === 0, externalFetch.join(' | ') || '共 ' + fetchArgs.length + ' 处 fetch，无字面量外链')
+const apiPaths = [...html.matchAll(/fetchJson\(\s*'([^']+)'/g)].map(m => m[1])
+const expectedPaths = ['api/cluster', 'api/board', 'api/host']
+check('三个同源路由都读了', expectedPaths.every(p => apiPaths.includes(p)), '实际：' + [...new Set(apiPaths)].join(', '))
+check('api 路径都是相对路径', apiPaths.length > 0 && apiPaths.every(p => /^api\/[a-z]+$/.test(p)), apiPaths.join(' | '))
+check('没有写死任何 api 外部地址', !/fetchJson\(\s*['"`](?:https?:|\/\/)/i.test(html))
 
 /* ---------- 4. 标签基本闭合 ---------- */
 const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'])
@@ -140,22 +144,69 @@ if (scripts.length === 1) {
   check('JS 有自执行入口', /\(function\s*\(\)/.test(js))
 }
 
-/* ---------- 6. MOCK 与真实数据落点 ---------- */
+/* ---------- 6. MOCK 只作为兜底，且内容与真实数据形状对齐 ---------- */
 check('MOCK 常量唯一存在', (html.match(/const\s+MOCK\s*=/g) || []).length === 1, '共 ' + (html.match(/const\s+MOCK\s*=/g) || []).length + ' 处定义')
-check('MOCK 含 topology 段', /topology\s*:/.test(html))
-check('拓扑四槽位 id 齐全', ['mcloud', 'pc-ky614', 'server', 's5'].every(id => new RegExp("id:\\s*'" + id + "'").test(html)), '')
-check('拓扑 5 条边', /edges:\s*\[\[/.test(html) && (html.match(/\['(?:mcloud|pc-ky614|server|s5)',\s*'(?:mcloud|pc-ky614|server|s5)'\]/g) || []).length === 5, '')
+for (const key of ['actions', 'tasks', 'events', 'host', 'topology', 'todosSeed']) {
+  check('MOCK 含 ' + key + ' 段', new RegExp('\\n\\s*' + key + '\\s*:').test(html))
+}
+check('MOCK 兜底任务覆盖五种状态', ['leased', 'awaiting', 'undelivered', 'stale', 'done'].every(s => new RegExp("state:\\s*'" + s + "'").test(html)))
+check('MOCK 主机数据含磁盘与内存', /disks\s*:\s*\[/.test(html) && /memory\s*:\s*\{/.test(html))
+
+/* ---------- 7. 真实数据落点：三源 / 五态 / 事件流 ---------- */
+check('TASK_STATES 五态映射在', /const TASK_STATES = \{/.test(html) &&
+  ['leased', 'awaiting', 'undelivered', 'stale', 'done'].every(s => new RegExp(s + "\\s*:\\s*\\{\\s*text").test(html)))
+check('五态 CSS 类都在', ['leased', 'awaiting', 'undelivered', 'stale', 'done', 'unknown'].every(s => new RegExp('\\.st\\.' + s + '\\{').test(html)))
+check('板状态文案在', ['租约中', '等回执', '未送达', '已过期', '已完成'].every(s => html.includes(s)))
+check('事件流渲染函数在', /function eventItem\(/.test(html) && /function renderEvents\(/.test(html))
+check('任务渲染函数在', /function taskItem\(/.test(html) && /function renderTasks\(/.test(html))
+check('事件字段齐全（时间/任务/节点/类型/文本）', ['evt-time', 'evt-kind', 'evt-text', 'evt-meta'].every(c => html.includes(c)))
+check('任务行含证据数与相对时间', html.includes('evidenceCount') && html.includes('relTime(') && /条证据/.test(html))
+
+/* ---------- 8. 顶栏假值必须清掉、三个 chip 接真实字段 ---------- */
+const topbar = (/<header class="topbar">[\s\S]*?<\/header>/i.exec(html) || [''])[0]
+check('顶栏不含 mock 字样', !/mock/i.test(topbar), topbar.includes('mock') ? '顶栏仍有 mock' : '')
+for (const fake of ['DSH 0.4.0', '127.0.0.1:13090', '共享板 13090', 'p95 34ms', '已用 43 / 80 GB', '18.4 GB']) {
+  check('无假值残留：' + fake, !html.includes(fake))
+}
+check('chip 三件套 + 过期 badge', ['chipCluster', 'chipBoard', 'chipTasks', 'chipStale'].every(id => html.includes('id="' + id + '"')))
+check('三 chip 均有 dot 与文案节点', [1, 2, 3].every(() => true) &&
+  ['chipClusterDot', 'chipClusterText', 'chipBoardDot', 'chipBoardText', 'chipTasksDot', 'chipTasksText'].every(id => html.includes('id="' + id + '"')))
+check('chip 文案来自真实字段（up 计数 / 健康延迟 / 任务数）', /interconnect '\s*\+\s*up/.test(html) && /health\.latencyMs/.test(html) && /板上 '\s*\+\s*count/.test(html))
+check('顶栏日期行接真实字段', ['selfLine', 'boardSourceLine', 'dataStamp'].every(id => html.includes('id="' + id + '"')))
+check('日期行文案来自 self / source.origin', /实例 '\s*\+\s*\(/.test(html) && /source\.origin/.test(html))
+check('无「最近文档」残留', !html.includes('最近文档') && !html.includes('docList') && !html.includes('tab-docs'))
+check('事件流标签在', html.includes('id="tab-events"') && html.includes('id="panel-events"'))
+
+/* ---------- 9. 小部件接 api/host 真值 ---------- */
+check('小部件落点 id 齐全', ['diskRows', 'memTotal', 'memUsed', 'memRatio', 'memBar', 'boardLat', 'boardLatNote', 'boardHealthSrc', 'osLine'].every(id => html.includes('id="' + id + '"')))
+check('磁盘/内存走 fmtBytes 与 ratio', /function fmtBytes\(/.test(html) && /memory\.ratio|data\.memory\.ratio/.test(html))
+check('板健康取 /health 延迟', /health\.latencyMs/.test(html) && html.includes('最近一次 /health 延迟'))
+check('小部件定位「本机 · 只读」', html.includes('本机 · 只读'))
+check('已删除假 sparkline', !html.includes('latSpark') && !html.includes('drawSpark') && !html.includes('MOCK.latency'))
+
+/* ---------- 10. 兜底 / 轮询 / 不闪回 mock ---------- */
+check('mock 兜底标注在', html.includes('mock 兜底 · ') && html.includes('mock 兜底 · 真实数据不可用'))
+check('首次失败回落 mock 的三条路径在', /state\.cluster = \{ kind: 'mock'/.test(html) && /state\.board = \{ kind: 'mock'/.test(html) && /state\.host = \{ kind: 'mock'/.test(html))
+check('轮询失败保留上一次好数据（不重渲染 mock）', /kind === 'real'/.test(html) && /noteFailure\('board'/.test(html) && /noteFailure\('cluster'/.test(html))
+check('过期 badge 文案格式', html.includes("'数据过期 · '") && /数据过期 · /.test(html))
+check('30 秒静默轮询', /const POLL_MS = 30000/.test(html) && /setInterval\(function \(\)/.test(html) && /POLL_MS\)/.test(html))
+check('页面隐藏时跳过轮询', /document\.hidden/.test(html))
+check('接口请求有超时控制', /AbortSignal\.timeout/.test(html))
+check('常用动作的看板地址动态化', /function renderBoardAction\(/.test(html) && /data-action="board"/.test(html) && /source\.origin/.test(html))
+check('拿不到板来源时置灰', /button\.disabled = true/.test(html) && html.includes('板未配置'))
+
+/* ---------- 11. 拓扑（v5 能力不退化） ---------- */
 check('mock 兜底视图存在（mockView）', /function mockView\(\)/.test(html))
 check('真实数据视图存在（realView）', /function realView\(data\)/.test(html))
-check('渲染函数只有一份且接视图模型', /function renderTopology\(view\)/.test(html) && /renderTopology\(mockView\(\)\)/.test(html) && /renderTopology\(realView\(data\)\)/.test(html))
+check('渲染函数只有一份且接视图模型', /function renderTopology\(view\)/.test(html) && /renderTopology\(mockView\(\)\)/.test(html) && /renderTopology\(realView\(cluster\.data\)\)/.test(html))
+check('拓扑四槽位 id 齐全', ['mcloud', 'pc-ky614', 'server', 's5'].every(id => new RegExp("id:\\s*'" + id + "'").test(html)), '')
+check('拓扑 5 条边', /edges:\s*\[\[/.test(html) && (html.match(/\['(?:mcloud|pc-ky614|server|s5)',\s*'(?:mcloud|pc-ky614|server|s5)'\]/g) || []).length === 5, '')
 check('三态都落到 DOM 类上', ["'online'", "'offline'", "'unknown'"].every(s => html.includes(s)))
 check('badge 元素齐全', ['topoSource', 'topoDot', 'topoSourceText', 'topoStamp', 'topoOthers'].every(id => new RegExp('id="' + id + '"').test(stripRawText(html))))
 check('真实/兜底两种 badge 文案', html.includes('真实 · interconnect') && html.includes('mock 兜底 · 真实数据不可用'))
 check('title 不再编造心跳', !/最后心跳/.test(html) && !/heartbeat/.test(html))
 check('未知态写清「未在 interconnect 配置」', html.includes('未在 interconnect 配置'))
 check('其它已配置对端一行', html.includes('其它已配置对端'))
-
-/* ---------- 7. 拓扑 SVG ---------- */
 check('使用 inline SVG（非 canvas）', /<svg\b/i.test(html) && !/<canvas\b/i.test(html))
 check('拓扑 SVG 有 viewBox', /viewBox="0 0 1000 300"/.test(html))
 check('拓扑 SVG 有 preserveAspectRatio', /preserveAspectRatio="xMidYMid meet"/.test(html))
@@ -163,9 +214,10 @@ check('拓扑 SVG 有 <title>/<desc>', /id="topoTitle"/.test(html) && /id="topoD
 check('拓扑节点容器存在', /id="topoEdges"/.test(html) && /id="topoNodes"/.test(html))
 check('节点可键盘聚焦（tabindex）', /tabindex="0"/.test(html))
 
-/* ---------- 8. 关键 id / V4 交互 / 存储不退化 ---------- */
-const requiredIds = ['clock', 'greeting', 'dateLine', 'actionList', 'receiptList', 'taskList', 'docList',
-  'todoForm', 'todoInput', 'todoList', 'todoCount', 'storeHint', 'toast', 'topoEdges', 'topoNodes']
+/* ---------- 12. 关键 id / V4 交互 / 存储不退化 ---------- */
+const requiredIds = ['clock', 'greeting', 'dateLine', 'actionList', 'receiptList', 'taskList', 'eventList',
+  'todoForm', 'todoInput', 'todoList', 'todoCount', 'storeHint', 'toast', 'topoEdges', 'topoNodes',
+  'tab-tasks', 'tab-events', 'panel-tasks', 'panel-events']
 const markupOnly = stripRawText(html)
 const missingIds = requiredIds.filter(id => !new RegExp('id="' + id + '"').test(markupOnly))
 check('关键 id 齐全', missingIds.length === 0, missingIds.join(',') || requiredIds.length + ' 个都在')
@@ -179,6 +231,7 @@ check('标签页切换仍在', /function initTabs\(\)/.test(html) && /function t
 check('暗色主题变量存在', /--bg:#14161a/.test(html) && /color-scheme" content="dark"/.test(html))
 check('系统字体栈（无外链字体）', /--font:"Segoe UI"/.test(html) && !/fonts\.googleapis|font-face/i.test(html))
 check('窄宽适配（900px 断点）', /@media\s*\(max-width:880px\)/.test(html))
+check('XSS 防护：动态文本过 esc()', /function esc\(/.test(html) && /esc\(task\.title/.test(html) && /esc\(event\.text/.test(html))
 
 /* ---------- 汇总 ---------- */
 const failed = checks.filter(c => !c.ok)

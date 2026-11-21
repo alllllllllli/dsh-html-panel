@@ -8,328 +8,849 @@
         1000
       ],
       "view": {
-        "badgeState": "real",
-        "badgeText": "真实 · interconnect",
-        "badgeStamp": "生成 12:20:00",
-        "rects": [
-          "node-rect unknown",
-          "node-rect online",
-          "node-rect online",
-          "node-rect offline"
-        ],
-        "titles": [
-          "mcloud · 未知（未在 interconnect 配置）\n实例：mcloud\n说明：未在 interconnect 配置\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n数据时间：12:20:00",
-          "pc-ky614 · 在线（本实例）\n实例：pc-ky614（本实例）\n角色：主力机 · 集群大管家（RTX 3080）\n数据时间：12:20:00",
-          "server · 在线（链路 up）\n实例：server\norigin：127.0.0.1:13080\n链路：up\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n数据时间：12:20:00",
-          "s5 · 离线（链路 down）\n实例：s5\norigin：127.0.0.1:13082\n链路：down\n角色：步步高 S5 平板 · DSH Mobile\n数据时间：12:20:00"
-        ],
-        "nodes": 4,
-        "pending": 1,
-        "edges": 5,
-        "others": "其它已配置对端：cloud（down）",
-        "othersHidden": false,
-        "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 12:20:00）",
-        "svgWidth": 1100,
-        "panelClientW": 1322,
-        "panelScrollW": 1322,
-        "scrollWidth": 1440,
-        "innerWidth": 1440,
+        "chips": {
+          "cluster": "interconnect 0/4 up",
+          "board": "板 在线 · 37ms",
+          "tasks": "板上 6 任务",
+          "stale": null
+        },
+        "meta": {
+          "self": "实例 pc-ky614",
+          "board": "板 http://172.24.112.14:13090",
+          "data": "数据 13:50:01",
+          "recentHint": "共享板 http://172.24.112.14:13090 · 只读",
+          "widgetsHint": "本机 · 只读"
+        },
+        "tasks": {
+          "count": 6,
+          "states": [
+            "leased",
+            "awaiting",
+            "undelivered",
+            "stale",
+            "done",
+            "unknown"
+          ],
+          "stateTexts": [
+            "租约中",
+            "等回执",
+            "未送达",
+            "已过期",
+            "已完成",
+            "未知 · blocked"
+          ],
+          "firstTitle": "核对板服务监听地址",
+          "firstMeta": "t-leased · dev-a · 节点 pc-a · 2 条证据 · 更新 2 分钟前",
+          "tabCount": "6",
+          "emptyHidden": true,
+          "emptyText": "载入中…"
+        },
+        "events": {
+          "count": 8,
+          "firstTime": "14:09:28",
+          "firstKind": "task.created",
+          "firstText": "演示事件正文 1",
+          "firstMeta": "任务 t-leased · 节点 lead",
+          "tabCount": "8",
+          "emptyHidden": true,
+          "emptyText": "载入中…"
+        },
+        "host": {
+          "diskCount": 2,
+          "diskText": [
+            "C:已用 45.0 GB / 145 GB · 31%",
+            "D:已用 420 GB / 960 GB · 44%"
+          ],
+          "memTotal": "32.0 GB",
+          "memUsed": "16.0 GB",
+          "memRatio": "50%",
+          "memBarWidth": "50%",
+          "osLine": "test-host · win32 · CPU 12 核 · 开机 14 小时",
+          "boardHealthSrc": "板 在线",
+          "boardLat": "37 ms",
+          "boardLatNote": "最近一次 /health 延迟"
+        },
+        "topo": {
+          "badgeState": "real",
+          "badgeText": "真实 · interconnect",
+          "nodes": 4,
+          "edges": 5,
+          "pending": 1,
+          "rects": [
+            "offline",
+            "online",
+            "offline",
+            "offline"
+          ],
+          "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 13:50:00）"
+        },
+        "boardAction": {
+          "disabled": false,
+          "desc": "共享板 http://172.24.112.14:13090"
+        },
+        "layout": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "topbarVisible": true,
+          "topbarText": "\n  \n    ◈\n    \n      工作台\n      DSH · 快捷启动页\n    \n  \n  \n  \n    \n      interconnect 0/4 up\n    \n    \n      板 在线 · 37ms\n    \n    \n      板上 6 任务\n    \n    \n      \n    \n  \n"
+        },
+        "tabs": {
+          "tasksSelected": "true",
+          "eventsSelected": "false",
+          "tasksPanelVisible": true,
+          "eventsPanelVisible": false
+        },
         "panelErrors": []
       },
-      "shot": "tools/shots/shot-01-live-data-1440.png",
+      "shot": "tools/shots/shot-01-real-data-1440.png",
       "clip": {
         "x": 0,
         "y": 0,
         "width": 1440,
-        "height": 1230,
+        "height": 1216,
         "scale": 1
       },
       "interactions": {
         "receipts": 1,
-        "receiptText": "12:58:12新会话 · 演示回执：将调用 POST /api/sessions（未发送请求）",
+        "receiptText": "14:10:31新会话 · 演示回执：将调用 POST /api/sessions（未发送请求）",
         "todoLabel": "确认 pc-ky614 隧道 13087 端口",
         "checkedPersisted": true,
         "storeHasItems": true,
-        "docTabOpen": true,
-        "docRows": 5,
-        "taskRows": 6,
+        "eventsTabOpen": true,
+        "tasksTabHidden": true,
+        "eventRows": 8,
         "actionCount": 6,
         "disabledRestart": true,
-        "todoCount": 4
+        "todoCount": 4,
+        "taskDetailToggle": {
+          "expanded": "true",
+          "detailHidden": false
+        }
       }
     },
     {
-      "name": "fallback-404-1440",
+      "name": "board-unreachable-1440",
       "viewport": [
         1440,
         1000
       ],
       "view": {
-        "badgeState": "mock",
-        "badgeText": "mock 兜底 · 真实数据不可用：HTTP 404",
-        "badgeStamp": "",
-        "rects": [
-          "node-rect online",
-          "node-rect online",
-          "node-rect online",
-          "node-rect offline"
-        ],
-        "titles": [
-          "mcloud · 在线（mock 示例）\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "pc-ky614 · 在线（mock 示例）\n角色：主力机 · 集群大管家（RTX 3080）\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "server · 在线（mock 示例）\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "s5 · 离线（mock 示例）\n角色：步步高 S5 平板 · DSH Mobile\n说明：mock 兜底，未取到真实 interconnect 数据"
-        ],
-        "nodes": 4,
-        "pending": 1,
-        "edges": 5,
-        "others": "",
-        "othersHidden": true,
-        "svgTitle": "DSH 集群拓扑（mock 兜底 · 未取到真实数据）",
-        "svgWidth": 1100,
-        "panelClientW": 1322,
-        "panelScrollW": 1322,
-        "scrollWidth": 1440,
-        "innerWidth": 1440,
+        "chips": {
+          "cluster": "interconnect 0/4 up",
+          "board": "板 不可达",
+          "tasks": "任务 mock 兜底",
+          "stale": null
+        },
+        "meta": {
+          "self": "实例 pc-ky614",
+          "board": "板 不可达",
+          "data": "数据 13:50:00",
+          "recentHint": "mock 兜底 · timeout · 连共享板超时（4000ms）：http://172.24.112.14:13090",
+          "widgetsHint": "本机 · 只读"
+        },
+        "tasks": {
+          "count": 6,
+          "states": [
+            "leased",
+            "done",
+            "awaiting",
+            "undelivered",
+            "stale",
+            "unknown"
+          ],
+          "stateTexts": [
+            "租约中",
+            "已完成",
+            "等回执",
+            "未送达",
+            "已过期",
+            "未知 · canceled"
+          ],
+          "firstTitle": "示例任务：核对板服务监听地址",
+          "firstMeta": "mock-task-1 · example-owner · 节点 example-node · 2 条证据 · 更新 2 分钟前",
+          "tabCount": "6",
+          "emptyHidden": true,
+          "emptyText": "载入中…"
+        },
+        "events": {
+          "count": 8,
+          "firstTime": "14:09:01",
+          "firstKind": "task.created",
+          "firstText": "示例事件正文 1（mock 兜底数据，不是真实事件）",
+          "firstMeta": "任务 mock-task-1 · 节点 example-owner",
+          "tabCount": "8",
+          "emptyHidden": true,
+          "emptyText": "载入中…"
+        },
+        "host": {
+          "diskCount": 2,
+          "diskText": [
+            "C:已用 45.0 GB / 145 GB · 31%",
+            "D:已用 420 GB / 960 GB · 44%"
+          ],
+          "memTotal": "32.0 GB",
+          "memUsed": "16.0 GB",
+          "memRatio": "50%",
+          "memBarWidth": "50%",
+          "osLine": "test-host · win32 · CPU 12 核 · 开机 14 小时",
+          "boardHealthSrc": "板 不可达",
+          "boardLat": "—",
+          "boardLatNote": "mock 兜底 · timeout · 连共享板超时（4000ms）：http://172.24.112.14:13090"
+        },
+        "topo": {
+          "badgeState": "real",
+          "badgeText": "真实 · interconnect",
+          "nodes": 4,
+          "edges": 5,
+          "pending": 1,
+          "rects": [
+            "offline",
+            "online",
+            "offline",
+            "offline"
+          ],
+          "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 13:50:00）"
+        },
+        "boardAction": {
+          "disabled": true,
+          "desc": "板不可达"
+        },
+        "layout": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "topbarVisible": true,
+          "topbarText": "\n  \n    ◈\n    \n      工作台\n      DSH · 快捷启动页\n    \n  \n  \n  \n    \n      interconnect 0/4 up\n    \n    \n      板 不可达\n    \n    \n      任务 mock 兜底\n    \n    \n      \n    \n  \n"
+        },
+        "tabs": {
+          "tasksSelected": "true",
+          "eventsSelected": "false",
+          "tasksPanelVisible": true,
+          "eventsPanelVisible": false
+        },
         "panelErrors": []
       },
-      "shot": "tools/shots/shot-02-mock-fallback-1440.png",
+      "shot": "tools/shots/shot-02-board-unreachable-1440.png",
       "clip": {
         "x": 0,
         "y": 0,
         "width": 1440,
-        "height": 1206,
+        "height": 1247,
         "scale": 1
       }
     },
     {
-      "name": "real-900-topology",
+      "name": "board-unconfigured-1440",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "chips": {
+          "cluster": "interconnect 0/4 up",
+          "board": "板 未配置",
+          "tasks": "任务 板未配置",
+          "stale": null
+        },
+        "meta": {
+          "self": "实例 pc-ky614",
+          "board": "板 未配置",
+          "data": "数据 13:50:00",
+          "recentHint": "板未配置",
+          "widgetsHint": "本机 · 只读"
+        },
+        "tasks": {
+          "count": 0,
+          "states": [],
+          "stateTexts": [],
+          "firstTitle": "",
+          "firstMeta": "",
+          "tabCount": "",
+          "emptyHidden": false,
+          "emptyText": "板未配置：profile 里给 dsh-html-panel 加 config.board.endpoint / token"
+        },
+        "events": {
+          "count": 0,
+          "firstTime": "",
+          "firstKind": "",
+          "firstText": "",
+          "firstMeta": "",
+          "tabCount": "",
+          "emptyHidden": false,
+          "emptyText": "板未配置，没有事件源"
+        },
+        "host": {
+          "diskCount": 2,
+          "diskText": [
+            "C:已用 45.0 GB / 145 GB · 31%",
+            "D:已用 420 GB / 960 GB · 44%"
+          ],
+          "memTotal": "32.0 GB",
+          "memUsed": "16.0 GB",
+          "memRatio": "50%",
+          "memBarWidth": "50%",
+          "osLine": "test-host · win32 · CPU 12 核 · 开机 14 小时",
+          "boardHealthSrc": "板 未配置",
+          "boardLat": "—",
+          "boardLatNote": "config.board.endpoint 为空"
+        },
+        "topo": {
+          "badgeState": "real",
+          "badgeText": "真实 · interconnect",
+          "nodes": 4,
+          "edges": 5,
+          "pending": 1,
+          "rects": [
+            "offline",
+            "online",
+            "offline",
+            "offline"
+          ],
+          "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 13:50:00）"
+        },
+        "boardAction": {
+          "disabled": true,
+          "desc": "板未配置"
+        },
+        "layout": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "topbarVisible": true,
+          "topbarText": "\n  \n    ◈\n    \n      工作台\n      DSH · 快捷启动页\n    \n  \n  \n  \n    \n      interconnect 0/4 up\n    \n    \n      板 未配置\n    \n    \n      任务 板未配置\n    \n    \n      \n    \n  \n"
+        },
+        "tabs": {
+          "tasksSelected": "true",
+          "eventsSelected": "false",
+          "tasksPanelVisible": true,
+          "eventsPanelVisible": false
+        },
+        "panelErrors": []
+      },
+      "shot": "tools/shots/shot-03-board-unconfigured-1440.png",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1216,
+        "scale": 1
+      }
+    },
+    {
+      "name": "board-empty-1440",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "chips": {
+          "cluster": "interconnect 0/4 up",
+          "board": "板 在线 · 12ms",
+          "tasks": "板上 0 任务",
+          "stale": null
+        },
+        "meta": {
+          "self": "实例 pc-ky614",
+          "board": "板 http://172.24.112.14:13090",
+          "data": "数据 13:50:01",
+          "recentHint": "共享板 http://172.24.112.14:13090 · 只读",
+          "widgetsHint": "本机 · 只读"
+        },
+        "tasks": {
+          "count": 0,
+          "states": [],
+          "stateTexts": [],
+          "firstTitle": "",
+          "firstMeta": "",
+          "tabCount": "",
+          "emptyHidden": false,
+          "emptyText": "板上暂无任务"
+        },
+        "events": {
+          "count": 0,
+          "firstTime": "",
+          "firstKind": "",
+          "firstText": "",
+          "firstMeta": "",
+          "tabCount": "",
+          "emptyHidden": false,
+          "emptyText": "暂无事件"
+        },
+        "host": {
+          "diskCount": 2,
+          "diskText": [
+            "C:已用 45.0 GB / 145 GB · 31%",
+            "D:已用 420 GB / 960 GB · 44%"
+          ],
+          "memTotal": "32.0 GB",
+          "memUsed": "16.0 GB",
+          "memRatio": "50%",
+          "memBarWidth": "50%",
+          "osLine": "test-host · win32 · CPU 12 核 · 开机 14 小时",
+          "boardHealthSrc": "板 在线",
+          "boardLat": "12 ms",
+          "boardLatNote": "最近一次 /health 延迟"
+        },
+        "topo": {
+          "badgeState": "real",
+          "badgeText": "真实 · interconnect",
+          "nodes": 4,
+          "edges": 5,
+          "pending": 1,
+          "rects": [
+            "offline",
+            "online",
+            "offline",
+            "offline"
+          ],
+          "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 13:50:00）"
+        },
+        "boardAction": {
+          "disabled": false,
+          "desc": "共享板 http://172.24.112.14:13090"
+        },
+        "layout": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "topbarVisible": true,
+          "topbarText": "\n  \n    ◈\n    \n      工作台\n      DSH · 快捷启动页\n    \n  \n  \n  \n    \n      interconnect 0/4 up\n    \n    \n      板 在线 · 12ms\n    \n    \n      板上 0 任务\n    \n    \n      \n    \n  \n"
+        },
+        "tabs": {
+          "tasksSelected": "true",
+          "eventsSelected": "false",
+          "tasksPanelVisible": true,
+          "eventsPanelVisible": false
+        },
+        "panelErrors": []
+      },
+      "shot": "tools/shots/shot-04-board-empty-1440.png",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1216,
+        "scale": 1
+      }
+    },
+    {
+      "name": "cluster-down-404",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "chips": {
+          "cluster": "链路 mock 兜底",
+          "board": "板 在线 · 37ms",
+          "tasks": "板上 6 任务",
+          "stale": null
+        },
+        "meta": {
+          "self": "实例 mock 兜底",
+          "board": "板 http://172.24.112.14:13090",
+          "data": "数据 13:50:01",
+          "recentHint": "共享板 http://172.24.112.14:13090 · 只读",
+          "widgetsHint": "本机 · 只读"
+        },
+        "tasks": {
+          "count": 6,
+          "states": [
+            "leased",
+            "awaiting",
+            "undelivered",
+            "stale",
+            "done",
+            "unknown"
+          ],
+          "stateTexts": [
+            "租约中",
+            "等回执",
+            "未送达",
+            "已过期",
+            "已完成",
+            "未知 · blocked"
+          ],
+          "firstTitle": "核对板服务监听地址",
+          "firstMeta": "t-leased · dev-a · 节点 pc-a · 2 条证据 · 更新 2 分钟前",
+          "tabCount": "6",
+          "emptyHidden": true,
+          "emptyText": "载入中…"
+        },
+        "events": {
+          "count": 8,
+          "firstTime": "14:09:28",
+          "firstKind": "task.created",
+          "firstText": "演示事件正文 1",
+          "firstMeta": "任务 t-leased · 节点 lead",
+          "tabCount": "8",
+          "emptyHidden": true,
+          "emptyText": "载入中…"
+        },
+        "host": {
+          "diskCount": 2,
+          "diskText": [
+            "C:已用 45.0 GB / 145 GB · 31%",
+            "D:已用 420 GB / 960 GB · 44%"
+          ],
+          "memTotal": "32.0 GB",
+          "memUsed": "16.0 GB",
+          "memRatio": "50%",
+          "memBarWidth": "50%",
+          "osLine": "test-host · win32 · CPU 12 核 · 开机 14 小时",
+          "boardHealthSrc": "板 在线",
+          "boardLat": "37 ms",
+          "boardLatNote": "最近一次 /health 延迟"
+        },
+        "topo": {
+          "badgeState": "mock",
+          "badgeText": "mock 兜底 · 真实数据不可用：HTTP 404",
+          "nodes": 4,
+          "edges": 5,
+          "pending": 1,
+          "rects": [
+            "online",
+            "online",
+            "online",
+            "offline"
+          ],
+          "svgTitle": "DSH 集群拓扑（mock 兜底 · 未取到真实数据）"
+        },
+        "boardAction": {
+          "disabled": false,
+          "desc": "共享板 http://172.24.112.14:13090"
+        },
+        "layout": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "topbarVisible": true,
+          "topbarText": "\n  \n    ◈\n    \n      工作台\n      DSH · 快捷启动页\n    \n  \n  \n  \n    \n      链路 mock 兜底\n    \n    \n      板 在线 · 37ms\n    \n    \n      板上 6 任务\n    \n    \n      \n    \n  \n"
+        },
+        "tabs": {
+          "tasksSelected": "true",
+          "eventsSelected": "false",
+          "tasksPanelVisible": true,
+          "eventsPanelVisible": false
+        },
+        "panelErrors": []
+      }
+    },
+    {
+      "name": "narrow-900",
       "viewport": [
         900,
         1000
       ],
       "view": {
-        "badgeState": "real",
-        "badgeText": "真实 · interconnect",
-        "badgeStamp": "生成 12:20:00",
-        "rects": [
-          "node-rect unknown",
-          "node-rect online",
-          "node-rect online",
-          "node-rect offline"
-        ],
-        "titles": [
-          "mcloud · 未知（未在 interconnect 配置）\n实例：mcloud\n说明：未在 interconnect 配置\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n数据时间：12:20:00",
-          "pc-ky614 · 在线（本实例）\n实例：pc-ky614（本实例）\n角色：主力机 · 集群大管家（RTX 3080）\n数据时间：12:20:00",
-          "server · 在线（链路 up）\n实例：server\norigin：127.0.0.1:13080\n链路：up\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n数据时间：12:20:00",
-          "s5 · 离线（链路 down）\n实例：s5\norigin：127.0.0.1:13082\n链路：down\n角色：步步高 S5 平板 · DSH Mobile\n数据时间：12:20:00"
-        ],
-        "nodes": 4,
-        "pending": 1,
-        "edges": 5,
-        "others": "其它已配置对端：cloud（down）",
-        "othersHidden": false,
-        "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 12:20:00）",
-        "svgWidth": 836,
-        "panelClientW": 862,
-        "panelScrollW": 862,
-        "scrollWidth": 900,
-        "innerWidth": 900,
+        "chips": {
+          "cluster": "interconnect 0/4 up",
+          "board": "板 在线 · 37ms",
+          "tasks": "板上 6 任务",
+          "stale": null
+        },
+        "meta": {
+          "self": "实例 pc-ky614",
+          "board": "板 http://172.24.112.14:13090",
+          "data": "数据 13:50:01",
+          "recentHint": "共享板 http://172.24.112.14:13090 · 只读",
+          "widgetsHint": "本机 · 只读"
+        },
+        "tasks": {
+          "count": 6,
+          "states": [
+            "leased",
+            "awaiting",
+            "undelivered",
+            "stale",
+            "done",
+            "unknown"
+          ],
+          "stateTexts": [
+            "租约中",
+            "等回执",
+            "未送达",
+            "已过期",
+            "已完成",
+            "未知 · blocked"
+          ],
+          "firstTitle": "核对板服务监听地址",
+          "firstMeta": "t-leased · dev-a · 节点 pc-a · 2 条证据 · 更新 2 分钟前",
+          "tabCount": "6",
+          "emptyHidden": true,
+          "emptyText": "载入中…"
+        },
+        "events": {
+          "count": 8,
+          "firstTime": "14:09:28",
+          "firstKind": "task.created",
+          "firstText": "演示事件正文 1",
+          "firstMeta": "任务 t-leased · 节点 lead",
+          "tabCount": "8",
+          "emptyHidden": true,
+          "emptyText": "载入中…"
+        },
+        "host": {
+          "diskCount": 2,
+          "diskText": [
+            "C:已用 45.0 GB / 145 GB · 31%",
+            "D:已用 420 GB / 960 GB · 44%"
+          ],
+          "memTotal": "32.0 GB",
+          "memUsed": "16.0 GB",
+          "memRatio": "50%",
+          "memBarWidth": "50%",
+          "osLine": "test-host · win32 · CPU 12 核 · 开机 14 小时",
+          "boardHealthSrc": "板 在线",
+          "boardLat": "37 ms",
+          "boardLatNote": "最近一次 /health 延迟"
+        },
+        "topo": {
+          "badgeState": "real",
+          "badgeText": "真实 · interconnect",
+          "nodes": 4,
+          "edges": 5,
+          "pending": 1,
+          "rects": [
+            "offline",
+            "online",
+            "offline",
+            "offline"
+          ],
+          "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 13:50:00）"
+        },
+        "boardAction": {
+          "disabled": false,
+          "desc": "共享板 http://172.24.112.14:13090"
+        },
+        "layout": {
+          "scrollWidth": 900,
+          "innerWidth": 900,
+          "topbarVisible": true,
+          "topbarText": "\n  \n    ◈\n    \n      工作台\n      DSH · 快捷启动页\n    \n  \n  \n  \n    \n      interconnect 0/4 up\n    \n    \n      板 在线 · 37ms\n    \n    \n      板上 6 任务\n    \n    \n      \n    \n  \n"
+        },
+        "tabs": {
+          "tasksSelected": "true",
+          "eventsSelected": "false",
+          "tasksPanelVisible": true,
+          "eventsPanelVisible": false
+        },
         "panelErrors": []
       },
-      "shot": "tools/shots/shot-03-narrow-900-topology.png",
+      "shot": "tools/shots/shot-05-narrow-900.png",
       "clip": {
-        "x": 10,
-        "y": 137,
-        "width": 880,
-        "height": 383,
-        "scale": 2
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 1405,
+        "scale": 1
       }
     },
     {
-      "name": "fallback-badjson",
+      "name": "poll-no-flash",
       "viewport": [
         1440,
         1000
       ],
       "view": {
-        "badgeState": "mock",
-        "badgeText": "mock 兜底 · 真实数据不可用：响应不是 JSON",
-        "badgeStamp": "",
-        "rects": [
-          "node-rect online",
-          "node-rect online",
-          "node-rect online",
-          "node-rect offline"
-        ],
-        "titles": [
-          "mcloud · 在线（mock 示例）\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "pc-ky614 · 在线（mock 示例）\n角色：主力机 · 集群大管家（RTX 3080）\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "server · 在线（mock 示例）\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "s5 · 离线（mock 示例）\n角色：步步高 S5 平板 · DSH Mobile\n说明：mock 兜底，未取到真实 interconnect 数据"
-        ],
-        "nodes": 4,
-        "pending": 1,
-        "edges": 5,
-        "others": "",
-        "othersHidden": true,
-        "svgTitle": "DSH 集群拓扑（mock 兜底 · 未取到真实数据）",
-        "svgWidth": 1100,
-        "panelClientW": 1322,
-        "panelScrollW": 1322,
-        "scrollWidth": 1440,
-        "innerWidth": 1440,
+        "chips": {
+          "cluster": "interconnect 0/4 up",
+          "board": "板 在线 · 37ms",
+          "tasks": "板上 6 任务",
+          "stale": null
+        },
+        "meta": {
+          "self": "实例 pc-ky614",
+          "board": "板 http://172.24.112.14:13090",
+          "data": "数据 13:50:01",
+          "recentHint": "共享板 http://172.24.112.14:13090 · 只读",
+          "widgetsHint": "本机 · 只读"
+        },
+        "tasks": {
+          "count": 6,
+          "states": [
+            "leased",
+            "awaiting",
+            "undelivered",
+            "stale",
+            "done",
+            "unknown"
+          ],
+          "stateTexts": [
+            "租约中",
+            "等回执",
+            "未送达",
+            "已过期",
+            "已完成",
+            "未知 · blocked"
+          ],
+          "firstTitle": "核对板服务监听地址",
+          "firstMeta": "t-leased · dev-a · 节点 pc-a · 2 条证据 · 更新 2 分钟前",
+          "tabCount": "6",
+          "emptyHidden": true,
+          "emptyText": "载入中…"
+        },
+        "events": {
+          "count": 8,
+          "firstTime": "14:09:28",
+          "firstKind": "task.created",
+          "firstText": "演示事件正文 1",
+          "firstMeta": "任务 t-leased · 节点 lead",
+          "tabCount": "8",
+          "emptyHidden": true,
+          "emptyText": "载入中…"
+        },
+        "host": {
+          "diskCount": 2,
+          "diskText": [
+            "C:已用 45.0 GB / 145 GB · 31%",
+            "D:已用 420 GB / 960 GB · 44%"
+          ],
+          "memTotal": "32.0 GB",
+          "memUsed": "16.0 GB",
+          "memRatio": "50%",
+          "memBarWidth": "50%",
+          "osLine": "test-host · win32 · CPU 12 核 · 开机 14 小时",
+          "boardHealthSrc": "板 在线",
+          "boardLat": "37 ms",
+          "boardLatNote": "最近一次 /health 延迟"
+        },
+        "topo": {
+          "badgeState": "real",
+          "badgeText": "真实 · interconnect",
+          "nodes": 4,
+          "edges": 5,
+          "pending": 1,
+          "rects": [
+            "offline",
+            "online",
+            "offline",
+            "offline"
+          ],
+          "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 13:50:00）"
+        },
+        "boardAction": {
+          "disabled": false,
+          "desc": "共享板 http://172.24.112.14:13090"
+        },
+        "layout": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "topbarVisible": true,
+          "topbarText": "\n  \n    ◈\n    \n      工作台\n      DSH · 快捷启动页\n    \n  \n  \n  \n    \n      interconnect 0/4 up\n    \n    \n      板 在线 · 37ms\n    \n    \n      板上 6 任务\n    \n    \n      \n    \n  \n"
+        },
+        "tabs": {
+          "tasksSelected": "true",
+          "eventsSelected": "false",
+          "tasksPanelVisible": true,
+          "eventsPanelVisible": false
+        },
         "panelErrors": []
-      }
-    },
-    {
-      "name": "fallback-structure",
-      "viewport": [
-        1440,
-        1000
-      ],
-      "view": {
-        "badgeState": "mock",
-        "badgeText": "mock 兜底 · 真实数据不可用：结构不符",
-        "badgeStamp": "",
-        "rects": [
-          "node-rect online",
-          "node-rect online",
-          "node-rect online",
-          "node-rect offline"
-        ],
-        "titles": [
-          "mcloud · 在线（mock 示例）\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "pc-ky614 · 在线（mock 示例）\n角色：主力机 · 集群大管家（RTX 3080）\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "server · 在线（mock 示例）\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "s5 · 离线（mock 示例）\n角色：步步高 S5 平板 · DSH Mobile\n说明：mock 兜底，未取到真实 interconnect 数据"
-        ],
-        "nodes": 4,
-        "pending": 1,
-        "edges": 5,
-        "others": "",
-        "othersHidden": true,
-        "svgTitle": "DSH 集群拓扑（mock 兜底 · 未取到真实数据）",
-        "svgWidth": 1100,
-        "panelClientW": 1322,
-        "panelScrollW": 1322,
-        "scrollWidth": 1440,
-        "innerWidth": 1440,
+      },
+      "afterPoll": {
+        "chips": {
+          "cluster": "interconnect 0/4 up",
+          "board": "板 在线 · 37ms",
+          "tasks": "板上 6 任务",
+          "stale": "数据过期 · 14:11:02 / 共享板：timeout · 连共享板超时（4000ms）：http://172.24.112.14:13090"
+        },
+        "meta": {
+          "self": "实例 pc-ky614",
+          "board": "板 http://172.24.112.14:13090",
+          "data": "数据 13:50:01",
+          "recentHint": "共享板 http://172.24.112.14:13090 · 只读",
+          "widgetsHint": "本机 · 只读"
+        },
+        "tasks": {
+          "count": 6,
+          "states": [
+            "leased",
+            "awaiting",
+            "undelivered",
+            "stale",
+            "done",
+            "unknown"
+          ],
+          "stateTexts": [
+            "租约中",
+            "等回执",
+            "未送达",
+            "已过期",
+            "已完成",
+            "未知 · blocked"
+          ],
+          "firstTitle": "核对板服务监听地址",
+          "firstMeta": "t-leased · dev-a · 节点 pc-a · 2 条证据 · 更新 2 分钟前",
+          "tabCount": "6",
+          "emptyHidden": true,
+          "emptyText": "载入中…"
+        },
+        "events": {
+          "count": 8,
+          "firstTime": "14:09:28",
+          "firstKind": "task.created",
+          "firstText": "演示事件正文 1",
+          "firstMeta": "任务 t-leased · 节点 lead",
+          "tabCount": "8",
+          "emptyHidden": true,
+          "emptyText": "载入中…"
+        },
+        "host": {
+          "diskCount": 2,
+          "diskText": [
+            "C:已用 45.0 GB / 145 GB · 31%",
+            "D:已用 420 GB / 960 GB · 44%"
+          ],
+          "memTotal": "32.0 GB",
+          "memUsed": "16.0 GB",
+          "memRatio": "50%",
+          "memBarWidth": "50%",
+          "osLine": "test-host · win32 · CPU 12 核 · 开机 14 小时",
+          "boardHealthSrc": "板 在线",
+          "boardLat": "37 ms",
+          "boardLatNote": "最近一次 /health 延迟"
+        },
+        "topo": {
+          "badgeState": "real",
+          "badgeText": "真实 · interconnect",
+          "nodes": 4,
+          "edges": 5,
+          "pending": 1,
+          "rects": [
+            "offline",
+            "online",
+            "offline",
+            "offline"
+          ],
+          "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 13:50:00）"
+        },
+        "boardAction": {
+          "disabled": false,
+          "desc": "共享板 http://172.24.112.14:13090"
+        },
+        "layout": {
+          "scrollWidth": 1440,
+          "innerWidth": 1440,
+          "topbarVisible": true,
+          "topbarText": "\n  \n    ◈\n    \n      工作台\n      DSH · 快捷启动页\n    \n  \n  \n  \n    \n      interconnect 0/4 up\n    \n    \n      板 在线 · 37ms\n    \n    \n      板上 6 任务\n    \n    \n      数据过期 · 14:11:02 / 共享板：timeout · 连共享板超时（4000ms）：http://172.24.112.14:13090\n    \n  \n"
+        },
+        "tabs": {
+          "tasksSelected": "true",
+          "eventsSelected": "false",
+          "tasksPanelVisible": true,
+          "eventsPanelVisible": false
+        },
         "panelErrors": []
-      }
-    },
-    {
-      "name": "fallback-timeout",
-      "viewport": [
-        1440,
-        1000
-      ],
-      "view": {
-        "badgeState": "mock",
-        "badgeText": "mock 兜底 · 真实数据不可用：超时 3s",
-        "badgeStamp": "",
-        "rects": [
-          "node-rect online",
-          "node-rect online",
-          "node-rect online",
-          "node-rect offline"
-        ],
-        "titles": [
-          "mcloud · 在线（mock 示例）\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "pc-ky614 · 在线（mock 示例）\n角色：主力机 · 集群大管家（RTX 3080）\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "server · 在线（mock 示例）\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "s5 · 离线（mock 示例）\n角色：步步高 S5 平板 · DSH Mobile\n说明：mock 兜底，未取到真实 interconnect 数据"
-        ],
-        "nodes": 4,
-        "pending": 1,
-        "edges": 5,
-        "others": "",
-        "othersHidden": true,
-        "svgTitle": "DSH 集群拓扑（mock 兜底 · 未取到真实数据）",
-        "svgWidth": 1100,
-        "panelClientW": 1322,
-        "panelScrollW": 1322,
-        "scrollWidth": 1440,
-        "innerWidth": 1440,
-        "panelErrors": []
-      }
-    },
-    {
-      "name": "fallback-no-interconnect",
-      "viewport": [
-        1440,
-        1000
-      ],
-      "view": {
-        "badgeState": "mock",
-        "badgeText": "mock 兜底 · 真实数据不可用：本实例没有 interconnect 服务",
-        "badgeStamp": "",
-        "rects": [
-          "node-rect online",
-          "node-rect online",
-          "node-rect online",
-          "node-rect offline"
-        ],
-        "titles": [
-          "mcloud · 在线（mock 示例）\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "pc-ky614 · 在线（mock 示例）\n角色：主力机 · 集群大管家（RTX 3080）\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "server · 在线（mock 示例）\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n说明：mock 兜底，未取到真实 interconnect 数据",
-          "s5 · 离线（mock 示例）\n角色：步步高 S5 平板 · DSH Mobile\n说明：mock 兜底，未取到真实 interconnect 数据"
-        ],
-        "nodes": 4,
-        "pending": 1,
-        "edges": 5,
-        "others": "",
-        "othersHidden": true,
-        "svgTitle": "DSH 集群拓扑（mock 兜底 · 未取到真实数据）",
-        "svgWidth": 1100,
-        "panelClientW": 1322,
-        "panelScrollW": 1322,
-        "scrollWidth": 1440,
-        "innerWidth": 1440,
-        "panelErrors": []
-      }
-    },
-    {
-      "name": "live-shape-1440",
-      "viewport": [
-        1440,
-        1000
-      ],
-      "view": {
-        "badgeState": "real",
-        "badgeText": "真实 · interconnect",
-        "badgeStamp": "生成 12:30:00",
-        "rects": [
-          "node-rect offline",
-          "node-rect online",
-          "node-rect offline",
-          "node-rect offline"
-        ],
-        "titles": [
-          "mcloud · 离线（链路 down）\n实例：mcloud\norigin：127.0.0.1:13086\n链路：down\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n数据时间：12:30:00",
-          "pc-ky614 · 在线（本实例）\n实例：pc-ky614（本实例）\n角色：主力机 · 集群大管家（RTX 3080）\n数据时间：12:30:00",
-          "server · 离线（链路 down）\n实例：server\norigin：127.0.0.1:13080\n链路：down\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n数据时间：12:30:00",
-          "s5 · 离线（链路 down）\n实例：s5\norigin：127.0.0.1:13082\n链路：down\n角色：步步高 S5 平板 · DSH Mobile\n数据时间：12:30:00"
-        ],
-        "nodes": 4,
-        "pending": 1,
-        "edges": 5,
-        "others": "其它已配置对端：cloud（down）",
-        "othersHidden": false,
-        "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 12:30:00）",
-        "svgWidth": 1100,
-        "panelClientW": 1322,
-        "panelScrollW": 1322,
-        "scrollWidth": 1440,
-        "innerWidth": 1440,
-        "panelErrors": []
+      },
+      "shot": "tools/shots/shot-06-stale-after-poll.png",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1216,
+        "scale": 1
       }
     }
   ],
   "checks": {
-    "scenarios": 8,
-    "assertionsPassed": 151,
+    "scenarios": 7,
+    "assertionsPassed": 253,
     "assertionsFailed": 0,
     "pageErrors": 0
   },

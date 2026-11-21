@@ -1,15 +1,15 @@
 {
   "file": "public/index.html",
-  "bytes": 56198,
-  "sha256": "2c679e12a979168e029aa69f14ba471ae00bfd38861b549bc9bf9fd2adf04847",
-  "checks": 54,
+  "bytes": 74933,
+  "sha256": "130870454874f6c710408fa9c418ce0052452015c9d2be4a24dd46bb45fe198b",
+  "checks": 99,
   "failed": 0,
   "pass": true,
   "results": [
     {
       "name": "文件存在且非空",
       "ok": true,
-      "detail": "56198 B"
+      "detail": "74933 B"
     },
     {
       "name": "无 UTF-8 BOM",
@@ -94,12 +94,22 @@
     {
       "name": "fetch 只有同源相对路径",
       "ok": true,
-      "detail": "共 2 处 fetch，参数均为相对路径"
+      "detail": "共 1 处 fetch，无字面量外链"
     },
     {
-      "name": "页面 fetch 的是 api/cluster",
+      "name": "三个同源路由都读了",
       "ok": true,
-      "detail": "'api/cluster' | 'api/cluster', {\n        cache: 'no-store',\n        headers: { accept: 'application/json' },\n        signal: signal,\n      }"
+      "detail": "实际：api/cluster, api/board, api/host"
+    },
+    {
+      "name": "api 路径都是相对路径",
+      "ok": true,
+      "detail": "api/cluster | api/board | api/host"
+    },
+    {
+      "name": "没有写死任何 api 外部地址",
+      "ok": true,
+      "detail": ""
     },
     {
       "name": "标签基本闭合",
@@ -119,7 +129,7 @@
     {
       "name": "CSS 花括号配平",
       "ok": true,
-      "detail": "186 { / 186 }"
+      "detail": "195 { / 195 }"
     },
     {
       "name": "内联 JS 语法可解析",
@@ -142,17 +152,217 @@
       "detail": "共 1 处定义"
     },
     {
+      "name": "MOCK 含 actions 段",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "MOCK 含 tasks 段",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "MOCK 含 events 段",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "MOCK 含 host 段",
+      "ok": true,
+      "detail": ""
+    },
+    {
       "name": "MOCK 含 topology 段",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "拓扑四槽位 id 齐全",
+      "name": "MOCK 含 todosSeed 段",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "拓扑 5 条边",
+      "name": "MOCK 兜底任务覆盖五种状态",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "MOCK 主机数据含磁盘与内存",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TASK_STATES 五态映射在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "五态 CSS 类都在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "板状态文案在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "事件流渲染函数在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "任务渲染函数在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "事件字段齐全（时间/任务/节点/类型/文本）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "任务行含证据数与相对时间",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "顶栏不含 mock 字样",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无假值残留：DSH 0.4.0",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无假值残留：127.0.0.1:13090",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无假值残留：共享板 13090",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无假值残留：p95 34ms",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无假值残留：已用 43 / 80 GB",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无假值残留：18.4 GB",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "chip 三件套 + 过期 badge",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "三 chip 均有 dot 与文案节点",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "chip 文案来自真实字段（up 计数 / 健康延迟 / 任务数）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "顶栏日期行接真实字段",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "日期行文案来自 self / source.origin",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无「最近文档」残留",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "事件流标签在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "小部件落点 id 齐全",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "磁盘/内存走 fmtBytes 与 ratio",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "板健康取 /health 延迟",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "小部件定位「本机 · 只读」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "已删除假 sparkline",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "mock 兜底标注在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "首次失败回落 mock 的三条路径在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "轮询失败保留上一次好数据（不重渲染 mock）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "过期 badge 文案格式",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "30 秒静默轮询",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "页面隐藏时跳过轮询",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "接口请求有超时控制",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "常用动作的看板地址动态化",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "拿不到板来源时置灰",
       "ok": true,
       "detail": ""
     },
@@ -168,6 +378,16 @@
     },
     {
       "name": "渲染函数只有一份且接视图模型",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "拓扑四槽位 id 齐全",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "拓扑 5 条边",
       "ok": true,
       "detail": ""
     },
@@ -234,12 +454,12 @@
     {
       "name": "关键 id 齐全",
       "ok": true,
-      "detail": "15 个都在"
+      "detail": "19 个都在"
     },
     {
       "name": "页面 id 不重复",
       "ok": true,
-      "detail": "40 个静态 id"
+      "detail": "65 个静态 id"
     },
     {
       "name": "localStorage 待办键存在",
@@ -273,6 +493,11 @@
     },
     {
       "name": "窄宽适配（900px 断点）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "XSS 防护：动态文本过 esc()",
       "ok": true,
       "detail": ""
     }
