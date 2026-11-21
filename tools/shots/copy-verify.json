@@ -1,0 +1,122 @@
+{
+    "generatedAt":  "2026-11-21T13:09:55.9961674+08:00",
+    "sourceRoot":  "\u003cplugin-root\u003e",
+    "installedRoot":  "\u003c%DSH_PROFILE_DIR%\u003e\\node_modules\\dsh-html-panel",
+    "allIdentical":  true,
+    "fileCount":  14,
+    "note":  "清单本身不记录自身哈希",
+    "files":  [
+                  {
+                      "path":  "lib\\cluster.js",
+                      "sourceBytes":  5406,
+                      "installedBytes":  5406,
+                      "sourceSha256":  "aadb7c4a5db20bd7539ce6247c5b9fffc6165aac06a35617254d903aedfc6b02",
+                      "installedSha256":  "aadb7c4a5db20bd7539ce6247c5b9fffc6165aac06a35617254d903aedfc6b02",
+                      "identical":  true
+                  },
+                  {
+                      "path":  "lib\\index.js",
+                      "sourceBytes":  12237,
+                      "installedBytes":  12237,
+                      "sourceSha256":  "7f925cb0a617e6d7ed176cec66b90fefff6ae066519fb6b778651bc788348c5d",
+                      "installedSha256":  "7f925cb0a617e6d7ed176cec66b90fefff6ae066519fb6b778651bc788348c5d",
+                      "identical":  true
+                  },
+                  {
+                      "path":  "public\\index.html",
+                      "sourceBytes":  56198,
+                      "installedBytes":  56198,
+                      "sourceSha256":  "2c679e12a979168e029aa69f14ba471ae00bfd38861b549bc9bf9fd2adf04847",
+                      "installedSha256":  "2c679e12a979168e029aa69f14ba471ae00bfd38861b549bc9bf9fd2adf04847",
+                      "identical":  true
+                  },
+                  {
+                      "path":  "package.json",
+                      "sourceBytes":  1165,
+                      "installedBytes":  1165,
+                      "sourceSha256":  "d58fee686d27a6495160b1f63315337ab124961d1222d9aad0ce7f2bfcf7d308",
+                      "installedSha256":  "d58fee686d27a6495160b1f63315337ab124961d1222d9aad0ce7f2bfcf7d308",
+                      "identical":  true
+                  },
+                  {
+                      "path":  "README.md",
+                      "sourceBytes":  12977,
+                      "installedBytes":  12977,
+                      "sourceSha256":  "be23725a3ac1892de83e28a60aeb118ab690d68f0639b2a5ccb4bb9a759eb2b3",
+                      "installedSha256":  "be23725a3ac1892de83e28a60aeb118ab690d68f0639b2a5ccb4bb9a759eb2b3",
+                      "identical":  true
+                  },
+                  {
+                      "path":  "tools\\cluster.test.mjs",
+                      "sourceBytes":  16149,
+                      "installedBytes":  16149,
+                      "sourceSha256":  "dd5190be68e049bbace4e705ab9180a083bdb551aaf3c5686c70c7e91434a937",
+                      "installedSha256":  "dd5190be68e049bbace4e705ab9180a083bdb551aaf3c5686c70c7e91434a937",
+                      "identical":  true
+                  },
+                  {
+                      "path":  "tools\\check-page.mjs",
+                      "sourceBytes":  11502,
+                      "installedBytes":  11502,
+                      "sourceSha256":  "326bada6f80329d60af3c56f3f024c2e7c4e4b574afe4b4081503e7e78685ba5",
+                      "installedSha256":  "326bada6f80329d60af3c56f3f024c2e7c4e4b574afe4b4081503e7e78685ba5",
+                      "identical":  true
+                  },
+                  {
+                      "path":  "tools\\cdp-live.mjs",
+                      "sourceBytes":  27405,
+                      "installedBytes":  27405,
+                      "sourceSha256":  "062c8378db82b19bd8714161d77275f338e8603ba89cb28eb8f074813a70adcd",
+                      "installedSha256":  "062c8378db82b19bd8714161d77275f338e8603ba89cb28eb8f074813a70adcd",
+                      "identical":  true
+                  },
+                  {
+                      "path":  "tools\\report-real-data.md",
+                      "sourceBytes":  16579,
+                      "installedBytes":  16579,
+                      "sourceSha256":  "f0f984446327d443752e47b5e0901efa2855b204b70a715e365614603c99229c",
+                      "installedSha256":  "f0f984446327d443752e47b5e0901efa2855b204b70a715e365614603c99229c",
+                      "identical":  true
+                  },
+                  {
+                      "path":  "tools\\shots\\shot-01-live-data-1440.png",
+                      "sourceBytes":  238624,
+                      "installedBytes":  238624,
+                      "sourceSha256":  "86bdca85fc1269a33668b807b4e22aef4e080d8624561dcee9d8935cf5c2bb74",
+                      "installedSha256":  "86bdca85fc1269a33668b807b4e22aef4e080d8624561dcee9d8935cf5c2bb74",
+                      "identical":  true
+                  },
+                  {
+                      "path":  "tools\\shots\\shot-02-mock-fallback-1440.png",
+                      "sourceBytes":  241555,
+                      "installedBytes":  241555,
+                      "sourceSha256":  "e5c849b6ae0ab3f086ac733eab42743219b474506c77a0c0d90aad03a8342181",
+                      "installedSha256":  "e5c849b6ae0ab3f086ac733eab42743219b474506c77a0c0d90aad03a8342181",
+                      "identical":  true
+                  },
+                  {
+                      "path":  "tools\\shots\\shot-03-narrow-900-topology.png",
+                      "sourceBytes":  111842,
+                      "installedBytes":  111842,
+                      "sourceSha256":  "bf4970565968b422d697c09eb327e99fcfad5316c8050ba0e50aaa5ed809a62a",
+                      "installedSha256":  "bf4970565968b422d697c09eb327e99fcfad5316c8050ba0e50aaa5ed809a62a",
+                      "identical":  true
+                  },
+                  {
+                      "path":  "tools\\shots\\cdp-report.json",
+                      "sourceBytes":  13294,
+                      "installedBytes":  13294,
+                      "sourceSha256":  "105959107604bf15f7eba721ed762bd08cb73206cd4872cb76659d1e66a1e374",
+                      "installedSha256":  "105959107604bf15f7eba721ed762bd08cb73206cd4872cb76659d1e66a1e374",
+                      "identical":  true
+                  },
+                  {
+                      "path":  "tools\\shots\\check-page.json",
+                      "sourceBytes":  5627,
+                      "installedBytes":  5627,
+                      "sourceSha256":  "d909f0ca5cfc361d1f8c77ec8c453a415fe54fc66021ce4aaee5b8fb0e5a7cc3",
+                      "installedSha256":  "d909f0ca5cfc361d1f8c77ec8c453a415fe54fc66021ce4aaee5b8fb0e5a7cc3",
+                      "identical":  true
+                  }
+              ]
+}

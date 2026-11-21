@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "HTML 面板",
+    "description": "在侧边栏增加一行，点开后在主区域用 iframe 加载本插件 public/ 目录里的独立 HTML 页面。"
+  }
+}

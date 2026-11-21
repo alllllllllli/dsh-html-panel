@@ -1,0 +1,14 @@
+# dsh-html-panel bundle patch: inserts the plugin row into the profile roster.
+#
+# One row covers both halves of this dual-face plugin:
+#   - the node half (exports ".") runs in the Host process and owns the
+#     `/dsh-html-panel` route that serves `public/` from this package, so the
+#     page is an ordinary file on disk: editing it needs no repack.
+#   - the browser half (exports "./client", served by client-modules) registers
+#     `sidebar.panellist` (the new sidebar row) and the matching keyed `main`
+#     panel that iframes the page.
+#
+# The loader reads this patch at boot, so a change here takes effect on reload.
+- insert:
+    - id: dsh-html-panel
+      name: 'dsh-html-panel'

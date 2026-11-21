@@ -1,0 +1,23 @@
+# 依赖与运行时数据
+node_modules/
+data/
+
+# 日志
+*.log
+
+# 备份
+*.bak*
+
+# 环境变量
+.env
+
+# 大备份页（历史版本，不发布）
+public/index.v1-team-board.html
+public/index.v3-cluster-overview.html
+
+# 注意：public/index.placeholder.html 是回滚件，README 里要保留，故意不排除
+# 注意：tools/shots/ 要发布（README 引用 tools/shots/cdp-report.json），故意不排除
+
+# 发布工作文档，不入库
+TRANSPORT.md
+PUSHED.md

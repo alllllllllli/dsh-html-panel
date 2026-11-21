@@ -1,0 +1,338 @@
+{
+  "page": "public/index.html",
+  "scenarios": [
+    {
+      "name": "real-1440",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "badgeState": "real",
+        "badgeText": "真实 · interconnect",
+        "badgeStamp": "生成 12:20:00",
+        "rects": [
+          "node-rect unknown",
+          "node-rect online",
+          "node-rect online",
+          "node-rect offline"
+        ],
+        "titles": [
+          "mcloud · 未知（未在 interconnect 配置）\n实例：mcloud\n说明：未在 interconnect 配置\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n数据时间：12:20:00",
+          "pc-ky614 · 在线（本实例）\n实例：pc-ky614（本实例）\n角色：主力机 · 集群大管家（RTX 3080）\n数据时间：12:20:00",
+          "server · 在线（链路 up）\n实例：server\norigin：127.0.0.1:13080\n链路：up\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n数据时间：12:20:00",
+          "s5 · 离线（链路 down）\n实例：s5\norigin：127.0.0.1:13082\n链路：down\n角色：步步高 S5 平板 · DSH Mobile\n数据时间：12:20:00"
+        ],
+        "nodes": 4,
+        "pending": 1,
+        "edges": 5,
+        "others": "其它已配置对端：cloud（down）",
+        "othersHidden": false,
+        "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 12:20:00）",
+        "svgWidth": 1100,
+        "panelClientW": 1322,
+        "panelScrollW": 1322,
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "panelErrors": []
+      },
+      "shot": "tools/shots/shot-01-live-data-1440.png",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1230,
+        "scale": 1
+      },
+      "interactions": {
+        "receipts": 1,
+        "receiptText": "12:58:12新会话 · 演示回执：将调用 POST /api/sessions（未发送请求）",
+        "todoLabel": "确认 pc-ky614 隧道 13087 端口",
+        "checkedPersisted": true,
+        "storeHasItems": true,
+        "docTabOpen": true,
+        "docRows": 5,
+        "taskRows": 6,
+        "actionCount": 6,
+        "disabledRestart": true,
+        "todoCount": 4
+      }
+    },
+    {
+      "name": "fallback-404-1440",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "badgeState": "mock",
+        "badgeText": "mock 兜底 · 真实数据不可用：HTTP 404",
+        "badgeStamp": "",
+        "rects": [
+          "node-rect online",
+          "node-rect online",
+          "node-rect online",
+          "node-rect offline"
+        ],
+        "titles": [
+          "mcloud · 在线（mock 示例）\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "pc-ky614 · 在线（mock 示例）\n角色：主力机 · 集群大管家（RTX 3080）\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "server · 在线（mock 示例）\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "s5 · 离线（mock 示例）\n角色：步步高 S5 平板 · DSH Mobile\n说明：mock 兜底，未取到真实 interconnect 数据"
+        ],
+        "nodes": 4,
+        "pending": 1,
+        "edges": 5,
+        "others": "",
+        "othersHidden": true,
+        "svgTitle": "DSH 集群拓扑（mock 兜底 · 未取到真实数据）",
+        "svgWidth": 1100,
+        "panelClientW": 1322,
+        "panelScrollW": 1322,
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "panelErrors": []
+      },
+      "shot": "tools/shots/shot-02-mock-fallback-1440.png",
+      "clip": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 1206,
+        "scale": 1
+      }
+    },
+    {
+      "name": "real-900-topology",
+      "viewport": [
+        900,
+        1000
+      ],
+      "view": {
+        "badgeState": "real",
+        "badgeText": "真实 · interconnect",
+        "badgeStamp": "生成 12:20:00",
+        "rects": [
+          "node-rect unknown",
+          "node-rect online",
+          "node-rect online",
+          "node-rect offline"
+        ],
+        "titles": [
+          "mcloud · 未知（未在 interconnect 配置）\n实例：mcloud\n说明：未在 interconnect 配置\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n数据时间：12:20:00",
+          "pc-ky614 · 在线（本实例）\n实例：pc-ky614（本实例）\n角色：主力机 · 集群大管家（RTX 3080）\n数据时间：12:20:00",
+          "server · 在线（链路 up）\n实例：server\norigin：127.0.0.1:13080\n链路：up\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n数据时间：12:20:00",
+          "s5 · 离线（链路 down）\n实例：s5\norigin：127.0.0.1:13082\n链路：down\n角色：步步高 S5 平板 · DSH Mobile\n数据时间：12:20:00"
+        ],
+        "nodes": 4,
+        "pending": 1,
+        "edges": 5,
+        "others": "其它已配置对端：cloud（down）",
+        "othersHidden": false,
+        "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 12:20:00）",
+        "svgWidth": 836,
+        "panelClientW": 862,
+        "panelScrollW": 862,
+        "scrollWidth": 900,
+        "innerWidth": 900,
+        "panelErrors": []
+      },
+      "shot": "tools/shots/shot-03-narrow-900-topology.png",
+      "clip": {
+        "x": 10,
+        "y": 137,
+        "width": 880,
+        "height": 383,
+        "scale": 2
+      }
+    },
+    {
+      "name": "fallback-badjson",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "badgeState": "mock",
+        "badgeText": "mock 兜底 · 真实数据不可用：响应不是 JSON",
+        "badgeStamp": "",
+        "rects": [
+          "node-rect online",
+          "node-rect online",
+          "node-rect online",
+          "node-rect offline"
+        ],
+        "titles": [
+          "mcloud · 在线（mock 示例）\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "pc-ky614 · 在线（mock 示例）\n角色：主力机 · 集群大管家（RTX 3080）\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "server · 在线（mock 示例）\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "s5 · 离线（mock 示例）\n角色：步步高 S5 平板 · DSH Mobile\n说明：mock 兜底，未取到真实 interconnect 数据"
+        ],
+        "nodes": 4,
+        "pending": 1,
+        "edges": 5,
+        "others": "",
+        "othersHidden": true,
+        "svgTitle": "DSH 集群拓扑（mock 兜底 · 未取到真实数据）",
+        "svgWidth": 1100,
+        "panelClientW": 1322,
+        "panelScrollW": 1322,
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "panelErrors": []
+      }
+    },
+    {
+      "name": "fallback-structure",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "badgeState": "mock",
+        "badgeText": "mock 兜底 · 真实数据不可用：结构不符",
+        "badgeStamp": "",
+        "rects": [
+          "node-rect online",
+          "node-rect online",
+          "node-rect online",
+          "node-rect offline"
+        ],
+        "titles": [
+          "mcloud · 在线（mock 示例）\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "pc-ky614 · 在线（mock 示例）\n角色：主力机 · 集群大管家（RTX 3080）\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "server · 在线（mock 示例）\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "s5 · 离线（mock 示例）\n角色：步步高 S5 平板 · DSH Mobile\n说明：mock 兜底，未取到真实 interconnect 数据"
+        ],
+        "nodes": 4,
+        "pending": 1,
+        "edges": 5,
+        "others": "",
+        "othersHidden": true,
+        "svgTitle": "DSH 集群拓扑（mock 兜底 · 未取到真实数据）",
+        "svgWidth": 1100,
+        "panelClientW": 1322,
+        "panelScrollW": 1322,
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "panelErrors": []
+      }
+    },
+    {
+      "name": "fallback-timeout",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "badgeState": "mock",
+        "badgeText": "mock 兜底 · 真实数据不可用：超时 3s",
+        "badgeStamp": "",
+        "rects": [
+          "node-rect online",
+          "node-rect online",
+          "node-rect online",
+          "node-rect offline"
+        ],
+        "titles": [
+          "mcloud · 在线（mock 示例）\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "pc-ky614 · 在线（mock 示例）\n角色：主力机 · 集群大管家（RTX 3080）\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "server · 在线（mock 示例）\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "s5 · 离线（mock 示例）\n角色：步步高 S5 平板 · DSH Mobile\n说明：mock 兜底，未取到真实 interconnect 数据"
+        ],
+        "nodes": 4,
+        "pending": 1,
+        "edges": 5,
+        "others": "",
+        "othersHidden": true,
+        "svgTitle": "DSH 集群拓扑（mock 兜底 · 未取到真实数据）",
+        "svgWidth": 1100,
+        "panelClientW": 1322,
+        "panelScrollW": 1322,
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "panelErrors": []
+      }
+    },
+    {
+      "name": "fallback-no-interconnect",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "badgeState": "mock",
+        "badgeText": "mock 兜底 · 真实数据不可用：本实例没有 interconnect 服务",
+        "badgeStamp": "",
+        "rects": [
+          "node-rect online",
+          "node-rect online",
+          "node-rect online",
+          "node-rect offline"
+        ],
+        "titles": [
+          "mcloud · 在线（mock 示例）\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "pc-ky614 · 在线（mock 示例）\n角色：主力机 · 集群大管家（RTX 3080）\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "server · 在线（mock 示例）\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n说明：mock 兜底，未取到真实 interconnect 数据",
+          "s5 · 离线（mock 示例）\n角色：步步高 S5 平板 · DSH Mobile\n说明：mock 兜底，未取到真实 interconnect 数据"
+        ],
+        "nodes": 4,
+        "pending": 1,
+        "edges": 5,
+        "others": "",
+        "othersHidden": true,
+        "svgTitle": "DSH 集群拓扑（mock 兜底 · 未取到真实数据）",
+        "svgWidth": 1100,
+        "panelClientW": 1322,
+        "panelScrollW": 1322,
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "panelErrors": []
+      }
+    },
+    {
+      "name": "live-shape-1440",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "badgeState": "real",
+        "badgeText": "真实 · interconnect",
+        "badgeStamp": "生成 12:30:00",
+        "rects": [
+          "node-rect offline",
+          "node-rect online",
+          "node-rect offline",
+          "node-rect offline"
+        ],
+        "titles": [
+          "mcloud · 离线（链路 down）\n实例：mcloud\norigin：127.0.0.1:13086\n链路：down\n角色：云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端\n数据时间：12:30:00",
+          "pc-ky614 · 在线（本实例）\n实例：pc-ky614（本实例）\n角色：主力机 · 集群大管家（RTX 3080）\n数据时间：12:30:00",
+          "server · 离线（链路 down）\n实例：server\norigin：127.0.0.1:13080\n链路：down\n角色：教育局内网服务器 · 7×24 长跑与出网中转\n数据时间：12:30:00",
+          "s5 · 离线（链路 down）\n实例：s5\norigin：127.0.0.1:13082\n链路：down\n角色：步步高 S5 平板 · DSH Mobile\n数据时间：12:30:00"
+        ],
+        "nodes": 4,
+        "pending": 1,
+        "edges": 5,
+        "others": "其它已配置对端：cloud（down）",
+        "othersHidden": false,
+        "svgTitle": "DSH 集群拓扑 · 真实 interconnect 数据（生成 12:30:00）",
+        "svgWidth": 1100,
+        "panelClientW": 1322,
+        "panelScrollW": 1322,
+        "scrollWidth": 1440,
+        "innerWidth": 1440,
+        "panelErrors": []
+      }
+    }
+  ],
+  "checks": {
+    "scenarios": 8,
+    "assertionsPassed": 151,
+    "assertionsFailed": 0,
+    "pageErrors": 0
+  },
+  "pageErrors": [],
+  "ok": true
+}

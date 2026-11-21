@@ -1,0 +1,51 @@
+{
+  "name": "dsh-html-panel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A sidebar row that opens a standalone HTML page (public/index.html) served by this plugin's own Host route and shown in an iframe.",
+  "type": "module",
+  "icon": "./icon.svg",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "lib/cluster.js",
+    "public",
+    "locale/*.json",
+    "cordis.patch.yml",
+    "icon.svg",
+    "README.md"
+  ],
+  "dsh": {
+    "manifestVersion": 1,
+    "engines": {
+      "dsh": ">=0.2.2-rc.3"
+    },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-layout"
+      ]
+    }
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24",
+    "dsh": ">=0.2.2-rc.3"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh": ">=0.2.2-rc.3"
+  },
+  "license": "MIT"
+}

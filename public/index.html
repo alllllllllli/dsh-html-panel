@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#14161a">
+<meta name="description" content="DSH 快捷工作台 / 启动页（集群拓扑接同源真实 interconnect 数据，其余为 mock 兜底）">
+<title>快捷工作台 · DSH</title>
+<!-- 版本 B / v5：v4 快捷工作台 + 集群拓扑（inline SVG）。内联 CSS/JS，零外链；
+     唯一网络请求是同源相对路径 api/cluster（Host 半的只读路由），失败时退回本页 mock。 -->
+<style>
+  :root{
+    --bg:#14161a;
+    --panel:#1a1d23;
+    --panel-2:#1e222a;
+    --raised:#242a33;
+    --line:#2b313b;
+    --line-2:#3a4250;
+    --text:#e8ebf1;
+    --muted:#a2aab8;
+    --dim:#8b93a1;
+    --accent:#7896ff;
+    --accent-2:#4d6bfe;
+    --accent-soft:rgba(120,150,255,.14);
+    --ok:#3ecf8e;
+    --ok-soft:rgba(62,207,142,.12);
+    --warn:#e7a94e;
+    --warn-soft:rgba(231,169,78,.12);
+    --bad:#f2717a;
+    --bad-soft:rgba(242,113,122,.12);
+    --info:#5fb3f2;
+    --info-soft:rgba(95,179,242,.12);
+    --violet:#b48cff;
+    --violet-soft:rgba(180,140,255,.12);
+    --cyan:#4fd6c8;
+    --radius:12px;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 26px rgba(0,0,0,.16);
+    --font:"Segoe UI","Microsoft YaHei","PingFang SC","Hiragino Sans GB",system-ui,-apple-system,sans-serif;
+    --mono:"Cascadia Mono",Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--bg)}
+  body{
+    margin:0;font-family:var(--font);font-size:13.5px;line-height:1.5;color:var(--text);
+    background:
+      radial-gradient(1000px 380px at 8% -10%,rgba(77,107,254,.13),transparent 62%),
+      radial-gradient(900px 340px at 94% -8%,rgba(79,214,200,.06),transparent 60%),
+      var(--bg);
+    min-height:100vh;
+  }
+  a{color:var(--accent)}
+  code,.mono{font-family:var(--mono);font-size:.92em}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  .skip{position:absolute;left:8px;top:-40px;z-index:60;background:var(--accent-2);color:#fff;padding:8px 12px;border-radius:8px;text-decoration:none;transition:top .15s}
+  .skip:focus{top:8px}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+  /* ---------- 顶栏 / 问候 ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    padding:9px 18px;background:rgba(20,22,26,.92);
+    border-bottom:1px solid var(--line);backdrop-filter:blur(10px);
+  }
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{
+    width:28px;height:28px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;
+    background:linear-gradient(145deg,#2a3560,#1d2438);border:1px solid #3a4670;color:var(--accent);font-size:14px;
+  }
+  .brand h1{font-size:14.5px;margin:0;font-weight:650;letter-spacing:.02em;white-space:nowrap}
+  .brand .sub{font-size:11.5px;color:var(--dim);white-space:nowrap}
+  .spacer{flex:1 1 auto}
+  .status-chips{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .chip-status{
+    display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);
+    background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px 9px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:0 0 auto}
+  .dot.ok{background:var(--ok);box-shadow:0 0 0 3px rgba(62,207,142,.14)}
+  .dot.warn{background:var(--warn);box-shadow:0 0 0 3px rgba(231,169,78,.14)}
+  .dot.bad{background:var(--bad);box-shadow:0 0 0 3px rgba(242,113,122,.14)}
+  .dot.unknown{background:var(--dim);box-shadow:0 0 0 3px rgba(139,147,161,.14)}
+
+  .hero{
+    display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    max-width:1360px;margin:0 auto;padding:18px 18px 12px;
+  }
+  .hero .greet h2{font-size:23px;margin:0;font-weight:650;letter-spacing:.01em}
+  .hero .greet .who{color:var(--accent)}
+  .hero .greet p{margin:3px 0 0;color:var(--muted);font-size:12.5px}
+  .hero .greet p .sep{color:var(--line-2);margin:0 6px}
+  .hero .clock-box{text-align:right}
+  .hero .clock{
+    display:block;font-family:var(--mono);font-size:27px;font-weight:600;letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;line-height:1.1;color:var(--text);
+  }
+  .hero .clock-sub{font-size:11.5px;color:var(--dim)}
+
+  /* ---------- 主栅格 ---------- */
+  main{max-width:1360px;margin:0 auto;padding:0 18px 34px}
+  .grid-main{display:grid;grid-template-columns:minmax(250px,.92fr) minmax(330px,1.25fr) minmax(285px,1.02fr);gap:12px;align-items:start}
+  .col{display:flex;flex-direction:column;gap:12px;min-width:0}
+  .panel{
+    background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:12px 13px 13px;min-width:0;
+  }
+  .panel-head{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin:0 0 9px}
+  .panel-head h2{font-size:13.5px;margin:0;font-weight:650;letter-spacing:.03em}
+  .panel-head .hint{font-size:11.5px;color:var(--dim);margin-left:auto}
+  .panel-head .count{font-size:11.5px;color:var(--dim);border:1px solid var(--line-2);border-radius:999px;padding:0 7px}
+  .panel-foot{margin:9px 0 0;padding-top:8px;border-top:1px solid var(--line);font-size:11.5px;color:var(--dim);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .panel-foot .grow{flex:1 1 auto}
+
+  /* ---------- 常用动作 ---------- */
+  .action-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .action{
+    display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+    font:inherit;color:var(--text);background:#171a20;border:1px solid var(--line);
+    border-radius:9px;padding:8px 10px;cursor:pointer;
+    transition:border-color .12s,background .12s,transform .06s;
+  }
+  .action:hover:not(:disabled){border-color:#4a5a7c;background:#1c2130}
+  .action:active:not(:disabled){transform:translateY(1px)}
+  .action:disabled{opacity:.52;cursor:not-allowed}
+  .action .ico{
+    width:26px;height:26px;flex:0 0 auto;border-radius:8px;display:grid;place-items:center;
+    font-size:13px;background:var(--accent-soft);color:var(--accent);border:1px solid rgba(120,150,255,.25);
+  }
+  .action .txt{min-width:0;flex:1 1 auto}
+  .action .txt b{display:block;font-size:12.5px;font-weight:600;line-height:1.35}
+  .action .txt span{display:block;font-size:11px;color:var(--dim);line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .action kbd{
+    font-family:var(--mono);font-size:10.5px;color:var(--dim);background:#101318;
+    border:1px solid var(--line-2);border-bottom-width:2px;border-radius:5px;padding:1px 5px;white-space:nowrap;
+  }
+  .action .soon{font-size:10.5px;color:var(--warn);border:1px solid rgba(231,169,78,.35);border-radius:5px;padding:0 5px;white-space:nowrap}
+  .receipt{
+    margin-top:10px;background:#14171d;border:1px dashed #333c4a;border-radius:9px;padding:8px 10px;
+  }
+  .receipt-head{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--dim);margin-bottom:5px}
+  .receipt-head .grow{flex:1 1 auto}
+  .muted-btn{
+    font:inherit;font-size:11px;color:var(--dim);background:transparent;border:1px solid var(--line-2);
+    border-radius:6px;padding:1px 7px;cursor:pointer;
+  }
+  .muted-btn:hover:not(:disabled){color:var(--text);border-color:#4a5464}
+  .muted-btn:disabled{opacity:.45;cursor:not-allowed}
+  .receipt-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;min-height:38px}
+  .receipt-list li{font-size:11.5px;color:var(--muted);display:flex;gap:7px;align-items:baseline;line-height:1.45}
+  .receipt-list li .t{font-family:var(--mono);font-size:10.5px;color:var(--dim);flex:0 0 auto}
+  .receipt-list li b{color:var(--text);font-weight:600}
+  .receipt-list .placeholder{color:var(--dim);font-style:normal}
+
+  /* ---------- 最近任务 / 文档 ---------- */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 0 4px}
+  .tab{
+    font:inherit;font-size:12.5px;color:var(--muted);background:transparent;border:0;
+    border-bottom:2px solid transparent;padding:6px 10px 7px;cursor:pointer;border-radius:6px 6px 0 0;
+  }
+  .tab:hover{color:var(--text);background:rgba(255,255,255,.03)}
+  .tab[aria-selected="true"]{color:#c9d4ff;border-bottom-color:var(--accent-2);font-weight:600}
+  .tab .n{font-size:10.5px;color:var(--dim);margin-left:4px}
+  .tab-panel{outline-offset:6px}
+  .tab-panel[hidden]{display:none}
+  .item-list{list-style:none;margin:0;padding:0}
+  .item + .item{border-top:1px solid rgba(43,49,59,.7)}
+  .item-row{
+    display:flex;align-items:center;gap:9px;width:100%;text-align:left;font:inherit;color:inherit;
+    background:transparent;border:0;padding:8px 4px;cursor:pointer;border-radius:7px;
+  }
+  .item-row:hover{background:rgba(255,255,255,.035)}
+  .item-row .item-main{min-width:0;flex:1 1 auto;display:block}
+  .item-row .item-title{display:block;font-size:12.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .item-row .item-meta{display:block;font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .item-row .item-meta code{color:#b9c2d2}
+  .chev{color:var(--dim);font-size:11px;flex:0 0 auto;transition:transform .12s}
+  .item-row[aria-expanded="true"] .chev{transform:rotate(90deg)}
+  .st{font-size:10.5px;font-weight:600;border-radius:5px;padding:1px 6px;border:1px solid transparent;white-space:nowrap;flex:0 0 auto}
+  .st.working{color:var(--info);background:var(--info-soft);border-color:rgba(95,179,242,.3)}
+  .st.done{color:var(--ok);background:var(--ok-soft);border-color:rgba(62,207,142,.3)}
+  .st.blocked{color:var(--bad);background:var(--bad-soft);border-color:rgba(242,113,122,.3)}
+  .st.open{color:var(--warn);background:var(--warn-soft);border-color:rgba(231,169,78,.3)}
+  .item-detail{
+    margin:0 4px 8px 4px;background:#14171d;border:1px solid var(--line);border-left:2px solid #3d4a63;
+    border-radius:8px;padding:8px 10px;font-size:11.5px;color:var(--muted);line-height:1.6;
+  }
+  .item-detail .row{display:flex;gap:8px;flex-wrap:wrap}
+  .item-detail .row + .row{margin-top:3px}
+  .item-detail b{color:var(--text);font-weight:600}
+  .item-detail .path{font-family:var(--mono);font-size:10.5px;color:#a9b3c4;overflow-wrap:anywhere}
+  .item-detail .note{margin-top:4px}
+  .doc-ico{
+    width:26px;height:26px;flex:0 0 auto;border-radius:7px;display:grid;place-items:center;
+    font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.02em;
+    background:rgba(180,140,255,.12);border:1px solid rgba(180,140,255,.28);color:var(--violet);
+  }
+  .empty-hint{font-size:11.5px;color:var(--dim);margin:8px 0 0}
+
+  /* ---------- 系统小部件 ---------- */
+  .widget-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .widget{background:#171a20;border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-width:0}
+  .widget.span2{grid-column:1 / -1}
+  .widget .wk{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--dim)}
+  .widget .wv{font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:1px}
+  .widget .wv small{font-size:10.5px;color:var(--dim);font-weight:400;margin-left:4px}
+  .wbar{height:5px;border-radius:999px;background:#0f1217;border:1px solid #262c36;overflow:hidden;margin-top:5px}
+  .wbar span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#4d6bfe,#7896ff)}
+  .wbar.green span{background:linear-gradient(90deg,#2f8f6d,#3ecf8e)}
+  .wbar.amber span{background:linear-gradient(90deg,#a97a2c,#e7a94e)}
+  .disk-row + .disk-row{margin-top:7px}
+  .disk-row .dr{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:11.5px}
+  .disk-row .dr .name{color:var(--muted);font-family:var(--mono);font-size:11px}
+  .disk-row .dr .amt{color:var(--dim);font-size:10.5px;font-variant-numeric:tabular-nums}
+  .spark{display:block;margin-top:4px}
+  .spark polyline{fill:none;stroke:var(--cyan);stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
+  .spark .area{fill:rgba(79,214,200,.10);stroke:none}
+
+  /* ---------- 集群拓扑（inline SVG；节点状态只靠边框色区分） ---------- */
+  .topo-panel{margin:0 0 12px}
+  .topo-figure{margin:0;min-width:0}
+  .topo{
+    display:block;width:100%;max-width:1100px;height:auto;margin:0 auto;
+    font-family:var(--mono);
+  }
+  .topo .edge{stroke:#46505f;stroke-width:1.2;fill:none;vector-effect:non-scaling-stroke}
+  .topo .node-rect{
+    fill:#1b2330;stroke-width:1.4;vector-effect:non-scaling-stroke;
+    transition:stroke .15s,fill .15s;
+  }
+  .topo .node-rect.online{stroke:#5fb3f2;filter:drop-shadow(0 0 5px rgba(95,179,242,.22))}
+  .topo .node-rect.offline{stroke:#565e6d}
+  .topo .node-rect.unknown{stroke:#3f4754;stroke-dasharray:5 4}
+  .topo .node-label{fill:var(--muted);font-size:13px;letter-spacing:.05em}
+  .topo .node,.topo .pending{cursor:help;outline:none}
+  .topo .node:hover .node-rect.online,.topo .node:focus-visible .node-rect.online{fill:#1f2b3a;stroke:#9ad4ff}
+  .topo .node:hover .node-rect.offline,.topo .node:focus-visible .node-rect.offline{fill:#20262f;stroke:#8a93a3}
+  .topo .node:focus-visible .node-rect{stroke-width:2.2}
+  .topo .node:focus-visible .node-label{fill:var(--text)}
+  .topo .pending-dot{
+    fill:none;stroke:#4b5564;stroke-width:1.4;vector-effect:non-scaling-stroke;
+    transition:stroke .15s;
+  }
+  .topo .pending-label{fill:var(--dim);font-size:11px;letter-spacing:.04em}
+  .topo .pending:hover .pending-dot,.topo .pending:focus-visible .pending-dot{stroke:#9aa3b2}
+  .topo .pending:focus-visible .pending-label{fill:var(--muted)}
+  .topo-legend{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:8px;padding-top:8px;
+    border-top:1px solid var(--line);font-size:11.5px;color:var(--dim);
+  }
+  .topo-legend .lg{display:inline-flex;align-items:center;gap:6px}
+  .topo-legend .sw{
+    display:inline-block;flex:0 0 auto;width:16px;height:9px;border-radius:3px;
+    border:1.4px solid #5fb3f2;background:rgba(95,179,242,.10);
+  }
+  .topo-legend .sw.offline{border-color:#565e6d;background:#1b2330}
+  .topo-legend .sw.unknown{width:11px;height:11px;border-radius:50%;border:1.4px dashed #4b5564;background:transparent}
+  .topo-legend .note{margin-left:auto}
+  /* 数据来源 badge：真实 / mock 兜底 / 载入中；颜色复用顶栏状态点 */
+  .topo-src{display:inline-flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
+  .topo-src .dot{width:6px;height:6px}
+  .topo-src .stamp{font-family:var(--mono);font-size:10.5px;color:var(--dim)}
+  .topo-others{margin:7px 0 0;font-size:11.5px;color:var(--dim);line-height:1.5}
+  .topo-others code{color:#b9c2d2}
+  .topo-others[hidden]{display:none}
+
+  /* ---------- 待办 ---------- */
+  .todo-form{display:flex;gap:6px;margin-bottom:8px}
+  .todo-form input{
+    flex:1 1 auto;min-width:0;font:inherit;font-size:12.5px;color:var(--text);
+    background:#14171d;border:1px solid var(--line-2);border-radius:8px;padding:6px 9px;
+  }
+  .todo-form input::placeholder{color:#6d7584}
+  .todo-form input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(120,150,255,.16)}
+  .btn{
+    font:inherit;font-size:12px;color:var(--text);background:var(--raised);
+    border:1px solid var(--line-2);border-radius:8px;padding:6px 12px;cursor:pointer;white-space:nowrap;
+  }
+  .btn:hover{background:#2b323d;border-color:#4a5464}
+  .btn.primary{background:linear-gradient(180deg,#4d6bfe,#3f57d8);border-color:#5c76ff;color:#fff}
+  .btn.primary:hover{background:linear-gradient(180deg,#5c78ff,#4a62e6)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .todo-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+  .todo{
+    display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:7px;
+  }
+  .todo:hover{background:rgba(255,255,255,.03)}
+  .todo input[type="checkbox"]{
+    width:15px;height:15px;flex:0 0 auto;accent-color:#4d6bfe;cursor:pointer;margin:0;
+  }
+  .todo label{flex:1 1 auto;min-width:0;font-size:12.5px;color:var(--text);cursor:pointer;overflow-wrap:anywhere}
+  .todo.is-done label{color:var(--dim);text-decoration:line-through}
+  .todo .del{
+    flex:0 0 auto;font:inherit;font-size:12px;line-height:1;color:var(--dim);background:transparent;
+    border:1px solid transparent;border-radius:6px;padding:3px 5px;cursor:pointer;opacity:0;transition:opacity .1s;
+  }
+  .todo:hover .del,.todo .del:focus-visible{opacity:1}
+  .todo .del:hover{color:var(--bad);border-color:rgba(242,113,122,.35);opacity:1}
+  .todo-empty{font-size:11.5px;color:var(--dim);padding:10px 4px;text-align:center}
+  .todo-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--dim)}
+  .todo-foot .grow{flex:1 1 auto}
+  .store-hint{font-size:10.5px;color:var(--dim)}
+  .store-hint.bad{color:var(--warn)}
+
+  .toast{
+    position:fixed;left:50%;bottom:16px;transform:translate(-50%,14px);
+    background:#232833;border:1px solid #3d4656;border-radius:9px;padding:8px 14px;
+    font-size:12.5px;color:var(--text);box-shadow:var(--shadow);opacity:0;pointer-events:none;
+    transition:opacity .18s,transform .18s;z-index:50;max-width:calc(100vw - 32px);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  @media (prefers-reduced-motion:reduce){
+    .toast,.chev{transition:none}
+    .action:active{transform:none}
+  }
+  @media (max-width:1180px){
+    .grid-main{grid-template-columns:minmax(250px,.9fr) minmax(330px,1.1fr)}
+    .col.c{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+  }
+  @media (max-width:880px){
+    .grid-main{grid-template-columns:1fr}
+    .col.c{grid-template-columns:1fr}
+    .hero{padding-top:12px}
+    .hero .clock{font-size:22px}
+    .hero .greet h2{font-size:20px}
+    main{padding:0 10px 28px}
+    .topbar{padding:8px 10px}
+    .brand .sub{display:none}
+    .topo-legend .note{margin-left:0;flex-basis:100%}
+  }
+  @media (max-height:700px){
+    .hero{padding:10px 18px 8px}
+    .hero .greet h2{font-size:20px}
+    .hero .clock{font-size:22px}
+    .panel{padding:10px 11px 11px}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到主内容</a>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">◈</span>
+    <div>
+      <h1>工作台</h1>
+      <div class="sub">DSH · 快捷启动页</div>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <div class="status-chips">
+    <span class="chip-status"><span class="dot ok" aria-hidden="true"></span>DSH mock 在线</span>
+    <span class="chip-status"><span class="dot ok" aria-hidden="true"></span>共享板 13090 · 11ms</span>
+    <span class="chip-status"><span class="dot bad" aria-hidden="true"></span>s5 离线</span>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="greet">
+    <h2><span id="greeting">你好</span>，<span class="who">ky614</span></h2>
+    <p>
+      <span id="dateLine">—</span>
+      <span class="sep">·</span>mcloud
+      <span class="sep">·</span>共享板 <code>127.0.0.1:13090</code>
+      <span class="sep">·</span>DSH 0.4.0
+    </p>
+  </div>
+  <div class="clock-box">
+    <time class="clock" id="clock" datetime="">--:--:--</time>
+    <span class="clock-sub">本机时间 · Asia/Shanghai</span>
+  </div>
+</div>
+
+<main id="main" tabindex="-1">
+  <noscript><p class="panel">此页面需要启用 JavaScript（集群数据来自同源只读接口 api/cluster，取不到时用本页 mock；不会访问外部网络）。</p></noscript>
+
+  <!-- 集群拓扑：SVG 骨架 + 脚本填充节点/连线（inline SVG，非 canvas）。
+       数据：同源 api/cluster 返回的真实 interconnect 链路；取不到时用 MOCK.topology 渲染并标 mock 兜底。 -->
+  <section class="panel topo-panel" aria-labelledby="topo-h">
+    <div class="panel-head">
+      <h2 id="topo-h">集群拓扑</h2>
+      <span class="hint topo-src" id="topoSource" data-state="loading" aria-live="polite">
+        <span class="dot unknown" id="topoDot" aria-hidden="true"></span>
+        <span id="topoSourceText">真实数据载入中…</span>
+        <span class="stamp" id="topoStamp"></span>
+      </span>
+    </div>
+    <figure class="topo-figure">
+      <svg class="topo" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid meet" role="group" aria-labelledby="topoTitle topoDesc">
+        <title id="topoTitle">DSH 集群拓扑</title>
+        <desc id="topoDesc">mcloud 在上方居中，三条链路分别连到下方的 pc-ky614、server、s5；pc-ky614 与 server、server 与 s5 之间还有横向链路；server 下方一个空心圆表示待接入节点。亮蓝边框为在线，灰色边框为离线，灰色虚线为未知。</desc>
+        <g id="topoEdges"></g>
+        <g id="topoNodes"></g>
+      </svg>
+    </figure>
+    <div class="topo-legend">
+      <span class="lg"><span class="sw" aria-hidden="true"></span>在线</span>
+      <span class="lg"><span class="sw offline" aria-hidden="true"></span>离线</span>
+      <span class="lg"><span class="sw unknown" aria-hidden="true"></span>未知 / 待接入</span>
+      <span class="note">悬停或按 Tab 聚焦节点：title 只显示实例、origin 与链路等本页真能拿到的字段。</span>
+    </div>
+    <p class="topo-others" id="topoOthers" hidden></p>
+  </section>
+
+  <div class="grid-main">
+    <!-- ① 常用动作 -->
+    <div class="col">
+      <section class="panel" aria-labelledby="actions-h">
+        <div class="panel-head">
+          <h2 id="actions-h">常用动作</h2>
+          <span class="hint">点击记录演示回执</span>
+        </div>
+        <ul class="action-list" id="actionList"></ul>
+        <div class="receipt">
+          <div class="receipt-head">
+            <span>动作回执</span>
+            <span class="grow"></span>
+            <button class="muted-btn" type="button" id="clearReceipt" disabled>清空</button>
+          </div>
+          <ul class="receipt-list" id="receiptList" aria-live="polite">
+            <li class="placeholder">还没有动作。点击上方按钮，这里会记录一条本地回执（不会发起真实请求）。</li>
+          </ul>
+        </div>
+        <p class="panel-foot">真实插件里这些动作会回调 DSH 客户端命令；当前是静态原型，回执只记在本页内存里。</p>
+      </section>
+    </div>
+
+    <!-- ② 最近任务 / 文档 -->
+    <div class="col">
+      <section class="panel" aria-labelledby="recent-h">
+        <div class="panel-head">
+          <h2 id="recent-h">最近任务与文档</h2>
+          <span class="hint">共享板 + 报告目录（mock）</span>
+        </div>
+        <div class="tabs" role="tablist" aria-label="最近任务与最近文档">
+          <button class="tab" role="tab" id="tab-tasks" aria-controls="panel-tasks" aria-selected="true" tabindex="0">最近任务<span class="n" id="taskTabCount"></span></button>
+          <button class="tab" role="tab" id="tab-docs" aria-controls="panel-docs" aria-selected="false" tabindex="-1">最近文档<span class="n" id="docTabCount"></span></button>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-tasks" aria-labelledby="tab-tasks" tabindex="0">
+          <ul class="item-list" id="taskList"></ul>
+          <p class="empty-hint">点任务行展开验收口径与证据数；状态取自共享板生命周期。</p>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-docs" aria-labelledby="tab-docs" tabindex="0" hidden>
+          <ul class="item-list" id="docList"></ul>
+          <p class="empty-hint">文档按修改时间倒序；展开可看摘要与完整路径。</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- ③ 系统小部件 + 待办 -->
+    <div class="col c">
+      <section class="panel" aria-labelledby="widgets-h">
+        <div class="panel-head">
+          <h2 id="widgets-h">系统小部件</h2>
+          <span class="hint">本地 mock · 只读</span>
+        </div>
+        <div class="widget-grid">
+          <div class="widget span2">
+            <div class="wk"><span>磁盘</span><span>C: 系统盘 · D: 数据盘</span></div>
+            <div class="disk-row">
+              <div class="dr"><span class="name">C:</span><span class="amt">已用 43 / 80 GB</span></div>
+              <div class="wbar amber" role="img" aria-label="C 盘已用 54%"><span style="width:54%"></span></div>
+            </div>
+            <div class="disk-row">
+              <div class="dr"><span class="name">D:</span><span class="amt">已用 0.3 / 22.3 TB</span></div>
+              <div class="wbar green" role="img" aria-label="D 盘已用 1%"><span style="width:1%"></span></div>
+            </div>
+          </div>
+          <div class="widget">
+            <div class="wk"><span>内存</span><span>32 GB</span></div>
+            <div class="wv">18.4 GB<small>58%</small></div>
+            <div class="wbar" role="img" aria-label="内存已用 58%"><span style="width:58%"></span></div>
+          </div>
+          <div class="widget">
+            <div class="wk"><span>板延迟</span><span>p95 34ms</span></div>
+            <div class="wv"><span id="boardLat">11</span> ms<small>近 200 次采样</small></div>
+            <svg class="spark" id="latSpark" width="100%" height="20" viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true" focusable="false"></svg>
+          </div>
+        </div>
+        <p class="panel-foot">磁盘与内存为占位卡；延迟每 5 秒在 mock 序列上滚动一格。</p>
+      </section>
+
+      <section class="panel" aria-labelledby="todo-h">
+        <div class="panel-head">
+          <h2 id="todo-h">待办</h2>
+          <span class="count" id="todoCount">0 项</span>
+          <span class="hint">勾选自动存本机</span>
+        </div>
+        <form class="todo-form" id="todoForm">
+          <label class="sr-only" for="todoInput">添加待办</label>
+          <input id="todoInput" type="text" maxlength="80" placeholder="添加待办，Enter 保存…" autocomplete="off">
+          <button class="btn primary" type="submit">添加</button>
+        </form>
+        <ul class="todo-list" id="todoList"></ul>
+        <p class="todo-empty" id="todoEmpty" hidden>还没有待办，加一条试试。</p>
+        <div class="panel-foot todo-foot">
+          <span id="todoSummary">0 项未完成</span>
+          <span class="grow"></span>
+          <button class="muted-btn" type="button" id="clearDone" disabled>清除已完成</button>
+        </div>
+        <p class="store-hint" id="storeHint">待办保存在 localStorage，刷新页面不丢。</p>
+      </section>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+   * MOCK —— 全部演示数据集中在这里，不含任何 token / key / 密码。
+   * 集群拓扑已接真实数据：本页载入时 fetch 同源 api/cluster，成功就用真实
+   * interconnect 链路渲染（renderTopology 只有一份逻辑）；失败/超时/形状不符
+   * 才退回本段 MOCK.topology，并在面板上明确标「mock 兜底」。
+   * 其余（动作、任务、文档、磁盘/内存/延迟、待办种子）仍是 mock，未接真实源。
+   * 真实接入：动作按钮改回调 DSH 客户端命令；任务/文档取自共享板与报告目录；
+   * 磁盘/内存/延迟取自本机探测。渲染与交互逻辑不用改。
+   * ===================================================================== */
+  const MOCK = {
+    actions: [
+      { id: 'new-session', label: '新会话', desc: '打开 DSH 新会话', kbd: 'Ctrl+Alt+N', ico: '＋',
+        intent: 'POST /api/sessions', detail: '新建会话并切到默认工作区' },
+      { id: 'dispatch', label: '派发任务', desc: '把任务卡投给对端会话', kbd: '', ico: '⇢',
+        intent: 'mesh_dispatch(taskId, instanceId)', detail: '选择对端实例与会话后投递' },
+      { id: 'board', label: '打开看板', desc: '共享板 127.0.0.1:13090', kbd: '', ico: '▤',
+        intent: 'GET /api/tasks', detail: '只读打开共享板任务列表' },
+      { id: 'notes', label: '查记事', desc: 'OpenViking 记忆检索', kbd: '', ico: '⌕',
+        intent: 'POST /api/search', detail: '按关键词检索长期记忆与资源' },
+      { id: 'latest-report', label: '读最新报告', desc: 'mesh-dev/reports 按时间倒序', kbd: '', ico: '▦',
+        intent: 'GET /reports/latest', detail: '打开最近一份交付报告' }
+    ],
+    disabledAction: { label: '重启 DSH', desc: '本轮红线：不许重启 / 结束进程', ico: '⟳',
+      reason: '本轮任务明确禁止重启或结束 DSH 进程，因此按钮保持禁用（禁用态示例，不是坏按钮）。' },
+    tasks: [
+      { id: 't-4b2e9a01', title: '核对板服务 0.4.0 监听地址', state: 'working', stateText: '进行中',
+        owner: 'verifier', updated: '2 分钟前', evidence: '1 / 3 条证据',
+        acceptance: '监听地址、schema 4、/health 三处取证；每项都要可采信证据。',
+        note: '当前 1 条证据为 fail（/health 超时 2s），门禁已拒过一次完成。' },
+      { id: 't-9fa02b13', title: '汇总 0.4.0 升级清单', state: 'done', stateText: '已完成',
+        owner: 'verifier', updated: '4 分钟前', evidence: '3 / 3 条证据',
+        acceptance: '列出 0.4.0 变更点并标注风险；独立复核通过。',
+        note: '已完成：证据全部可采信，复核人 ≠ 上报人。' },
+      { id: 't-2a90f3c7', title: 'dsh-team-mesh 0.4.0 双机验证', state: 'working', stateText: '进行中',
+        owner: 'dev-core', updated: '12 分钟前', evidence: '2 / 3 条证据',
+        acceptance: 'mcloud 与 server 各起一次实例，互发消息并核对回执。',
+        note: '还差一条链路延迟证据。' },
+      { id: 't-7c1d0e42', title: 'B 版 HTML 面板（集群总览 / 工作台）', state: 'working', stateText: '进行中',
+        owner: 'design-b', updated: '18 分钟前', evidence: '1 / 2 条证据',
+        acceptance: '两个单文件页面 + notes + 截图 + 自检报告。',
+        note: '正在做 v3 / v4 两版页面。' },
+      { id: 't-5e77a0c1', title: '清理 11-14 临时验证目录', state: 'blocked', stateText: '阻塞',
+        owner: 'repo-keeper2', updated: '1 小时前', evidence: '0 / 2 条证据',
+        acceptance: '只删本轮生成的临时目录，删前核对绝对路径。',
+        note: '阻塞：server 上有同名备份目录，需先确认哪份可删。' },
+      { id: 't-3f04d8aa', title: '给板服务加 /metrics 端点', state: 'open', stateText: '待认领',
+        owner: '—', updated: '2 小时前', evidence: '0 / 3 条证据',
+        acceptance: '暴露 sweep/GC/限流/审计计数，格式与现有 JSON 一致。',
+        note: '未认领，可由空闲节点接手。' }
+    ],
+    docs: [
+      { name: 'board-hardening.md', ext: 'md', size: '17.6 KB', updated: '昨天 23:41',
+        path: 'mesh-dev\\reports\\board-hardening.md',
+        note: '板服务硬化：完成门禁、租约收养、限流与 GC 的验收记录。' },
+      { name: 'core-dispatcher.md', ext: 'md', size: '16.5 KB', updated: '昨天 21:08',
+        path: 'mesh-dev\\reports\\core-dispatcher.md',
+        note: '派发器行为：任务卡投递、ack 窗口、超时判定。' },
+      { name: 'two-machine-verify.md', ext: 'md', size: '13.1 KB', updated: '昨天 19:36',
+        path: 'mesh-dev\\reports\\two-machine-verify.md',
+        note: 'mcloud ↔ server 双机互发验证与证据清单。' },
+      { name: 'deploy-docs-0.4.0.md', ext: 'md', size: '10.8 KB', updated: '昨天 17:52',
+        path: 'mesh-dev\\reports\\deploy-docs-0.4.0.md',
+        note: '0.4.0 部署文档与回滚步骤。' },
+      { name: 'lease-adoption.md', ext: 'md', size: '9.5 KB', updated: '11-14 20:15',
+        path: 'mesh-dev\\reports\\lease-adoption.md',
+        note: '租约收养路由：过期租约接管与审计事件。' }
+    ],
+    latency: [12, 11, 14, 10, 13, 11, 9, 12, 15, 11, 10, 11],
+    todosSeed: [
+      { text: '确认 pc-ky614 隧道 13087 端口', done: false },
+      { text: '核对板服务监听地址（t-4b2e9a01）', done: false },
+      { text: '通读两个 HTML 版本的 notes', done: true },
+      { text: '收尾 v3 / v4 截图与自检报告', done: false }
+    ],
+    /* 集群拓扑（mock 兜底）。status 只用 online / offline / unknown 三种；
+       cx / cy 是 1000×300 画布上的节点中心，labelPos 决定名字标在框上方还是下方。
+       这四个 id 是固定槽位：/api/cluster 的 peers 按 instanceId 与它们匹配
+       （mcloud 顶部居中、pc-ky614 下排左、server 下排中、s5 下排右）。
+       这里的 status 只在「真实数据不可用」时渲染，并会被明确标成 mock。 */
+    topology: {
+      nodes: [
+        { id: 'mcloud', label: 'mcloud', cx: 500, cy: 60, labelPos: 'above', anchor: 'middle', status: 'online',
+          role: '云电脑 16 核 / 32 GB · 重计算与 OpenViking 记忆服务端' },
+        { id: 'pc-ky614', label: 'pc-ky614', cx: 126, cy: 186, labelPos: 'above', anchor: 'start', status: 'online',
+          role: '主力机 · 集群大管家（RTX 3080）' },
+        { id: 'server', label: 'server', cx: 500, cy: 186, labelPos: 'below', anchor: 'middle', status: 'online',
+          role: '教育局内网服务器 · 7×24 长跑与出网中转' },
+        { id: 's5', label: 's5', cx: 874, cy: 186, labelPos: 'above', anchor: 'end', status: 'offline',
+          role: '步步高 S5 平板 · DSH Mobile' }
+      ],
+      /* 连线：mcloud 星型连三台 + pc-ky614—server—s5 横向链。布局是固定的，与真实链路状态无关。 */
+      edges: [['mcloud', 'pc-ky614'], ['mcloud', 'server'], ['mcloud', 's5'], ['pc-ky614', 'server'], ['server', 's5']],
+      pending: { cx: 500, cy: 272, r: 16, label: '待接入', role: '未登记的待接入设备' }
+    }
+  };
+
+  const STORE_KEY = 'dsh-workbench-todos-b';
+  const $ = (s, r) => (r || document).querySelector(s);
+  const pad = n => (n < 10 ? '0' + n : String(n));
+
+  /* ---------------- toast ---------------- */
+  let toastTimer = null;
+  function toast(msg) {
+    const el = $('#toast');
+    el.textContent = msg;
+    el.className = 'toast show';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.className = 'toast'; }, 2200);
+  }
+
+  /* ---------------- 时钟 / 问候 ---------------- */
+  function greetingFor(h) {
+    if (h < 5) return '夜深了';
+    if (h < 9) return '早上好';
+    if (h < 12) return '上午好';
+    if (h < 14) return '中午好';
+    if (h < 18) return '下午好';
+    if (h < 23) return '晚上好';
+    return '夜深了';
+  }
+  const WEEK = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  let lastGreeting = '';
+  function tick() {
+    const now = new Date();
+    $('#clock').textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+    $('#clock').setAttribute('datetime', now.toISOString());
+    const g = greetingFor(now.getHours());
+    if (g !== lastGreeting) {
+      $('#greeting').textContent = g;
+      lastGreeting = g;
+    }
+    $('#dateLine').textContent = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + ' ' + WEEK[now.getDay()];
+  }
+
+  /* ---------------- ① 常用动作 ---------------- */
+  const receipts = [];
+  function renderActions() {
+    const html = MOCK.actions.map(function (a) {
+      return '<li><button class="action" type="button" data-action="' + a.id + '">' +
+        '<span class="ico" aria-hidden="true">' + a.ico + '</span>' +
+        '<span class="txt"><b>' + a.label + '</b><span>' + a.desc + '</span></span>' +
+        (a.kbd ? '<kbd>' + a.kbd + '</kbd>' : '') +
+      '</button></li>';
+    }).join('') +
+      '<li><button class="action" type="button" disabled aria-describedby="disabledReason">' +
+        '<span class="ico" aria-hidden="true">' + MOCK.disabledAction.ico + '</span>' +
+        '<span class="txt"><b>' + MOCK.disabledAction.label + '</b><span id="disabledReason">' + MOCK.disabledAction.desc + '</span></span>' +
+        '<span class="soon">禁用</span>' +
+      '</button></li>';
+    $('#actionList').innerHTML = html;
+    $('#actionList').addEventListener('click', function (e) {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      fireAction(btn.getAttribute('data-action'));
+    });
+  }
+  function renderReceipts() {
+    const list = $('#receiptList');
+    if (!receipts.length) {
+      list.innerHTML = '<li class="placeholder">还没有动作。点击上方按钮，这里会记录一条本地回执（不会发起真实请求）。</li>';
+    } else {
+      list.innerHTML = receipts.map(function (r) {
+        return '<li><span class="t">' + r.time + '</span><span><b>' + r.label + '</b> · 演示回执：将调用 <code>' +
+          r.intent + '</code>（未发送请求）</span></li>';
+      }).join('');
+    }
+    $('#clearReceipt').disabled = receipts.length === 0;
+  }
+  function fireAction(id) {
+    const a = MOCK.actions.filter(function (x) { return x.id === id; })[0];
+    if (!a) return;
+    const now = new Date();
+    const time = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+    receipts.unshift({ time: time, label: a.label, intent: a.intent });
+    if (receipts.length > 5) receipts.length = 5;
+    renderReceipts();
+    toast(a.label + '：' + a.detail + '（演示，未发送）');
+  }
+  $('#clearReceipt').addEventListener('click', function () {
+    receipts.length = 0;
+    renderReceipts();
+    toast('动作回执已清空');
+  });
+
+  /* ---------------- ② 任务 / 文档 标签页 ---------------- */
+  function tabSelect(id) {
+    const tabs = [$('#tab-tasks'), $('#tab-docs')];
+    tabs.forEach(function (tab) {
+      const selected = tab.id === id;
+      tab.setAttribute('aria-selected', String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+      const panel = document.getElementById(tab.getAttribute('aria-controls'));
+      if (panel) panel.hidden = !selected;
+    });
+  }
+  function initTabs() {
+    const tabs = [$('#tab-tasks'), $('#tab-docs')];
+    tabs.forEach(function (tab, i) {
+      tab.addEventListener('click', function () { tabSelect(tab.id); });
+      tab.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const next = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+          tabSelect(next.id);
+          next.focus();
+        } else if (e.key === 'Home' || e.key === 'End') {
+          e.preventDefault();
+          const next = e.key === 'Home' ? tabs[0] : tabs[tabs.length - 1];
+          tabSelect(next.id);
+          next.focus();
+        }
+      });
+    });
+  }
+
+  function taskItem(t) {
+    const detailId = 'task-detail-' + t.id;
+    return '<li class="item">' +
+      '<button class="item-row" type="button" aria-expanded="false" aria-controls="' + detailId + '">' +
+        '<span class="st ' + t.state + '">' + t.stateText + '</span>' +
+        '<span class="item-main">' +
+          '<span class="item-title">' + t.title + '</span>' +
+          '<span class="item-meta"><code>' + t.id + '</code> · ' + t.owner + ' · ' + t.updated + ' · ' + t.evidence + '</span>' +
+        '</span>' +
+        '<span class="chev" aria-hidden="true">▸</span>' +
+      '</button>' +
+      '<div class="item-detail" id="' + detailId + '" hidden>' +
+        '<div class="row"><b>验收</b><span>' + t.acceptance + '</span></div>' +
+        '<div class="row"><b>备注</b><span>' + t.note + '</span></div>' +
+      '</div>' +
+    '</li>';
+  }
+  function docItem(d) {
+    const detailId = 'doc-detail-' + d.name.replace(/[^\w-]/g, '');
+    return '<li class="item">' +
+      '<button class="item-row" type="button" aria-expanded="false" aria-controls="' + detailId + '">' +
+        '<span class="doc-ico" aria-hidden="true">' + d.ext.toUpperCase() + '</span>' +
+        '<span class="item-main">' +
+          '<span class="item-title">' + d.name + '</span>' +
+          '<span class="item-meta">' + d.size + ' · ' + d.updated + '</span>' +
+        '</span>' +
+        '<span class="chev" aria-hidden="true">▸</span>' +
+      '</button>' +
+      '<div class="item-detail" id="' + detailId + '" hidden>' +
+        '<div class="row"><b>摘要</b><span>' + d.note + '</span></div>' +
+        '<div class="row"><b>路径</b><span class="path">' + d.path + '</span></div>' +
+      '</div>' +
+    '</li>';
+  }
+  function toggleItem(btn) {
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!expanded));
+    const detail = document.getElementById(btn.getAttribute('aria-controls'));
+    if (detail) detail.hidden = expanded;
+  }
+  function renderRecent() {
+    $('#taskList').innerHTML = MOCK.tasks.map(taskItem).join('');
+    $('#docList').innerHTML = MOCK.docs.map(docItem).join('');
+    $('#taskTabCount').textContent = MOCK.tasks.length;
+    $('#docTabCount').textContent = MOCK.docs.length;
+    ['#taskList', '#docList'].forEach(function (sel) {
+      $(sel).addEventListener('click', function (e) {
+        const btn = e.target.closest('.item-row');
+        if (btn) toggleItem(btn);
+      });
+    });
+  }
+
+  /* ---------------- ③ 板延迟滚动 ---------------- */
+  function sparkPoints(series) {
+    const w = 100, h = 20, max = Math.max.apply(null, series), min = Math.min.apply(null, series);
+    const span = Math.max(1, max - min);
+    return series.map(function (v, i) {
+      const x = (i / (series.length - 1)) * w;
+      const y = h - ((v - min) / span) * (h - 4) - 2;
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+  }
+  function drawSpark() {
+    const pts = sparkPoints(MOCK.latency);
+    const area = '0,20 ' + pts + ' 100,20';
+    $('#latSpark').innerHTML = '<polygon class="area" points="' + area + '"></polygon><polyline points="' + pts + '"></polyline>';
+    $('#boardLat').textContent = String(MOCK.latency[MOCK.latency.length - 1]);
+  }
+
+  /* ---------------- ③ 待办（localStorage） ---------------- */
+  let storageOk = true;
+  let todos = [];
+  function loadTodos() {
+    let loaded = null;
+    try {
+      const raw = window.localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) {
+          loaded = arr.filter(function (t) { return t && typeof t.text === 'string'; }).map(function (t) {
+            return { id: String(t.id || Math.random()), text: String(t.text).slice(0, 80), done: !!t.done };
+          });
+        }
+      }
+    } catch (e) {
+      storageOk = false;
+    }
+    if (loaded && loaded.length) {
+      todos = loaded;
+    } else {
+      todos = MOCK.todosSeed.map(function (t, i) {
+        return { id: 'seed-' + i, text: t.text, done: t.done };
+      });
+      saveTodos();
+    }
+    updateStoreHint();
+  }
+  function saveTodos() {
+    try {
+      window.localStorage.setItem(STORE_KEY, JSON.stringify(todos));
+      storageOk = true;
+    } catch (e) {
+      storageOk = false;
+    }
+    updateStoreHint();
+  }
+  function updateStoreHint() {
+    const hint = $('#storeHint');
+    if (storageOk) {
+      hint.className = 'store-hint';
+      hint.textContent = '待办保存在 localStorage（' + STORE_KEY + '），刷新页面不丢。';
+    } else {
+      hint.className = 'store-hint bad';
+      hint.textContent = 'localStorage 不可用，本次改动只保存在内存里（刷新会丢）。';
+    }
+  }
+  function renderTodos() {
+    const list = $('#todoList');
+    list.innerHTML = '';
+    todos.forEach(function (t) {
+      const li = document.createElement('li');
+      li.className = 'todo' + (t.done ? ' is-done' : '');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = t.done;
+      cb.id = 'todo-cb-' + t.id;
+      cb.setAttribute('aria-label', '标记完成：' + t.text);
+      cb.addEventListener('change', function () {
+        t.done = cb.checked;
+        saveTodos();
+        renderTodos();
+        toast(cb.checked ? '已完成：' + t.text : '已恢复：' + t.text);
+      });
+      const label = document.createElement('label');
+      label.htmlFor = cb.id;
+      label.textContent = t.text;
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'del';
+      del.textContent = '✕';
+      del.setAttribute('aria-label', '删除待办：' + t.text);
+      del.addEventListener('click', function () {
+        todos = todos.filter(function (x) { return x.id !== t.id; });
+        saveTodos();
+        renderTodos();
+        toast('已删除：' + t.text);
+      });
+      li.appendChild(cb);
+      li.appendChild(label);
+      li.appendChild(del);
+      list.appendChild(li);
+    });
+    const left = todos.filter(function (t) { return !t.done; }).length;
+    $('#todoCount').textContent = todos.length + ' 项';
+    $('#todoSummary').textContent = left + ' 项未完成 / 共 ' + todos.length + ' 项';
+    $('#todoEmpty').hidden = todos.length !== 0;
+    $('#clearDone').disabled = todos.every(function (t) { return !t.done; });
+  }
+  function addTodo(text) {
+    const clean = text.trim().slice(0, 80);
+    if (!clean) { toast('待办内容不能为空'); return; }
+    todos.push({ id: 't-' + Date.now() + '-' + Math.floor(Math.random() * 999), text: clean, done: false });
+    saveTodos();
+    renderTodos();
+    toast('已添加待办：' + clean);
+  }
+  function initTodos() {
+    loadTodos();
+    renderTodos();
+    $('#todoForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      addTodo($('#todoInput').value);
+      $('#todoInput').value = '';
+      $('#todoInput').focus();
+    });
+    $('#clearDone').addEventListener('click', function () {
+      const n = todos.filter(function (t) { return t.done; }).length;
+      if (!n) return;
+      todos = todos.filter(function (t) { return !t.done; });
+      saveTodos();
+      renderTodos();
+      toast('已清除 ' + n + ' 项已完成待办');
+    });
+  }
+
+  /* ---------------- ④ 集群拓扑（inline SVG；真实 /api/cluster 数据 + MOCK 兜底） ----------------
+   * 数据流：mockView() 先渲染 ──fetch('api/cluster')──> realView(data) 再渲染。
+   * 两个 build 产出同一种视图模型，renderTopology 只有一份；节点状态只由视图模型决定。
+   * 真实数据里没有心跳这类字段，所以 title 只写实例 / origin / 链路 / 本实例标记 / 数据时间。
+   * ------------------------------------------------------------------------- */
+  const TOPO_STATUS = { online: '在线', offline: '离线', unknown: '未知' };
+  const TOPO_SLOT_IDS = MOCK.topology.nodes.map(function (n) { return n.id; });
+
+  function esc(value) {
+    return String(value).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmtStamp(value) {
+    if (!value) return '';
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+  }
+
+  /* mock 兜底视图：布局与状态都来自 MOCK.topology，title 明确写「mock 示例」 */
+  function mockView() {
+    const topo = MOCK.topology;
+    return {
+      nodes: topo.nodes.map(function (n) {
+        const state = TOPO_STATUS[n.status] || '未知';
+        return {
+          id: n.id, label: n.label, cx: n.cx, cy: n.cy, labelPos: n.labelPos, anchor: n.anchor,
+          status: n.status, self: false, statusText: state,
+          title: n.label + ' · ' + state + '（mock 示例）\n角色：' + n.role +
+            '\n说明：mock 兜底，未取到真实 interconnect 数据',
+        };
+      }),
+      edges: topo.edges,
+      pending: {
+        cx: topo.pending.cx, cy: topo.pending.cy, r: topo.pending.r, label: topo.pending.label,
+        title: '待接入节点 · 未知（mock 示例）\n说明：mock 兜底，未取到真实 interconnect 数据',
+      },
+      others: [],
+      title: 'DSH 集群拓扑（mock 兜底 · 未取到真实数据）',
+    };
+  }
+
+  /* 真实视图：四个固定槽位按 instanceId 匹配 peers；
+     up→在线、down→离线、不在 peers→未知（虚线）；不在槽位里的已配置对端进「其它」一行。 */
+  function realView(data) {
+    const topo = MOCK.topology;
+    const selfId = data.self.instanceId;
+    const peerById = {};
+    data.peers.forEach(function (p) { peerById[p.instanceId] = p; });
+    const stamp = fmtStamp(data.generatedAt);
+    const nodes = topo.nodes.map(function (slot) {
+      const self = slot.id === selfId;
+      const peer = peerById[slot.id] || null;
+      let status, statusText;
+      if (self) {
+        status = 'online';
+        statusText = '在线（本实例）';
+      } else if (peer) {
+        status = peer.link === 'up' ? 'online' : 'offline';
+        statusText = peer.link === 'up' ? '在线（链路 up）' : '离线（链路 down）';
+      } else {
+        status = 'unknown';
+        statusText = '未知（未在 interconnect 配置）';
+      }
+      const lines = [slot.label + ' · ' + statusText, '实例：' + slot.id + (self ? '（本实例）' : '')];
+      if (peer) {
+        lines.push('origin：' + (peer.origin || '未配置或无固定 host:port'));
+        lines.push('链路：' + (peer.link === 'up' ? 'up' : 'down'));
+      } else if (!self) {
+        lines.push('说明：未在 interconnect 配置');
+      }
+      lines.push('角色：' + slot.role);
+      if (stamp) lines.push('数据时间：' + stamp);
+      return {
+        id: slot.id, label: slot.label, cx: slot.cx, cy: slot.cy, labelPos: slot.labelPos, anchor: slot.anchor,
+        status: status, statusText: statusText, self: self, title: lines.join('\n'),
+      };
+    });
+    const otherParts = data.peers.filter(function (p) {
+      return TOPO_SLOT_IDS.indexOf(p.instanceId) === -1;
+    }).map(function (p) {
+      return p.instanceId + '（' + (p.link === 'up' ? 'up' : 'down') + '）';
+    });
+    if (selfId !== 'unknown' && TOPO_SLOT_IDS.indexOf(selfId) === -1) {
+      otherParts.unshift('本实例 ' + selfId + '（up）');
+    }
+    return {
+      nodes: nodes,
+      edges: topo.edges,
+      pending: {
+        cx: topo.pending.cx, cy: topo.pending.cy, r: topo.pending.r, label: topo.pending.label,
+        title: '待接入节点 · 未知\n说明：未登记的待接入设备，不在 interconnect 配置中',
+      },
+      others: otherParts,
+      title: 'DSH 集群拓扑 · 真实 interconnect 数据' + (stamp ? '（生成 ' + stamp + '）' : ''),
+    };
+  }
+
+  function setTopoBadge(kind, text, stamp) {
+    $('#topoSource').setAttribute('data-state', kind);
+    $('#topoDot').className = 'dot ' + (kind === 'real' ? 'ok' : (kind === 'mock' ? 'warn' : 'unknown'));
+    $('#topoSourceText').textContent = text;
+    $('#topoStamp').textContent = stamp ? '生成 ' + stamp : '';
+  }
+
+  function renderTopology(view) {
+    const NODE_W = 192, NODE_H = 60, NODE_RX = 14;
+    const byId = {};
+    view.nodes.forEach(function (n) { byId[n.id] = n; });
+
+    /* 先画连线，再把节点框盖上去：线条自动止于框边，不用手算交点 */
+    $('#topoEdges').innerHTML = view.edges.map(function (pair) {
+      const a = byId[pair[0]], b = byId[pair[1]];
+      if (!a || !b) return '';
+      return '<line class="edge" x1="' + a.cx + '" y1="' + a.cy + '" x2="' + b.cx + '" y2="' + b.cy + '"></line>';
+    }).join('');
+
+    $('#topoNodes').innerHTML = view.nodes.map(function (n) {
+      const x = n.cx - NODE_W / 2;
+      const y = n.cy - NODE_H / 2;
+      const labelX = n.anchor === 'middle' ? n.cx : (n.anchor === 'start' ? x : x + NODE_W);
+      const labelY = n.labelPos === 'above' ? y - 12 : y + NODE_H + 22;
+      return '<g class="node" tabindex="0" role="img" aria-label="' + esc(n.label + '，' + n.statusText) + '">' +
+        '<title>' + esc(n.title) + '</title>' +
+        '<text class="node-label" x="' + labelX + '" y="' + labelY + '" text-anchor="' + n.anchor + '">' + esc(n.label) + '</text>' +
+        '<rect class="node-rect ' + n.status + '" x="' + x + '" y="' + y + '" width="' + NODE_W + '" height="' + NODE_H + '" rx="' + NODE_RX + '"></rect>' +
+      '</g>';
+    }).join('');
+
+    const p = view.pending;
+    $('#topoNodes').insertAdjacentHTML('beforeend',
+      '<g class="pending" tabindex="0" role="img" aria-label="待接入节点，未知">' +
+        '<title>' + esc(p.title) + '</title>' +
+        '<circle class="pending-dot" cx="' + p.cx + '" cy="' + p.cy + '" r="' + p.r + '"></circle>' +
+        '<text class="pending-label" x="' + (p.cx + p.r + 10) + '" y="' + (p.cy + 4) + '">' + esc(p.label) + ' · 未知</text>' +
+      '</g>');
+
+    $('#topoTitle').textContent = view.title;
+
+    const others = $('#topoOthers');
+    if (view.others.length === 0) {
+      others.hidden = true;
+      others.textContent = '';
+    } else {
+      others.hidden = false;
+      others.textContent = '其它已配置对端：' + view.others.join('、');
+    }
+  }
+
+  /* 形状校验：契约不符就当没取到，绝不让坏数据进渲染 */
+  function isClusterPayload(data) {
+    return !!data && typeof data === 'object' &&
+      typeof data.interconnect === 'boolean' &&
+      !!data.self && typeof data.self.instanceId === 'string' &&
+      Array.isArray(data.peers) &&
+      data.peers.every(function (p) { return !!p && typeof p === 'object' && typeof p.instanceId === 'string'; });
+  }
+  function shortReason(error) {
+    if (error && (error.name === 'AbortError' || error.name === 'TimeoutError')) return '超时 3s';
+    return String((error && error.message) || error || '未知原因').slice(0, 80);
+  }
+  function topologyFallback(reason) {
+    renderTopology(mockView());
+    setTopoBadge('mock', 'mock 兜底 · 真实数据不可用：' + reason);
+  }
+
+  async function loadCluster() {
+    let data;
+    try {
+      const signal = typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function'
+        ? AbortSignal.timeout(3000)
+        : undefined;
+      const response = await fetch('api/cluster', {
+        cache: 'no-store',
+        headers: { accept: 'application/json' },
+        signal: signal,
+      });
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      try {
+        data = await response.json();
+      } catch (error) {
+        // 读到一半被 3s 超时打断：保留超时语义，别误报成「不是 JSON」
+        if (error && (error.name === 'AbortError' || error.name === 'TimeoutError')) throw error;
+        throw new Error('响应不是 JSON');
+      }
+    } catch (error) {
+      topologyFallback(shortReason(error));
+      return;
+    }
+    if (!isClusterPayload(data)) { topologyFallback('结构不符'); return; }
+    if (data.interconnect !== true || data.error) {
+      topologyFallback(data.error || '本实例没有 interconnect 服务');
+      return;
+    }
+    const stamp = fmtStamp(data.generatedAt);
+    renderTopology(realView(data));
+    setTopoBadge('real', '真实 · interconnect', stamp);
+  }
+
+  /* ---------------- 初始化 ---------------- */
+  renderActions();
+  renderReceipts();
+  initTabs();
+  renderRecent();
+  renderTopology(mockView());   // 先画 mock 兜底，避免空白；真实数据到了再覆盖
+  loadCluster();
+  drawSpark();
+  initTodos();
+  tick();
+  setInterval(tick, 1000);
+  setInterval(function () {
+    const last = MOCK.latency[MOCK.latency.length - 1];
+    const next = Math.min(22, Math.max(6, last + (Math.random() < 0.5 ? -1 : 1)));
+    MOCK.latency = MOCK.latency.slice(1).concat([next]);
+    drawSpark();
+  }, 5000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,280 @@
+{
+  "file": "public/index.html",
+  "bytes": 56198,
+  "sha256": "2c679e12a979168e029aa69f14ba471ae00bfd38861b549bc9bf9fd2adf04847",
+  "checks": 54,
+  "failed": 0,
+  "pass": true,
+  "results": [
+    {
+      "name": "文件存在且非空",
+      "ok": true,
+      "detail": "56198 B"
+    },
+    {
+      "name": "无 UTF-8 BOM",
+      "ok": true,
+      "detail": "前 3 字节 3c2144"
+    },
+    {
+      "name": "DOCTYPE 在前",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "charset=utf-8",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "lang=zh-CN",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无外部引用：http(s):// 绝对地址",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无外部引用：协议相对地址 src=\"//\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无外部引用：<link> 标签",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无外部引用：@import",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无外部引用：<script src>",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无外部引用：<img src>",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无外部引用：<iframe>",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无外部引用：XMLHttpRequest",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无外部引用：WebSocket",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无外部引用：importScripts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "无外链 url()",
+      "ok": true,
+      "detail": "共 0 个 url()，均为空或 data:"
+    },
+    {
+      "name": "href 仅站内锚点",
+      "ok": true,
+      "detail": "#main"
+    },
+    {
+      "name": "fetch 只有同源相对路径",
+      "ok": true,
+      "detail": "共 2 处 fetch，参数均为相对路径"
+    },
+    {
+      "name": "页面 fetch 的是 api/cluster",
+      "ok": true,
+      "detail": "'api/cluster' | 'api/cluster', {\n        cache: 'no-store',\n        headers: { accept: 'application/json' },\n        signal: signal,\n      }"
+    },
+    {
+      "name": "标签基本闭合",
+      "ok": true,
+      "detail": "栈干净"
+    },
+    {
+      "name": "内联 <style> 恰一段",
+      "ok": true,
+      "detail": "共 1 段"
+    },
+    {
+      "name": "内联 <script> 恰一段且无 src",
+      "ok": true,
+      "detail": "共 1 段"
+    },
+    {
+      "name": "CSS 花括号配平",
+      "ok": true,
+      "detail": "186 { / 186 }"
+    },
+    {
+      "name": "内联 JS 语法可解析",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "JS 开启 use strict",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "JS 有自执行入口",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "MOCK 常量唯一存在",
+      "ok": true,
+      "detail": "共 1 处定义"
+    },
+    {
+      "name": "MOCK 含 topology 段",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "拓扑四槽位 id 齐全",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "拓扑 5 条边",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "mock 兜底视图存在（mockView）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "真实数据视图存在（realView）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "渲染函数只有一份且接视图模型",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "三态都落到 DOM 类上",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "badge 元素齐全",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "真实/兜底两种 badge 文案",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "title 不再编造心跳",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "未知态写清「未在 interconnect 配置」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "其它已配置对端一行",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "使用 inline SVG（非 canvas）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "拓扑 SVG 有 viewBox",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "拓扑 SVG 有 preserveAspectRatio",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "拓扑 SVG 有 <title>/<desc>",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "拓扑节点容器存在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "节点可键盘聚焦（tabindex）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "关键 id 齐全",
+      "ok": true,
+      "detail": "15 个都在"
+    },
+    {
+      "name": "页面 id 不重复",
+      "ok": true,
+      "detail": "40 个静态 id"
+    },
+    {
+      "name": "localStorage 待办键存在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "时钟定时器存在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "动作回执仍在本页内存",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "标签页切换仍在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "暗色主题变量存在",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "系统字体栈（无外链字体）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "窄宽适配（900px 断点）",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}
