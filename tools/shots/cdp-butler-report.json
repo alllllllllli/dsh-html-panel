@@ -4,7 +4,7 @@
     "width": 1440,
     "height": 1000
   },
-  "generatedAt": "2026-11-21T12:37:21.527Z",
+  "generatedAt": "2026-11-27T10:01:45.780Z",
   "checks": [
     {
       "name": "页面标题是大管家",
@@ -27,14 +27,104 @@
       "detail": "actual=\"大管家,任务,集群,记忆,设置\" expected=\"大管家,任务,集群,记忆,设置\""
     },
     {
-      "name": "示例对话 badge 明确标注",
+      "name": "中栏顶部标题=绑定会话标题",
       "ok": true,
-      "detail": "needle=示例对话"
+      "detail": "actual=\"主控会话\" expected=\"主控会话\""
     },
     {
-      "name": "示例对话 badge 说明不是真实聊天",
+      "name": "中栏顶部显示真实会话状态",
       "ok": true,
-      "detail": "needle=不是真实聊天"
+      "detail": "needle=运行中"
+    },
+    {
+      "name": "绑定方式=自动最近根会话",
+      "ok": true,
+      "detail": "actual=\"自动 · 最近根会话\" expected=\"自动 · 最近根会话\""
+    },
+    {
+      "name": "真实对话渲染 4 条消息",
+      "ok": true,
+      "detail": "actual=4 expected=4"
+    },
+    {
+      "name": "主人消息 1 条",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "系统注入 1 条（灰条）",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "助手消息 2 条",
+      "ok": true,
+      "detail": "actual=2 expected=2"
+    },
+    {
+      "name": "工具卡 2 张（折叠）",
+      "ok": true,
+      "detail": "actual=2 expected=2"
+    },
+    {
+      "name": "思考块 1 个（默认折叠）",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "时间分隔出现",
+      "ok": true,
+      "detail": "seps=2"
+    },
+    {
+      "name": "工具卡有工具名",
+      "ok": true,
+      "detail": "needle=read"
+    },
+    {
+      "name": "工具卡有结果摘要",
+      "ok": true,
+      "detail": "needle=25 tests"
+    },
+    {
+      "name": "中栏不再有示例对话",
+      "ok": true,
+      "detail": "11-21 15:51你15:51按 M0+M1 把中栏换成真实会话对话，右栏用真实状态；写通道先不开。系统注入 · context15:52系统注入上下文（f"
+    },
+    {
+      "name": "会话选择器选项=自动+4 个本机会话",
+      "ok": true,
+      "detail": "actual=5 expected=5"
+    },
+    {
+      "name": "加载更早消息按钮可见（hasMore=true）",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "composer 状态条显示消息/工具计数",
+      "ok": true,
+      "detail": "needle=消息 4 · 工具 2"
+    },
+    {
+      "name": "对话顶部标只读",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "输入框禁用（写通道不可用）",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "发送按钮禁用（写通道不可用）",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "写通道禁用原因写明（自动绑定 / 未注入）",
+      "ok": true,
+      "detail": "needle=写通道"
     },
     {
       "name": "cluster 真实",
@@ -87,9 +177,29 @@
       "detail": "actual=\"1/4\" expected=\"1/4\""
     },
     {
-      "name": "三问条出现（真实数据里有需要人/系统问题）",
+      "name": "细状态条出现（始终在，不占大块）",
       "ok": true,
       "detail": "actual=true expected=true"
+    },
+    {
+      "name": "无 high 告警时状态条默认收起（摘要行可见）",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "状态详情面板默认隐藏",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "细状态条摘要给出需要你/在管/板任务",
+      "ok": true,
+      "detail": "needle=需要你"
+    },
+    {
+      "name": "细状态条含健康/降级 chip",
+      "ok": true,
+      "detail": "needle=项降级"
     },
     {
       "name": "三问计数=列表长度（需要我 3 mesh + 1 官方可认领）",
@@ -115,6 +225,16 @@
       "name": "三问健康行点名 down 对端",
       "ok": true,
       "detail": "needle=s5"
+    },
+    {
+      "name": "点展开箭头 → data-expanded=true",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "展开后详情面板出现",
+      "ok": true,
+      "detail": "actual=true expected=true"
     },
     {
       "name": "右栏节点总数（1+4+6+2）",
@@ -165,6 +285,36 @@
       "name": "降级原因来自接口",
       "ok": true,
       "detail": "needle=远端设备的子代理层级不可见"
+    },
+    {
+      "name": "右栏 8 个跨机节点标只读",
+      "ok": true,
+      "detail": "actual=8 expected=8"
+    },
+    {
+      "name": "右栏只读 tag 至少 8 个",
+      "ok": true,
+      "detail": "roTags=8"
+    },
+    {
+      "name": "右栏状态文案有等审批（真实 state 映射）",
+      "ok": true,
+      "detail": "needle=等审批"
+    },
+    {
+      "name": "右栏状态文案有运行中",
+      "ok": true,
+      "detail": "needle=运行中"
+    },
+    {
+      "name": "右栏数据源写明 sessionController",
+      "ok": true,
+      "detail": "needle=sessionController"
+    },
+    {
+      "name": "右栏说明状态来自 sessionController",
+      "ok": true,
+      "detail": "needle=状态来自 sessionController"
     },
     {
       "name": "1440 无横向溢出",
@@ -287,9 +437,19 @@
       "detail": "actual=\"settings\" expected=\"settings\""
     },
     {
-      "name": "设置页插件版本 0.6.0",
+      "name": "设置页插件版本 0.8.1",
       "ok": true,
-      "detail": "actual=\"0.6.0\" expected=\"0.6.0\""
+      "detail": "actual=\"0.8.1\" expected=\"0.8.1\""
+    },
+    {
+      "name": "设置页驾驶舱状态显示真实绑定",
+      "ok": true,
+      "detail": "needle=绑定"
+    },
+    {
+      "name": "设置页驾驶舱状态说明只读",
+      "ok": true,
+      "detail": "needle=只读"
     },
     {
       "name": "设置页官方任务板数据源可见",
@@ -492,6 +652,286 @@
       "detail": "needle=官方任务板不可用"
     },
     {
+      "name": "M0 404 时 dataset.butler=missing",
+      "ok": true,
+      "detail": "actual=\"missing\" expected=\"missing\""
+    },
+    {
+      "name": "M0 404 时右栏退回 tiers 真实层级（13 节点）",
+      "ok": true,
+      "detail": "actual=13 expected=13"
+    },
+    {
+      "name": "右栏写明「右栏状态降级」",
+      "ok": true,
+      "detail": "needle=右栏状态降级"
+    },
+    {
+      "name": "右栏写明 M0 路由 404",
+      "ok": true,
+      "detail": "needle=404"
+    },
+    {
+      "name": "对话 404 时不显示任何消息（不编对话）",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "对话 404 时显示诚实空态",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "对话 404 时提示路由未加载",
+      "ok": true,
+      "detail": "needle=404"
+    },
+    {
+      "name": "对话 404 时提示需要重启",
+      "ok": true,
+      "detail": "needle=重启"
+    },
+    {
+      "name": "404 时绑定方式写明需重启生效",
+      "ok": true,
+      "detail": "actual=\"绑定需重启后生效\" expected=\"绑定需重启后生效\""
+    },
+    {
+      "name": "404 时加载更早消息按钮隐藏",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "404 时右栏说明是层级快照",
+      "ok": true,
+      "detail": "needle=层级快照"
+    },
+    {
+      "name": "设置页写明驾驶舱路由未加载",
+      "ok": true,
+      "detail": "needle=404"
+    },
+    {
+      "name": "写通道 dataset=on",
+      "ok": true,
+      "detail": "actual=\"on\" expected=\"on\""
+    },
+    {
+      "name": "专属会话 pin 标签可见",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "pin 标签文案「大管家 · 常驻」",
+      "ok": true,
+      "detail": "needle=大管家 · 常驻"
+    },
+    {
+      "name": "pin 标注领导预设（agentPreset）",
+      "ok": true,
+      "detail": "needle=领导预设"
+    },
+    {
+      "name": "绑定方式=配置固定 · 专属会话",
+      "ok": true,
+      "detail": "actual=\"配置固定 · 专属会话\" expected=\"配置固定 · 专属会话\""
+    },
+    {
+      "name": "写通道可用：输入框启用",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "写通道可用：发送按钮启用",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "写通道可用：显示「可发送」tag",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "composer 说明写通道已开",
+      "ok": true,
+      "detail": "needle=写通道已开"
+    },
+    {
+      "name": "无 high 告警时状态条默认收起",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "状态详情默认隐藏（细条只占一行）",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "状态条摘要含在管活会话",
+      "ok": true,
+      "detail": "needle=在管"
+    },
+    {
+      "name": "设置页专属会话显示已绑定",
+      "ok": true,
+      "detail": "needle=已绑定"
+    },
+    {
+      "name": "设置页写通道显示已开启",
+      "ok": true,
+      "detail": "needle=已开启"
+    },
+    {
+      "name": "展开后 data-expanded=true",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "展开后详情面板出现",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "展开后原三问三块都在 DOM",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "点发送先弹二次确认（没有直接发）",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "确认框目标写明专属会话",
+      "ok": true,
+      "detail": "needle=大管家 · 常驻"
+    },
+    {
+      "name": "确认框预览原文",
+      "ok": true,
+      "detail": "needle=连通性测试"
+    },
+    {
+      "name": "确认前不发请求",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "取消后确认框关闭且未发送",
+      "ok": true,
+      "detail": "actual=\"false/0\" expected=\"false/0\""
+    },
+    {
+      "name": "确认后真的 POST 一次 say",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "say 请求带页面注入 token",
+      "ok": true,
+      "detail": "actual=\"cdp-fixture-write-token\" expected=\"cdp-fixture-write-token\""
+    },
+    {
+      "name": "say 目标会话=专属会话",
+      "ok": true,
+      "detail": "actual=\"session-butler\" expected=\"session-butler\""
+    },
+    {
+      "name": "say 内容来自输入框",
+      "ok": true,
+      "detail": "needle=连通性测试"
+    },
+    {
+      "name": "发送成功后输入框清空",
+      "ok": true,
+      "detail": "actual=\"\" expected=\"\""
+    },
+    {
+      "name": "发送回执写明已发送",
+      "ok": true,
+      "detail": "needle=已发送"
+    },
+    {
+      "name": "900 窄屏无横向溢出（0.8.0 状态条）",
+      "ok": true,
+      "detail": "overflow=0"
+    },
+    {
+      "name": "900 窄屏状态详情仍按收起",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "会话不存在时 pin 标签仍在（配置固定）",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "显示「重建专属会话」按钮",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "绑定条写明「大管家会话不存在」",
+      "ok": true,
+      "detail": "needle=大管家会话不存在"
+    },
+    {
+      "name": "会话不存在时写通道禁用",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "未创建时 pin 标签仍在（配置固定）",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "未创建时 pin 标注领导预设",
+      "ok": true,
+      "detail": "needle=领导预设"
+    },
+    {
+      "name": "未创建时显示创建按钮",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "创建按钮文案",
+      "ok": true,
+      "detail": "needle=创建专属会话"
+    },
+    {
+      "name": "绑定条写明专属会话尚未创建",
+      "ok": true,
+      "detail": "needle=专属会话尚未创建"
+    },
+    {
+      "name": "绑定条写明预设名",
+      "ok": true,
+      "detail": "needle=butler-lead"
+    },
+    {
+      "name": "未创建时写通道禁用",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "点创建 → 真的 POST 一次 session ensure",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "创建请求 action=ensure",
+      "ok": true,
+      "detail": "actual=\"ensure\" expected=\"ensure\""
+    },
+    {
+      "name": "创建成功 toast 有回执",
+      "ok": true,
+      "detail": "needle=专属会话已创建"
+    },
+    {
       "name": "页面 JS 报错为 0",
       "ok": true,
       "detail": "[]"
@@ -504,12 +944,14 @@
     {
       "name": "截图数量 ≥ 5",
       "ok": true,
-      "detail": "shots=14"
+      "detail": "shots=24"
     }
   ],
   "shots": [
     "tools/shots/shot-butler-01-dashboard-1440.png",
+    "tools/shots/shot-butler07-dialog-1440.png",
     "tools/shots/shot-butler-02-tasks-1440.png",
+    "tools/shots/shot-butler07-tasks-1440.png",
     "tools/shots/shot-butler-14-official-board-1440.png",
     "tools/shots/shot-butler-03-cluster-1440.png",
     "tools/shots/shot-butler-04-memory-1440.png",
@@ -518,10 +960,18 @@
     "tools/shots/shot-butler-07-action-unsupported-1440.png",
     "tools/shots/shot-butler-08-tiers-selected-1440.png",
     "tools/shots/shot-butler-09-narrow-900.png",
+    "tools/shots/shot-butler07-narrow-900.png",
     "tools/shots/shot-butler-10-narrow-900-drawer.png",
     "tools/shots/shot-butler-11-tiers-degraded-1440.png",
     "tools/shots/shot-butler-12-tiers-404-1440.png",
-    "tools/shots/shot-butler-13-mock-fallback-1440.png"
+    "tools/shots/shot-butler-13-mock-fallback-1440.png",
+    "tools/shots/shot-butler-15-m0-404-1440.png",
+    "tools/shots/shot-butler08-status-collapsed-1440.png",
+    "tools/shots/shot-butler08-status-expanded-1440.png",
+    "tools/shots/shot-butler08-confirm-1440.png",
+    "tools/shots/shot-butler08-narrow-900.png",
+    "tools/shots/shot-butler08-rebuild-1440.png",
+    "tools/shots/shot-butler08-create-unbound-1440.png"
   ],
   "pageErrors": [],
   "runtimeErrors": [],
@@ -529,49 +979,125 @@
     {
       "name": "real",
       "dataset": {
+        "statusbar": "collapsed",
         "cluster": "real",
         "board": "real",
         "host": "real",
         "tiers": "real",
         "alerts": "missing",
+        "butler": "real",
+        "dialog": "real",
+        "write": "off",
         "page": "butler"
       }
     },
     {
       "name": "degraded",
       "dataset": {
+        "statusbar": "collapsed",
         "cluster": "real",
         "board": "real",
         "host": "real",
         "tiers": "real",
         "alerts": "missing",
+        "butler": "missing",
+        "dialog": "missing",
+        "write": "off",
         "page": "butler"
       }
     },
     {
       "name": "tiers404",
       "dataset": {
+        "statusbar": "collapsed",
         "cluster": "real",
         "board": "real",
         "host": "real",
         "tiers": "missing",
         "alerts": "missing",
+        "butler": "missing",
+        "dialog": "missing",
+        "write": "off",
         "page": "butler"
       }
     },
     {
       "name": "mock",
       "dataset": {
+        "statusbar": "collapsed",
         "cluster": "mock",
         "board": "mock",
         "host": "mock",
         "tiers": "missing",
         "alerts": "missing",
+        "butler": "missing",
+        "dialog": "missing",
+        "write": "off",
+        "page": "butler"
+      }
+    },
+    {
+      "name": "butler404",
+      "dataset": {
+        "statusbar": "collapsed",
+        "cluster": "real",
+        "board": "real",
+        "host": "real",
+        "tiers": "real",
+        "alerts": "missing",
+        "butler": "missing",
+        "dialog": "missing",
+        "write": "off",
+        "page": "butler"
+      }
+    },
+    {
+      "name": "real-pinned",
+      "dataset": {
+        "statusbar": "collapsed",
+        "cluster": "real",
+        "board": "real",
+        "host": "real",
+        "tiers": "real",
+        "alerts": "missing",
+        "butler": "real",
+        "dialog": "real",
+        "write": "on",
+        "page": "butler"
+      }
+    },
+    {
+      "name": "real-pinned-missing",
+      "dataset": {
+        "statusbar": "collapsed",
+        "cluster": "real",
+        "board": "real",
+        "host": "real",
+        "tiers": "real",
+        "alerts": "missing",
+        "butler": "real",
+        "dialog": "real",
+        "write": "off",
+        "page": "butler"
+      }
+    },
+    {
+      "name": "real-unbound",
+      "dataset": {
+        "statusbar": "collapsed",
+        "cluster": "real",
+        "board": "real",
+        "host": "real",
+        "tiers": "real",
+        "alerts": "missing",
+        "butler": "real",
+        "dialog": "missing",
+        "write": "off",
         "page": "butler"
       }
     }
   ],
   "ok": true,
   "failed": 0,
-  "passed": 100
+  "passed": 188
 }

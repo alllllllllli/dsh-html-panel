@@ -511,7 +511,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .stale-banner[hidden]{display:none}
 .stale-banner span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* ---------- 大管家页：示例对话 badge / 报告 / 回执 / 快捷动作 ---------- */
+/* ---------- 大管家页：报告 / 回执 / 快捷动作 / 轨迹占位 ---------- */
 .demo-badge{
   display:inline-flex;align-items:center;gap:6px;align-self:flex-start;
   margin:0;padding:3px 9px;border-radius:999px;
@@ -700,9 +700,23 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .degraded[hidden]{display:none}
 #tierSourceHint{margin-top:1px}
 
-/* ---------- 0.5.0：三问条（官方 docs/005-panel.md 信息架构） ---------- */
-.tq-bar{display:flex;flex-direction:column;gap:6px;flex:0 0 auto;padding:10px 20px 0;margin:0}
-.tq-bar[hidden]{display:none}
+/* ---------- 0.8.0：一行细状态条（替代 0.5.0 三问条的主位） ---------- */
+.status-bar{flex:0 0 auto;display:flex;flex-direction:column;min-width:0;margin:0;padding:0 16px;border-bottom:1px solid var(--border-l1);background:var(--bg-base)}
+.sb-main{display:flex;align-items:center;gap:8px;width:100%;min-height:40px;max-height:44px;padding:0 2px;border:0;background:transparent;color:var(--label-secondary);font-family:var(--font);font-size:12px;line-height:18px;text-align:left;cursor:pointer;min-width:0}
+.sb-main:hover .sb-summary{color:var(--label-primary)}
+.sb-main:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:var(--radius-xs)}
+.sb-main .dot{flex:0 0 auto;width:7px;height:7px}
+.sb-summary{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--label-secondary);font-variant-numeric:tabular-nums}
+.sb-chips{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;min-width:0}
+.sb-chip{display:inline-flex;align-items:center;gap:4px;padding:0 6px;border-radius:999px;border:1px solid var(--border-l1);background:var(--bg-layer-2);color:var(--label-tertiary);font-size:10px;line-height:16px;white-space:nowrap}
+.sb-chip.warn{color:var(--amber);border-color:rgba(245,158,11,.45);background:rgba(245,158,11,.1)}
+.sb-chip.bad{color:var(--red);border-color:rgba(242,90,90,.45);background:rgba(242,90,90,.1)}
+.sb-chip.ok{color:var(--green-soft);border-color:rgba(52,199,123,.4);background:rgba(52,199,123,.08)}
+.sb-chip.write{color:var(--accent);border-color:rgba(122,170,255,.45);background:rgba(122,170,255,.08)}
+.sb-chev{flex:0 0 auto;margin-left:auto;transition:transform .15s ease;color:var(--label-caption)}
+.status-bar[data-expanded="true"] .sb-chev{transform:rotate(180deg)}
+.status-detail{display:flex;flex-direction:column;gap:6px;padding:0 0 8px;min-width:0}
+.status-detail[hidden]{display:none}
 .tq-block{display:flex;align-items:flex-start;gap:10px;min-width:0;padding:7px 10px;border-radius:var(--radius-md);background:var(--bg-layer-1);border:1px solid var(--border-l1)}
 .tq-block[hidden]{display:none}
 .tq-block.is-warn{border-color:rgba(245,158,11,.4)}
@@ -714,6 +728,11 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .tq-who{color:var(--label-caption);white-space:nowrap}
 .tq-who b{color:var(--label-secondary);font-weight:500;white-space:normal}
 .tq-want{color:var(--label-tertiary)}
+@media (max-width:980px){
+  .status-bar{padding:0 10px}
+  .sb-main{min-height:38px;max-height:40px;gap:6px}
+  .sb-chip:nth-child(n+3){display:none}
+}
 
 /* ---------- 0.6.0：TRAIL 告警卡（三问第一问 + 任务卡片标记） ---------- */
 .al-sev{display:inline-flex;align-items:center;gap:4px;padding:0 7px;border-radius:999px;font-size:10.5px;line-height:17px;font-weight:500;white-space:nowrap;border:1px solid transparent}
@@ -759,6 +778,71 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .src-tag{display:inline-block;margin-left:7px;padding:0 5px;border-radius:var(--radius-xs);border:1px solid var(--border-l1);background:var(--bg-layer-2);color:var(--label-caption);font-family:var(--font);font-size:9.5px;line-height:14px;font-weight:500;vertical-align:1px;white-space:nowrap}
 .src-tag.official{border-color:rgba(122,170,255,.45);background:rgba(122,170,255,.08);color:var(--accent)}
 .mode-tag{display:inline-block;margin-left:6px;padding:0 5px;border-radius:var(--radius-xs);border:1px solid var(--border-l1);background:var(--bg-layer-2);color:var(--label-caption);font-size:9.5px;line-height:14px;vertical-align:1px;white-space:nowrap}
+
+/* ---------- 0.7.0 驾驶舱：绑定条 / 真实对话 / 工具卡 / 只读标注 ---------- */
+.bind-bar{flex:0 0 auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 16px;border-bottom:1px solid var(--border-l1);min-width:0}
+.bind-lab{font-size:11.5px;color:var(--label-caption);white-space:nowrap}
+.session-pick{max-width:min(430px,52vw);height:26px;border-radius:var(--radius-xs);border:1px solid var(--border-l1);background:var(--bg-layer-2);color:var(--label-primary);font-family:var(--font);font-size:11.5px;padding:0 6px;outline:none}
+.session-pick:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.bind-mode{font-size:10.5px;color:var(--label-caption);border:1px solid var(--border-l1);border-radius:var(--radius-xs);padding:0 5px;line-height:16px;white-space:nowrap}
+/* ---------- 0.8.0：专属会话绑定 / 写通道 / 二次确认 ---------- */
+.pin-tag{display:inline-flex;align-items:center;gap:4px;padding:0 7px;border-radius:999px;border:1px solid rgba(122,170,255,.45);background:rgba(122,170,255,.1);color:var(--accent);font-size:10.5px;line-height:18px;white-space:nowrap}
+.pin-tag[hidden]{display:none}
+.write-tag{display:inline-flex;align-items:center;gap:4px;padding:0 6px;border-radius:999px;border:1px solid rgba(52,199,123,.4);background:rgba(52,199,123,.1);color:var(--green-soft);font-size:10px;line-height:17px;white-space:nowrap}
+.write-tag[hidden]{display:none}
+.bind-note{flex:1 1 100%;min-width:0;font-size:10.5px;line-height:16px;color:var(--label-tertiary);overflow-wrap:anywhere}
+.bind-note[hidden]{display:none}
+.bind-note.bad{color:var(--red)}
+.rebuild-btn{height:22px;padding:0 8px;border-radius:var(--radius-xs);border:1px solid rgba(122,170,255,.5);background:rgba(122,170,255,.1);color:var(--accent);font-family:var(--font);font-size:10.5px;cursor:pointer;white-space:nowrap}
+.rebuild-btn[hidden]{display:none}
+.rebuild-btn:disabled{opacity:.55;cursor:default}
+.confirm-mask{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);padding:20px}
+.confirm-mask[hidden]{display:none}
+.confirm-card{width:min(480px,92vw);max-height:80vh;overflow:auto;border-radius:var(--radius-lg);border:1px solid var(--border-l2);background:var(--bg-layer-1);box-shadow:var(--elevation-panel);padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.confirm-title{margin:0;font-size:14px;line-height:20px;font-weight:600;color:var(--label-primary)}
+.confirm-text{margin:0;font-size:12px;line-height:19px;color:var(--label-secondary);overflow-wrap:anywhere}
+.confirm-preview{margin:0;max-height:120px;overflow:auto;padding:8px 10px;border-radius:var(--radius-sm);border:1px solid var(--border-l1);background:var(--bg-base);color:var(--label-primary);font-size:12px;line-height:18px;white-space:pre-wrap;overflow-wrap:anywhere}
+.confirm-warn{margin:0;font-size:11px;line-height:17px;color:var(--amber)}
+.confirm-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:2px}
+.confirm-actions .btn{height:28px;padding:0 12px;font-size:12px}
+.composer-input:disabled{opacity:.7;cursor:not-allowed}
+.send[disabled]{opacity:.5;cursor:not-allowed}
+.dlg-state{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--label-secondary);white-space:nowrap}
+.dlg-state .dot{width:7px;height:7px}
+.ro-tag{display:inline-block;margin-left:6px;padding:0 4px;border-radius:var(--radius-xs);border:1px solid var(--border-l1);color:var(--label-caption);font-size:9.5px;line-height:14px;vertical-align:1px;white-space:nowrap}
+.dialog-empty{margin:22px auto;max-width:600px;text-align:center;color:var(--label-caption);font-size:12.5px;line-height:20px;padding:14px 16px;border:1px dashed var(--border-l1);border-radius:var(--radius-sm);background:var(--bg-layer-1);overflow-wrap:anywhere}
+.dialog-empty strong{color:var(--label-primary);font-weight:600}
+.load-earlier{display:flex;align-items:center;gap:8px;justify-content:center;padding:2px 0 10px}
+.load-earlier[hidden]{display:none}
+.dlg-sep{display:flex;align-items:center;gap:10px;margin:14px 0 8px;color:var(--label-caption);font-size:10.5px}
+.dlg-sep::before,.dlg-sep::after{content:"";height:1px;flex:1 1 auto;background:var(--border-l1)}
+.msg.notice{margin-top:10px}
+.msg.notice .body{color:var(--label-secondary);background:var(--bg-layer-2);border:1px solid var(--border-l1);border-radius:var(--radius-sm);padding:8px 10px;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.notice .who{color:var(--label-caption);font-weight:500}
+.dlg-text{white-space:pre-wrap;overflow-wrap:anywhere}
+.dlg-tag{display:inline-block;margin-left:6px;padding:0 5px;border-radius:var(--radius-xs);border:1px solid rgba(244,178,86,.4);color:var(--amber);font-size:9.5px;line-height:15px;vertical-align:1px}
+.tools{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.tcard{border:1px solid var(--border-l1);border-radius:var(--radius-sm);background:var(--bg-layer-1);overflow:hidden}
+.tcard summary{display:flex;align-items:center;gap:8px;padding:6px 9px;cursor:pointer;list-style:none;min-width:0;font-size:11.5px;color:var(--label-secondary)}
+.tcard summary::-webkit-details-marker{display:none}
+.tcard summary .chev{transition:transform .15s ease}
+.tcard[open] summary .chev{transform:rotate(90deg)}
+.tcard.err{border-color:rgba(255,110,110,.35)}
+.tname{color:var(--label-primary);white-space:nowrap}
+.targs{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--label-caption)}
+.tstat{flex:0 0 auto;color:var(--green);font-size:10.5px}
+.tcard.err .tstat{color:var(--red)}
+.tbody{padding:2px 10px 8px;border-top:1px solid var(--border-l1);display:flex;flex-direction:column;gap:5px}
+.trow{display:flex;gap:8px;font-size:11px;line-height:17px;min-width:0}
+.tk{flex:0 0 auto;color:var(--label-caption)}
+.tv{min-width:0;overflow-wrap:anywhere;color:var(--label-secondary);white-space:pre-wrap}
+.composer-ro{display:flex;align-items:center;gap:6px;padding:0 14px 2px;font-size:10.5px;color:var(--label-caption)}
+.composer-ro .ro-tag{margin-left:0}
+@media (max-width:980px){
+  .bind-bar{padding:6px 12px}
+  .session-pick{max-width:56vw}
+  .bind-mode{display:none}
+}
 
 /* ---------- toast ---------- */
 .toast{
@@ -857,7 +941,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     <div class="side-foot">
       <div class="sf-1"><i class="dot run" id="sfDot"></i><span id="sfText">本机在线</span><span class="sf-dev" id="sfDev">—</span></div>
       <div class="sf-sub" id="sfSub">链路数据载入中…</div>
-      <div class="sf-ver" id="sfVer">v0.6.0 · 真实数据</div>
+      <div class="sf-ver" id="sfVer">v0.8.1 · 驾驶舱（写通道 M2 · 领导预设）</div>
     </div>
   </aside>
 
@@ -871,7 +955,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     <section class="page" id="page-butler" data-page="butler" aria-label="大管家">
       <header class="chat-head">
         <div class="head-main">
-          <div class="sess-title">大管家 · 主控台</div>
+          <div class="sess-title" id="sessTitle">大管家 · 主控台</div>
           <div class="head-stats">
             <span class="stat"><i class="dot run"></i><span id="statSelf">本机在线</span></span>
             <span class="stat stat-extra"><svg class="i"><use href="#i-server"></use></svg><span id="statDevices">链路载入中…</span></span>
@@ -881,6 +965,21 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
             <button class="icon-btn" type="button" id="refreshBtn" title="刷新全部数据" aria-label="刷新全部数据"><svg class="i"><use href="#i-spark"></use></svg></button>
             <button class="icon-btn" type="button" id="headHierBtn" title="派活层级（窄屏抽屉）" aria-label="派活层级"><svg class="i"><use href="#i-branch"></use></svg></button>
           </div>
+        </div>
+        <!-- 0.7.0/0.8.0：中栏绑定真实会话；0.8.0 起配置固定的专属会话常驻绑定（写通道只对它） -->
+        <div class="bind-bar" aria-label="对话绑定">
+          <label class="bind-lab" for="sessionPick">对话会话</label>
+          <select class="session-pick" id="sessionPick" aria-label="选择中栏要查看的真实会话">
+            <option value="">自动（配置 / 最近根会话）</option>
+          </select>
+          <span class="bind-mode" id="bindMode">绑定解析中…</span>
+          <span class="pin-tag" id="bindPinned" hidden>大管家 · 常驻</span>
+          <span class="grow"></span>
+          <button class="rebuild-btn" type="button" id="rebuildBtn" hidden>重建专属会话</button>
+          <span class="dlg-state"><i class="dot idle" id="dlgDot" aria-hidden="true"></i><span id="dlgStateText">载入中…</span></span>
+          <span class="write-tag" id="dlgWriteTag" hidden>可发送</span>
+          <span class="ro-tag" id="dlgRoTag" hidden>只读</span>
+          <span class="bind-note" id="bindNote" hidden></span>
         </div>
         <div class="tabs-row" role="tablist" aria-label="视图">
           <button class="tab active" type="button" role="tab" data-tab="dialogue" aria-selected="true" id="tab-dialogue">对话</button>
@@ -893,101 +992,42 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         </div>
       </header>
 
-      <!-- 三问条（0.5.0）：是否需要我 / 系统是否健康 / 这件事的历史。健康态不占位，整条或整块 hidden。 -->
-      <div class="tq-bar" id="tqBar" aria-label="三问：是否需要我 / 系统是否健康 / 这件事的历史" hidden>
-        <section class="tq-block" id="tqNeeds" aria-labelledby="tqNeedsH" hidden>
-          <h2 class="tq-h" id="tqNeedsH">是否需要我<span class="tq-n" id="tqNeedsN">0</span></h2>
-          <ul class="tq-ul" id="tqNeedsList"></ul>
-        </section>
-        <section class="tq-block" id="tqHealth" aria-labelledby="tqHealthH" hidden>
-          <h2 class="tq-h" id="tqHealthH">系统是否健康<span class="tq-n" id="tqHealthN">0</span></h2>
-          <ul class="tq-ul" id="tqHealthList"></ul>
-        </section>
-        <section class="tq-block" id="tqHistory" aria-labelledby="tqHistoryH" hidden>
-          <h2 class="tq-h" id="tqHistoryH">这件事的历史<span class="tq-n" id="tqHistoryN">0</span></h2>
-          <ul class="tq-ul" id="tqHistoryList"></ul>
-        </section>
+      <!-- 0.8.0：一行细状态条（默认一行摘要；有 high 告警自动展开；展开后才是原三问内容） -->
+      <div class="status-bar" id="statusBar" data-expanded="false" aria-label="状态条：是否需要我 / 系统是否健康 / 这件事的历史">
+        <button class="sb-main" type="button" id="statusToggle" aria-expanded="false" aria-controls="statusDetail" title="展开 / 收起：是否需要我 · 系统是否健康 · 这件事的历史">
+          <i class="dot idle" id="statusDot" aria-hidden="true"></i>
+          <span class="sb-summary" id="statusSummary">状态载入中…</span>
+          <span class="sb-chips" id="statusChips"></span>
+          <svg class="i sb-chev" aria-hidden="true"><use href="#i-chevd"></use></svg>
+        </button>
+        <div class="status-detail" id="statusDetail" hidden>
+          <section class="tq-block" id="tqNeeds" aria-labelledby="tqNeedsH" hidden>
+            <h2 class="tq-h" id="tqNeedsH">是否需要我<span class="tq-n" id="tqNeedsN">0</span></h2>
+            <ul class="tq-ul" id="tqNeedsList"></ul>
+          </section>
+          <section class="tq-block" id="tqHealth" aria-labelledby="tqHealthH" hidden>
+            <h2 class="tq-h" id="tqHealthH">系统是否健康<span class="tq-n" id="tqHealthN">0</span></h2>
+            <ul class="tq-ul" id="tqHealthList"></ul>
+          </section>
+          <section class="tq-block" id="tqHistory" aria-labelledby="tqHistoryH" hidden>
+            <h2 class="tq-h" id="tqHistoryH">这件事的历史<span class="tq-n" id="tqHistoryN">0</span></h2>
+            <ul class="tq-ul" id="tqHistoryList"></ul>
+          </section>
+        </div>
       </div>
 
       <div class="thread" id="thread">
         <div class="thread-inner">
-          <p class="demo-badge" id="demoBadge"><svg class="i" aria-hidden="true"><use href="#i-info"></use></svg>示例对话 · 静态演示（不是真实聊天；下方动作按钮与右栏层级才是真实数据）</p>
-
-          <div id="traceDialogue">
-            <article class="msg user">
-              <div class="msg-meta"><span class="who">你</span><span class="t">15:38</span></div>
-              <div class="body">按 V7 界面稿落地：左栏改名「大管家」，中栏照 DSH 真实对话界面，右栏 T0–T3 派活层级接真实数据；设备只做标签，别按设备分组。</div>
-            </article>
-
-            <article class="msg bot">
-              <section class="started" aria-label="已启动的智能体任务">
-                <div class="started-h">已启动</div>
-                <div class="kv"><span class="k">智能体任务</span><span class="v">大管家 v0.4.0 · V7 界面稿落地 + 右栏真实层级</span></div>
-                <div class="kv"><span class="k">描述</span><span class="v">三栏保留；中栏换成五页导航与 DSH 风格对话区；右栏 T0–T3 接活会话与子代理血缘，设备仅作节点标签</span></div>
-                <div class="kv"><span class="k">智能体名称</span><span class="v mono">v7-butler</span></div>
-                <details class="task-more">
-                  <summary><svg class="i chev"><use href="#i-chev"></use></svg>任务内容</summary>
-                  <div class="task-body">单文件 HTML（内联 CSS / JS，零外链）
-新增只读路由 api/tiers（T0 根 + T1 活会话 + T2/T3 子代理）
-保留 api/cluster · api/board · api/host 与 POST api/action
-不动布局方向、不重配配色、不重启 DSH</div>
-                </details>
-              </section>
-
-              <details class="think">
-                <summary><svg class="i"><use href="#i-brain"></use></svg><span>思考</span></summary>
-                <div class="think-body">层级口径先定死：T0 是大管家本体；T1 是本机与其它设备上的活会话，平级；T2 是这些会话开的子代理；T3 是子代理再开的子代理。设备只做节点标签，缩进与连线只表达层级。中栏按 DSH 真实对话界面做，不做气泡。</div>
-              </details>
-
-              <div class="md">
-                <p><strong>这一版按 DSH 本体来做，示例对话只负责「看结构」：</strong></p>
-                <ul>
-                  <li><strong>左栏</strong>：品牌与导航项都叫「大管家」，共 5 项（大管家 / 任务 / 集群 / 记忆 / 设置），当前项用 DSH 侧栏真实灰底 active</li>
-                  <li><strong>中栏</strong>：对话 / 轨迹两个 tab；这段对话是<strong>静态示例</strong>，页面顶部有 badge；composer 那一行动作按钮会真调用 DSH 客户端服务与宿主动作路由</li>
-                  <li><strong>右栏</strong>：T0 大管家 → T1 活会话（本机与其它设备平级）→ T2/T3 子代理血缘，设备只是节点里的等宽小标签</li>
-                </ul>
-                <p>任务 / 集群 / 记忆 / 设置四页与右栏层级读同源真实数据：共享板、interconnect 链路、本机状态、活会话血缘。<span class="code">api/tiers</span> 是新路由，宿主需要重启 DSH 后才有；没有时右栏会标「降级」并给出原因，不会编节点。</p>
-                <p class="note">示例对话不发送消息、不持久化；颜色、圆角、字号沿用从 DSH 安装包抽取的设计 token。</p>
-              </div>
-
-              <div class="msg-tools">
-                <button class="tool" type="button" title="复制（示例）" aria-label="复制"><svg class="i"><use href="#i-copy"></use></svg></button>
-                <button class="tool" type="button" title="有帮助（示例）" aria-label="有帮助"><svg class="i"><use href="#i-thumb"></use></svg></button>
-                <button class="tool flip" type="button" title="没帮助（示例）" aria-label="没帮助"><svg class="i"><use href="#i-thumb"></use></svg></button>
-                <button class="tool" type="button" title="分享（示例）" aria-label="分享"><svg class="i"><use href="#i-share"></use></svg></button>
-                <span class="usage"><svg class="i"><use href="#i-db"></use></svg>示例数据<span class="ut">15:43</span></span>
-              </div>
-            </article>
-
-            <article class="msg user">
-              <div class="msg-meta"><span class="who">你</span><span class="t">15:45</span></div>
-              <div class="body">900 宽右栏默认收起，点「派活层级」滑出抽屉；别挤压对话区。</div>
-            </article>
-
-            <article class="msg bot">
-              <div class="md">
-                <p>窄屏走抽屉：≤1200px 右栏隐藏，tab 行右侧出现「派活层级」按钮；点开从右侧滑出、带遮罩，Esc 或点遮罩收起。900 宽整页截图随交付一起给。</p>
-              </div>
-              <div class="msg-tools">
-                <button class="tool" type="button" title="复制（示例）" aria-label="复制"><svg class="i"><use href="#i-copy"></use></svg></button>
-                <button class="tool" type="button" title="有帮助（示例）" aria-label="有帮助"><svg class="i"><use href="#i-thumb"></use></svg></button>
-                <button class="tool flip" type="button" title="没帮助（示例）" aria-label="没帮助"><svg class="i"><use href="#i-thumb"></use></svg></button>
-                <button class="tool" type="button" title="分享（示例）" aria-label="分享"><svg class="i"><use href="#i-share"></use></svg></button>
-                <span class="usage"><svg class="i"><use href="#i-db"></use></svg>示例数据<span class="ut">15:45</span></span>
-              </div>
-            </article>
+          <div class="load-earlier" id="loadEarlierWrap" hidden>
+            <button class="muted-btn" type="button" id="loadEarlier">↑ 加载更早消息</button>
+            <span class="muted" id="loadEarlierHint"></span>
           </div>
-
+          <div id="traceDialogue">
+            <div id="dialogList" aria-live="polite"></div>
+            <p class="dialog-empty" id="dialogEmpty">正在读取真实会话对话…</p>
+          </div>
           <div id="traceTrajectory" hidden>
-            <p class="demo-badge"><svg class="i" aria-hidden="true"><use href="#i-info"></use></svg>示例轨迹 · 静态演示（不来自真实会话）</p>
-            <ol class="traj">
-              <li><span class="tr-t mono">15:38:04</span><span class="tr-k">用户消息</span><span class="tr-v">按 V7 界面稿落地：改名、五页导航、右栏接真实层级</span><span class="tr-s done">完成</span></li>
-              <li><span class="tr-t mono">15:38:09</span><span class="tr-k">读取</span><span class="tr-v">v7-butler-console.html · report-v7.md</span><span class="tr-s done">完成</span></li>
-              <li><span class="tr-t mono">15:41:22</span><span class="tr-k">实现</span><span class="tr-v">lib/tiers.js · GET api/tiers（活会话 + 子代理血缘）</span><span class="tr-s done">完成</span></li>
-              <li><span class="tr-t mono">15:52:40</span><span class="tr-k">实现</span><span class="tr-v">public/index.html · 五页导航 + 三栏布局</span><span class="tr-s done">完成</span></li>
-              <li><span class="tr-t mono">16:05:13</span><span class="tr-k">验证</span><span class="tr-v">node --test 单测 · check-page 静态自检</span><span class="tr-s run">进行中</span></li>
-              <li><span class="tr-t mono">16:12:00</span><span class="tr-k">验证</span><span class="tr-v">CDP 五页导航 / 右栏折叠高亮 / 900 抽屉</span><span class="tr-s queue">排队</span></li>
-            </ol>
+            <p class="demo-badge" id="trajBadge"><svg class="i" aria-hidden="true"><use href="#i-info"></use></svg>轨迹视图 · M2 未接入（当前只提供真实对话；工具调用已折叠在对话内，不伪造轨迹）</p>
           </div>
         </div>
       </div>
@@ -1017,23 +1057,26 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 
       <div class="composer">
         <div class="composer-card">
-          <textarea id="prompt" class="composer-input" rows="1" placeholder="对话区（示例对话，不会发送；用下方快捷动作做真实操作）" spellcheck="false" aria-label="输入消息"></textarea>
+          <textarea id="prompt" class="composer-input" rows="1" placeholder="写通道加载中…（M2：只发给专属大管家会话，发送前会二次确认）" spellcheck="false" aria-label="输入消息（M2 写通道）" disabled></textarea>
           <div class="composer-quick">
             <span class="cq-label">快捷动作</span>
             <div class="action-strip" id="actionList" aria-label="快捷动作"></div>
           </div>
           <div class="composer-row">
             <div class="cb-l">
-              <button class="add" type="button" title="添加附件（视觉占位）" aria-label="添加附件"><svg class="i"><use href="#i-plus"></use></svg></button>
-              <button class="perm" type="button" title="权限设置（视觉占位）"><svg class="i"><use href="#i-info"></use></svg>完全权限<svg class="i chev"><use href="#i-chevd"></use></svg></button>
+              <button class="add" type="button" title="添加附件（M2 本批不支持附件）" aria-label="添加附件（本批不支持）" disabled><svg class="i"><use href="#i-plus"></use></svg></button>
+              <button class="perm" type="button" title="权限设置（视觉占位）" disabled><svg class="i"><use href="#i-info"></use></svg>写入<svg class="i chev"><use href="#i-chevd"></use></svg></button>
             </div>
             <div class="cb-r">
-              <span class="model" title="示例样式；页面不读模型配置">DeepSeek V4.1 Flash <b>Max</b><svg class="i chev"><use href="#i-chevd"></use></svg></span>
-              <button class="send" type="button" id="sendBtn" aria-disabled="true" aria-label="发送（示例对话不可发送）" title="示例对话，不可发送"><svg class="i"><use href="#i-up"></use></svg></button>
+              <span class="model" title="样式占位；页面不读模型配置">DeepSeek V4.1 Flash <b>Max</b><svg class="i chev"><use href="#i-chevd"></use></svg></span>
+              <button class="send" type="button" id="sendBtn" aria-disabled="true" aria-label="发送（写通道加载中）" title="写通道加载中…" disabled><svg class="i"><use href="#i-up"></use></svg></button>
             </div>
           </div>
         </div>
+        <div class="composer-ro"><span class="ro-tag" id="composerRoTag">只读</span><span id="composerRo">写通道加载中：M2 只对配置里的专属大管家会话开放；发送前每次都会二次确认。</span></div>
         <div class="composer-stats">
+          <span class="pill"><svg class="i"><use href="#i-chat"></use></svg><span id="pillDialog">对话载入中…</span></span>
+          <span class="pill-sep"></span>
           <span class="pill"><svg class="i"><use href="#i-branch"></use></svg><span id="pillTiers">层级载入中…</span></span>
           <span class="pill-sep"></span>
           <span class="pill"><svg class="i"><use href="#i-db"></use></svg><span id="pillBoard">板载入中…</span></span>
@@ -1158,10 +1201,13 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         <section class="card" aria-labelledby="set-h">
           <div class="card-h"><span id="set-h">版本与路由</span></div>
           <ul class="kv-list">
-            <li><b>插件版本</b><span class="mono" id="setVersion">0.6.0</span></li>
+            <li><b>插件版本</b><span class="mono" id="setVersion">0.8.1</span></li>
             <li><b>页面路由</b><span class="mono">/dsh-html-panel/</span></li>
-            <li><b>只读数据路由</b><span class="mono">api/cluster · api/board · api/host · api/tiers · api/alerts</span></li>
-            <li><b>写动作路由</b><span class="mono">POST api/action（只收白名单动作 id）</span></li>
+            <li><b>只读数据路由</b><span class="mono">api/cluster · api/board · api/host · api/tiers · api/alerts · api/butler/sessions · api/butler/dialog</span></li>
+            <li><b>驾驶舱（只读）</b><span id="setButler">—</span></li>
+            <li><b>专属会话</b><span id="setPinned">—</span></li>
+            <li><b>写动作路由</b><span class="mono">POST api/action（白名单动作 id）· POST api/butler/say（M2 只发专属会话）· POST api/butler/session（创建/重建专属会话）</span></li>
+            <li><b>写通道</b><span id="setWrite">—</span></li>
           </ul>
         </section>
         <section class="card" aria-labelledby="set2-h">
@@ -1177,7 +1223,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         </section>
         <section class="card" aria-labelledby="set3-h">
           <div class="card-h"><span id="set3-h">回滚与红线</span></div>
-          <p class="muted">回滚：把 <span class="mono">node_modules/dsh-html-panel</span> 换回 0.5.0 备份后重启 DSH。页面 <span class="mono">public/index.html</span> 的改动刷新即生效；<span class="mono">lib/</span> 改动（0.6.0 新增 <span class="mono">api/alerts</span> 告警路由、0.5.0 的 api/board official 段、api/tiers 官方 subagent 契约字段）需重启 DSH 后才生效。</p>
+          <p class="muted">回滚：把 <span class="mono">node_modules/dsh-html-panel</span> 换回 <span class="mono">dsh-html-panel.bak-before-0.8.0-20261121</span> 后重启 DSH；配置回滚用 <span class="mono">cordis.patch.yml.bak-before-panel-butler-20261121</span>。页面 <span class="mono">public/index.html</span> 的改动刷新即生效；<span class="mono">lib/</span> 改动（0.8.0 新增 <span class="mono">POST api/butler/say</span> 与 <span class="mono">POST api/butler/session</span> 写路由及页面 token 注入、0.7.0 两条只读路由、0.6.0 的 api/alerts、0.5.0 的 official 段）需重启 DSH 后才生效。</p>
           <p class="muted" id="disabledReason">红线：不由面板重启 DSH —— 面板不提供重启、结束或接管 DSH 进程的能力，按钮永久禁用。</p>
           <button class="btn" type="button" disabled aria-describedby="disabledReason">重启 DSH（永久禁用）</button>
         </section>
@@ -1194,7 +1240,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         <svg class="i hh-info" aria-hidden="true"><use href="#i-info"></use></svg>
         <button class="icon-btn hier-close" id="hierClose" type="button" aria-label="收起派活层级"><svg class="i"><use href="#i-x"></use></svg></button>
       </div>
-      <div class="hh-desc" id="hhDesc">按层级组织，设备仅作标签</div>
+      <div class="hh-desc" id="hhDesc">按层级组织 · 状态来自 sessionController · 跨机只读</div>
       <div class="hh-chips">
         <span class="cnt c0"><span class="ck">T0</span><b id="cntT0">–</b></span>
         <span class="cnt"><span class="ck">T1</span><b id="cntT1">–</b></span>
@@ -1210,11 +1256,12 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         <span class="lg"><i class="dot run"></i>运行中</span>
         <span class="lg"><i class="dot idle"></i>空闲</span>
         <span class="lg"><i class="dot queue"></i>排队</span>
-        <span class="lg"><i class="dot blocked"></i>阻塞</span>
+        <span class="lg"><i class="dot blocked"></i>等审批 / 等回答（阻塞）</span>
         <span class="lg"><i class="dot done"></i>已完成</span>
+        <span class="lg"><span class="ro-tag">只读</span>跨机</span>
       </div>
       <div class="hint" id="tierHint">点击节点高亮 <b>T0→…</b> 上级路径 · T2/T3 可折叠</div>
-      <div class="hint" id="tierSourceHint">数据：活会话 + 子代理血缘</div>
+      <div class="hint" id="tierSourceHint">数据：本机会话状态 + 子代理血缘 · 跨机只读</div>
     </div>
   </aside>
 </div>
@@ -1223,35 +1270,73 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 <div class="tip" id="tip" role="tooltip"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<!-- 0.8.0 M2：发送前二次确认（每次都弹，没有「不再提醒」） -->
+<div class="confirm-mask" id="confirmMask" hidden role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="confirm-card">
+    <h2 class="confirm-title" id="confirmTitle">确认发送给专属大管家会话？</h2>
+    <p class="confirm-text" id="confirmTarget">目标：—</p>
+    <pre class="confirm-preview" id="confirmPreview"></pre>
+    <p class="confirm-warn">这会真的发给大管家会话：消耗模型额度、写入对话历史，大管家会按内容开始执行。本批只做对话写入，不做催办 / 中断 / 归档。</p>
+    <div class="confirm-actions">
+      <button class="btn" type="button" id="confirmCancel">取消</button>
+      <button class="btn primary" type="button" id="confirmSend">确认发送</button>
+    </div>
+  </div>
+</div>
+
 <script>
 'use strict';
 (function () {
   /* =====================================================================
-   * 大管家 · DSH 控制台（0.6.0）
+   * 大管家 · DSH 控制台（0.8.0 = M0+M1 驾驶舱 + M2 写通道）
    *
-   * 三栏：左导航（5 页）· 中栏（按页切换）· 右栏派活层级（T0–T3）。
-   * 0.6.0：接入 TRAIL 失败分类（MIT，只搬分类体系 + 规则化分类器，未接 LLM judge）：
-   *        新增只读路由 api/alerts；大管家页「是否需要我」由告警驱动
-   *        （高/中 → 「需要你：N 条」可展开告警卡；无 → 「当前没有需要你处理的异常」）；
-   *        任务页命中告警的卡片加可点小标记，点了跳到大管家并展开对应告警卡。
-   * 0.5.0：大管家页顶部「三问」条；任务卡片叠加官方 TeamTaskView 字段；
-   *        api/board 的 official 段（官方 agentTeam 投影，只读，拿不到如实降级）；
-   *        api/tiers 节点补官方 subagent 地址契约（{parentSessionId, childSessionId, mode}）。
-   * 真实数据全部来自**同源只读路由**（相对路径 fetch，Host 半 lib/ 实现）：
+   * 三栏：左导航（5 页）· 中栏（真实对话 + 写通道）· 右栏派活层级（T0–T3 真实状态）。
+   * 0.8.0：
+   *   - 顶部「三问」三大块收成**一行 36–44px 细状态条**：默认一行摘要 + 展开箭头，
+   *     有 high 告警默认展开，展开后才是原来的「是否需要我 / 系统是否健康 / 这件事的历史」；
+   *     健康/降级用一枚小 chip 提示，主区（对话流）高度明显变大。
+   *   - **大管家专属常驻会话**：config.butler.sessionId 固定绑定（targetMode=pinned），
+   *     绑定条显示「大管家 · 常驻」（配置了 butler.agentPreset 时追加「· 领导预设」）；
+   *     选择器切到别的会话只读查看，写通道只对专属会话生效；会话未创建 / 不存在时显示原因 +
+   *     「创建/重建专属会话」按钮（POST api/butler/session：create + rename + 备份写回 cordis.patch.yml）。
+   *     领导预设只挂沟通/指挥/记忆/计划工具，并用 tools.restrict 把全局工具裁成白名单（无执行类工具）。
+   *   - **M2 写通道**：POST api/butler/say，只发配置里的专属会话；页面 token 由 Host
+   *     注入 HTML；每次发送都弹二次确认（没有「不再提醒」）；限流/幂等/错误都如实回执。
+   * 0.7.0：中栏改为当前绑定会话的真实对话只读流（api/butler/dialog），右栏状态来自
+   *        api/butler/sessions 的真实 sessionController.state。
+   * 0.6.0：TRAIL 规则告警 api/alerts（三问第一问 / 任务卡标记）。
+   * 0.5.0：三问条 / 官方 TeamTaskView / official 段 / 子代理地址契约。
+   * 真实数据全部来自**同源路由**（相对路径 fetch，Host 半 lib/ 实现）：
    *   api/cluster  本实例 interconnect 链路（集群页 / 顶栏 / 左栏底部）
    *   api/board    共享板任务 / 事件 / 健康（任务页）
    *   api/host     本机内存 / CPU / 磁盘（设置页 / composer 状态条）
-   *   api/tiers    T0 大管家 → T1 活会话 → T2/T3 子代理（右栏派活层级）
-   *   api/alerts   TRAIL 规则告警（大管家三问第一问 / 任务卡标记 / 设置页）
-   * 写动作只有两条真实通道：
-   *   panel-action postMessage → lib/client.js（新会话 / 派发草稿）
-   *   POST api/action → lib/actions.js（记忆探测 / 最新报告 / 打开报告目录）
-   * 中栏「示例对话」是**静态演示**，页面顶部有 badge；它不发消息、不持久化。
-   * 本页没有任何外部引用：零外链、零第三方脚本、零外部字体。
+   *   api/tiers    T0 大管家 → T1 活会话 → T2/T3 子代理（状态条第二问仍用它）
+   *   api/alerts   TRAIL 规则告警（状态条第一问 / 任务卡标记 / 设置页）
+   *   api/butler/sessions  M0 可管理对象清单（右栏真实状态 / 会话选择器 / 绑定 / 写通道开关）
+   *   api/butler/dialog    M1 真实对话只读流（中栏；1.5–2 秒轮询 + seq 去重）
+   * 写通道（0.8.0）：
+   *   POST api/butler/say      M2 发一条消息给专属大管家会话（token + allowWrite + 白名单 + 限流 + 幂等）
+   *   POST api/butler/session  创建 / 重建专属大管家会话（写回配置带备份与定点校验）
+   *   panel-action postMessage → lib/client.js（新会话 / 派发草稿，0.3.0 保留）
+   *   POST api/action → lib/actions.js（记忆探测 / 最新报告 / 打开报告目录，0.3.0 保留）
+   * 本页没有任何外部引用：零外链、无构建、无新依赖。
    * ===================================================================== */
 
   const $ = (selector, root) => (root || document).querySelector(selector);
   const pad = n => (n < 10 ? '0' + n : String(n));
+
+  /**
+   * 0.8.0 M2：宿主注入的写通道配置（allowWrite / label / token / sessionId）。
+   *
+   * 这个占位符只在经由插件路由返回的 HTML 里被 Host 替换；直接把 index.html
+   * 当文件打开时它是 null（写通道显示不可用，原因写明）。token 只活在页面内存里：
+   * 不进 localStorage、不进任何请求体、不写进页面文本。
+   */
+  const INJECTED_WRITE = /*__DSH_PANEL_WRITE__*/null;
+  /** 写通道 say 请求的等待上限（宿主 prompt 入队很快；超时如实报）。 */
+  const SAY_TIMEOUT_MS = 20000;
+  /** 建/重建专属会话的等待上限（同宿主 create 超时）。 */
+  const SESSION_ACTION_TIMEOUT_MS = 25000;
 
   /** 所有来自接口/配置的字符串都过这里再拼 HTML（会话标题、板数据都是外部输入）。 */
   function esc(value) {
@@ -1411,10 +1496,16 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   };
 
   const STORE_KEY = 'dsh-workbench-todos-b';
-  /** 三条数据接口的静默刷新间隔。页面隐藏时跳过这一轮。 */
+  /** 四条数据接口的静默刷新间隔。页面隐藏时跳过这一轮。 */
   const POLL_MS = 30000;
   /** 派活层级的刷新间隔：宿主侧还有 4 秒缓存，这里 15 秒足够且不会打满 interconnect。 */
   const TIERS_POLL_MS = 15000;
+  /** 0.7.0 M0：可管理对象清单/右栏真实状态的刷新间隔（宿主缓存 4 秒）。 */
+  const BUTLER_POLL_MS = 10000;
+  /** 0.7.0 M1：真实对话轮询间隔（只读；按 seq 去重合并，页面隐藏时跳过）。 */
+  const DIALOG_POLL_MS = 2000;
+  /** 0.7.0 M1：一次读多少条消息事件（官方 maxMessages，上限由宿主再收敛到 50）。 */
+  const DIALOG_LIMIT = 30;
   /** 板服务的五态 → 页面文案 / 配色类名（其余状态原样显示为「未知 · 原值」）。 */
   const TASK_STATES = {
     leased: { text: '租约中', cls: 'leased' },
@@ -1424,9 +1515,11 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     done: { text: '已完成', cls: 'done' }
   };
   /** 顶部过期 badge 的模块名。 */
-  const MODULE_LABEL = { cluster: '链路', board: '共享板', host: '本机', tiers: '层级', alerts: '告警' };
-  /** 派活层级状态 → 文案（与右栏图例一致）。 */
+  const MODULE_LABEL = { cluster: '链路', board: '共享板', host: '本机', tiers: '层级', alerts: '告警', butler: '会话', dialog: '对话' };
+  /** 派活层级状态 → 文案（与右栏图例一致；butler 节点自带 statusText 时优先用它）。 */
   const TIER_STATUS = { run: '运行中', idle: '空闲', queue: '排队', blocked: '阻塞', done: '已完成' };
+  /** 0.7.0：会话状态点 → CSS 类（状态点只反映真实 state，不冒充运行中）。 */
+  const DIALOG_DOT = { run: 'run', queue: 'queue', blocked: 'blocked', idle: 'idle', done: 'done' };
   /** 官方 TeamTaskStatus → 中文文案（页面上不直接出现英文状态值）。 */
   const TEAM_STATUS = { pending: '待办', in_progress: '进行中', completed: '已完成', deleted: '已取消' };
   /**
@@ -1448,7 +1541,15 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     host: { kind: 'loading', data: null, reason: '' },
     tiers: { kind: 'loading', data: null, reason: '' },
     alerts: { kind: 'loading', data: null, reason: '' },
+    /* 0.7.0 M0：api/butler/sessions（右栏真实状态 + 会话选择器 + binding） */
+    butler: { kind: 'loading', data: null, reason: '' },
+    /* 0.7.0 M1：api/butler/dialog（中栏真实对话，按 seq 去重累积） */
+    dialog: { kind: 'loading', data: null, reason: '', messages: [], cursor: null, hasMore: false, target: '', oldestSeq: null, paging: false },
     memory: { kind: 'idle' },
+    /* 0.8.0：一行细状态条（默认收起；high 告警自动展开，用户可手动收起） */
+    statusBar: { expanded: false, lastHighSig: '' },
+    /* 0.8.0 M2：写通道状态（只对配置里的专属会话可用；每次发送二次确认） */
+    write: { available: false, reason: '写通道加载中…', sessionId: '', sending: false },
     staleReasons: {},
     staleAt: 0,
     page: 'butler',
@@ -1679,6 +1780,122 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     markState();
   }
 
+  /* ---------------- 0.7.0 M0：可管理对象清单 api/butler/sessions ---------------- */
+  function isButlerPayload(data) {
+    return !!data && typeof data === 'object' &&
+      !!data.root && typeof data.root === 'object' && typeof data.root.id === 'string' &&
+      Array.isArray(data.nodes) && Array.isArray(data.remote) &&
+      !!data.binding && typeof data.binding === 'object';
+  }
+  async function loadButler() {
+    try {
+      const data = await fetchJson('api/butler/sessions', 7000);
+      if (!isButlerPayload(data)) throw new Error('结构不符');
+      state.butler = { kind: 'real', data: data, reason: '' };
+      noteSuccess('butler');
+    } catch (error) {
+      const reason = shortReason(error);
+      if (state.butler.kind === 'real') {
+        noteFailure('butler', reason);
+      } else {
+        state.butler = { kind: 'missing', data: null, reason: reason };
+      }
+    }
+    renderButler();
+    renderDialogHeader();
+    renderChrome();
+    markState();
+  }
+
+  /* ---------------- 0.7.0 M1：真实对话只读流 api/butler/dialog ---------------- */
+  function isDialogPayload(data) {
+    if (!data || typeof data !== 'object' || typeof data.available !== 'boolean') return false;
+    if (data.available === false) return typeof data.reason === 'string';
+    return typeof data.sessionId === 'string' && Array.isArray(data.messages) && !!data.state;
+  }
+  function dialogQuery(extra) {
+    const query = new URLSearchParams();
+    if (state.dialog.target) query.set('sessionId', state.dialog.target);
+    query.set('limit', String(DIALOG_LIMIT));
+    if (extra && Number.isFinite(extra.before) && extra.before > 0) query.set('before', String(extra.before));
+    return query.toString();
+  }
+  /** 按 seq 去重合并：轮询只更新同 seq 内容，翻旧页时 prepend 再排序。 */
+  function mergeDialogMessages(incoming, prepend) {
+    const map = new Map();
+    const existing = Array.isArray(state.dialog.messages) ? state.dialog.messages : [];
+    const base = prepend ? incoming.concat(existing) : existing.concat(incoming);
+    base.forEach(function (message) {
+      if (!message || typeof message.seq !== 'number') return;
+      map.set(message.seq, message);
+    });
+    return Array.from(map.values()).sort(function (a, b) { return a.seq - b.seq; });
+  }
+  async function loadDialog(options) {
+    const opts = options || {};
+    const before = Number.isFinite(opts.before) && opts.before > 0 ? opts.before : null;
+    try {
+      const data = await fetchJson('api/butler/dialog?' + dialogQuery({ before: before }), 9000);
+      if (!isDialogPayload(data)) throw new Error('结构不符');
+      if (data.available === true) {
+        const boundChanged = state.dialog.boundSessionId && state.dialog.boundSessionId !== data.sessionId;
+        // 换绑/首次加载：整页替换；同一会话轮询：按 seq 合并；翻旧页：prepend 合并。
+        const messages = before !== null
+          ? mergeDialogMessages(data.messages, true)
+          : (boundChanged ? data.messages.slice() : mergeDialogMessages(data.messages, false));
+        state.dialog = {
+          kind: 'real',
+          data: data,
+          reason: '',
+          messages: messages,
+          cursor: Number.isFinite(data.cursor) ? data.cursor : null,
+          hasMore: data.hasMore === true,
+          target: state.dialog.target,
+          boundSessionId: data.sessionId,
+          oldestSeq: messages.length ? messages[0].seq : null,
+          paging: false,
+          stickBottom: boundChanged ? true : state.dialog.stickBottom
+        };
+        noteSuccess('dialog');
+      } else {
+        state.dialog = {
+          kind: 'unavailable',
+          data: data,
+          reason: data.reason || '对话不可用',
+          messages: [],
+          cursor: null,
+          hasMore: false,
+          target: state.dialog.target,
+          boundSessionId: '',
+          oldestSeq: null,
+          paging: false
+        };
+      }
+    } catch (error) {
+      const reason = shortReason(error);
+      if (state.dialog.kind === 'real' || state.dialog.kind === 'unavailable') {
+        noteFailure('dialog', reason);
+      } else {
+        state.dialog = {
+          kind: 'missing', data: null, reason: reason, messages: [], cursor: null,
+          hasMore: false, target: state.dialog.target, boundSessionId: '', oldestSeq: null, paging: false
+        };
+      }
+    }
+    renderDialog();
+    renderDialogHeader();
+    markState();
+  }
+  async function loadEarlierDialog() {
+    const dialog = state.dialog;
+    if (dialog.paging || dialog.kind !== 'real' || !dialog.hasMore) return;
+    const oldest = Number.isFinite(dialog.oldestSeq) ? dialog.oldestSeq : (dialog.messages.length ? dialog.messages[0].seq : 0);
+    if (!Number.isFinite(oldest) || oldest <= 0) return;
+    state.dialog.paging = true;
+    renderDialog();
+    await loadDialog({ before: oldest });
+  }
+
   /* =====================================================================
    * 渲染：顶栏 / 左栏底部 / 设置页数据源
    * ===================================================================== */
@@ -1753,7 +1970,12 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       const remote = Array.isArray(source.remote) ? source.remote : [];
       const up = remote.filter(function (row) { return row.link === 'up'; }).length;
       const note = source.cached === true ? ' · 缓存 ' + Math.round((source.ageMs || 0) / 1000) + 's' : '';
-      return '本机 ' + (source.local || '—') + ' + 远端 interconnect.list（up ' + up + '/' + remote.length + '）' + note;
+      const modeSource = source.subagentMode === 'official-projection'
+        ? ' · 契约：官方投影'
+        : source.subagentMode === 'official-projection(no-mode)'
+          ? ' · 契约：官方投影（无 mode 数据）'
+          : ' · mode：未知（官方投影不可用）';
+      return '本机 ' + (source.local || '—') + ' + 远端 interconnect.list（up ' + up + '/' + remote.length + '）' + modeSource + note;
     }
     if (tiers.kind === 'loading') return '载入中…';
     const reason = tiers.reason || '不可用';
@@ -1815,7 +2037,56 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (pillHost) pillHost.textContent = host.pill;
 
     const setVersion = $('#setVersion');
-    if (setVersion) setVersion.textContent = '0.6.0';
+    if (setVersion) setVersion.textContent = '0.8.1';
+    const setButler = $('#setButler');
+    if (setButler) {
+      const butler = state.butler;
+      if (butler.kind === 'real') {
+        const data = butler.data;
+        const source = data.source || {};
+        const binding = data.binding || {};
+        const remote = Array.isArray(data.remote) ? data.remote : [];
+        const up = remote.filter(function (row) { return row.link === 'up'; }).length;
+        setButler.textContent = (binding.available === true
+          ? '绑定 ' + (binding.resolvedBy === 'config' ? '配置固定' : '最近根会话') + ' · ' + (binding.title || binding.sessionId)
+          : '未绑定（' + String(binding.reason || '原因未给出').slice(0, 60) + '）') +
+          ' · 本机会话 ' + (Number.isFinite(data.total) ? data.total : 0) +
+          ' · 远端 ' + up + '/' + remote.length + ' 只读' +
+          ' · 对话 ' + (state.dialog.kind === 'real' ? '只读可读' : (state.dialog.kind === 'missing' ? '路由未加载' : '不可用'));
+      } else if (butler.kind === 'loading') {
+        setButler.textContent = '载入中…';
+      } else {
+        setButler.textContent = /404/.test(butler.reason || '')
+          ? 'api/butler/sessions 路由尚未加载（HTTP 404）：0.8.0 Host 需重启 DSH 后生效（中栏不显示示例对话）'
+          : '不可用 · ' + (butler.reason || '原因未给出');
+      }
+    }
+    // 0.8.0：专属会话与写通道的现场状态（写通道的 token 不显示，只显示开关/原因）。
+    const setPinned = $('#setPinned');
+    if (setPinned) {
+      const binding = bindingOf();
+      const data = state.butler.kind === 'real' ? state.butler.data : null;
+      const writeInfo = data && data.write && typeof data.write === 'object' ? data.write : null;
+      if (binding && binding.resolvedBy === 'config') {
+        setPinned.textContent = String(butlerLabelOf(binding)) + ' · ' + (binding.available === true
+          ? '已绑定会话 ' + String(binding.sessionId || '').slice(0, 18) + '…（' + (binding.title || '标题未给出') + '）'
+          : '会话不存在：' + String(binding.reason || '原因未给出'));
+      } else if (state.butler.kind === 'real') {
+        setPinned.textContent = '未配置（config.butler.sessionId 为空，当前自动绑定最近根会话）';
+      } else if (state.butler.kind === 'missing') {
+        setPinned.textContent = '需重启 DSH 后由 M0 读取 config.butler.sessionId';
+      } else {
+        setPinned.textContent = '载入中…';
+      }
+      if (writeInfo && typeof writeInfo.targetSessionId === 'string') setPinned.title = '写通道目标：' + writeInfo.targetSessionId;
+    }
+    const setWrite = $('#setWrite');
+    if (setWrite) {
+      const write = writeChannelState();
+      setWrite.textContent = write.available === true
+        ? '已开启：只发 ' + String(write.sessionId || '').slice(0, 18) + '…；每次发送二次确认；限流 10 条/分钟'
+        : '不可用：' + write.reason;
+    }
     const setBoard = $('#setBoard');
     if (setBoard) setBoard.textContent = board.detail;
     const setOfficial = $('#setOfficial');
@@ -2130,16 +2401,111 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     return [];
   }
 
-  /** 渲染三问：整条 bar 只在至少一问有内容时出现。 */
+  /* =====================================================================
+   * 0.8.0：一行细状态条（替代 0.5.0 三问条的主位）
+   *
+   * - 细条只占 36–44px：一行摘要 + 右侧展开箭头；健康/降级用一枚小 chip 提示。
+   * - 有 high 告警时默认展开（同一批 high 不反复抢回；新 high 再展开），medium 只提示。
+   * - 展开后才渲染原来的「是否需要我 / 系统是否健康 / 这件事的历史」，默认收起。
+   * - 数据仍只来自已加载的真实接口（告警 / 板 / 层级 / 会话清单），不编数字。
+   * ===================================================================== */
+
+  /** 状态条计数：告警高/中/低、健康问题数、在管活会话数、板任务数。 */
+  function statusCounts() {
+    const alerts = alertsData();
+    let high = 0
+    let medium = 0
+    let low = 0
+    if (alerts) {
+      const list = Array.isArray(alerts.alerts) ? alerts.alerts : []
+      high = list.filter(function (alert) { return alert.severity === 'high' }).length
+      medium = list.filter(function (alert) { return alert.severity === 'medium' }).length
+      low = list.filter(function (alert) { return alert.severity === 'low' }).length
+    } else {
+      // 告警路由没加载时按 0.5.0 口径退回板状态；只当中等提示，不冒充告警。
+      medium = tqNeeds().length
+    }
+    const health = tqHealth().length
+    const butler = state.butler.kind === 'real' && state.butler.data ? state.butler.data : null
+    const nodes = butler && Array.isArray(butler.nodes) ? butler.nodes : []
+    const active = nodes.filter(function (node) { return node && node.active === true && node.readonly !== true }).length
+    const tasks = state.board.kind === 'real' && state.board.data && Array.isArray(state.board.data.tasks)
+      ? state.board.data.tasks.length
+      : null
+    return { high: high, medium: medium, low: low, health: health, active: active, tasks: tasks }
+  }
+
+  /** 一行摘要文案：需要你 N 条 · 高 H 中 M / 一切正常 · 在管 X 个活 · 板 Y 任务。 */
+  function statusSummaryText(counts) {
+    const needs = counts.high + counts.medium
+    if (needs > 0) {
+      return '需要你 ' + needs + ' 条 · 高 ' + counts.high + ' 中 ' + counts.medium +
+        (counts.active > 0 ? ' · 在管 ' + counts.active + ' 个活' : '')
+    }
+    const parts = [counts.health > 0 ? '有 ' + counts.health + ' 项降级' : '一切正常']
+    if (counts.active > 0) parts.push('在管 ' + counts.active + ' 个活')
+    if (Number.isFinite(counts.tasks)) parts.push('板 ' + counts.tasks + ' 任务')
+    return parts.join(' · ')
+  }
+
+  /** 展开 / 收起细状态条（不持久化；刷新后按「有 high 自动展开」重算）。 */
+  function setStatusBarExpanded(open) {
+    state.statusBar.expanded = open === true
+    const detail = $('#statusDetail')
+    if (detail) detail.hidden = !state.statusBar.expanded
+    const bar = $('#statusBar')
+    if (bar) bar.setAttribute('data-expanded', state.statusBar.expanded ? 'true' : 'false')
+    const toggle = $('#statusToggle')
+    if (toggle) toggle.setAttribute('aria-expanded', state.statusBar.expanded ? 'true' : 'false')
+    setDatasetFlag('statusbar', state.statusBar.expanded ? 'expanded' : 'collapsed')
+  }
+
+  /** 渲染细状态条：摘要 + dot + chips；有 high 时默认展开。 */
+  function renderStatusBar() {
+    const bar = $('#statusBar')
+    if (!bar) return
+    const counts = statusCounts()
+    const summary = $('#statusSummary')
+    if (summary) summary.textContent = statusSummaryText(counts)
+    const dot = $('#statusDot')
+    if (dot) {
+      dot.className = 'dot ' + (counts.high > 0 ? 'blocked' : (counts.medium > 0 || counts.health > 0 ? 'queue' : 'run'))
+    }
+    const chips = $('#statusChips')
+    if (chips) {
+      const parts = []
+      if (counts.health > 0) parts.push('<span class="sb-chip warn">' + counts.health + ' 项降级</span>')
+      else if (state.alerts.kind === 'real' || state.tiers.kind === 'real') parts.push('<span class="sb-chip ok">健康</span>')
+      else parts.push('<span class="sb-chip">数据未就绪</span>')
+      if (counts.high + counts.medium > 0) {
+        parts.push('<span class="sb-chip ' + (counts.high > 0 ? 'bad' : 'warn') + '">高 ' + counts.high + ' · 中 ' + counts.medium + '</span>')
+      }
+      if (writeChannelState().available === true) parts.push('<span class="sb-chip write">写通道已开</span>')
+      chips.innerHTML = parts.join('')
+    }
+    // 有 high 告警时默认展开；同一批 high 不重复抢回展开（用户手动收起后保持），新 high 再展开。
+    if (counts.high > 0) {
+      const sig = 'h' + counts.high + ':' + counts.medium
+      if (state.statusBar.lastHighSig !== sig) {
+        state.statusBar.lastHighSig = sig
+        setStatusBarExpanded(true)
+      }
+    } else if (state.statusBar.lastHighSig !== '') {
+      state.statusBar.lastHighSig = ''
+    }
+    bar.setAttribute('data-expanded', state.statusBar.expanded ? 'true' : 'false')
+    setDatasetFlag('statusbar', state.statusBar.expanded ? 'expanded' : 'collapsed')
+  }
+
+  /** 渲染三问内容（展开面板里的三块）；细状态条计数同一次刷新。 */
   function renderThreeQuestions() {
-    const bar = $('#tqBar');
-    if (!bar) return;
     // 0.6.0：告警路由可用时，第一问由 TRAIL 告警驱动；路由未加载（Host 未重启）时
     // 退回 0.5.0 的「按板状态直接列」路径，行为不变、不额外占行。
-    const needs = alertsData() !== null ? renderNeedsAlerts() : tqFill('tqNeeds', 'tqNeedsN', 'tqNeedsList', tqNeeds());
-    const health = tqFill('tqHealth', 'tqHealthN', 'tqHealthList', tqHealth());
-    const history = tqFill('tqHistory', 'tqHistoryN', 'tqHistoryList', tqHistory());
-    bar.hidden = needs + health + history === 0;
+    if (alertsData() !== null) renderNeedsAlerts()
+    else tqFill('tqNeeds', 'tqNeedsN', 'tqNeedsList', tqNeeds())
+    tqFill('tqHealth', 'tqHealthN', 'tqHealthList', tqHealth())
+    tqFill('tqHistory', 'tqHistoryN', 'tqHistoryList', tqHistory())
+    renderStatusBar()
   }
   /* =====================================================================
    * 常用动作 —— 真实动作（0.3.0 通道原样保留）
@@ -2169,6 +2535,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (action) return action.label;
     if (id === 'open-reports-folder') return '打开报告目录';
     if (id === 'restart-dsh') return '重启 DSH';
+    if (id === 'butler-say') return '发送给大管家';
+    if (id === 'butler-session') return '专属会话';
     return String(id || '动作');
   }
   function clockTime() {
@@ -2383,6 +2751,178 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     }
     return data;
   }
+
+  /* =====================================================================
+   * 0.8.0 M2：写通道（只发专属大管家会话；每次发送二次确认）
+   *
+   * 三条铁律：
+   *   1. 目标只能是 M0 binding 里 resolvedBy=config 的专属会话（writeChannelState 判定）；
+   *   2. 每次发送都弹确认框（没有「不再提醒」）；
+   *   3. 回执只反映真实响应（401/403/404/405/409/429/5xx 各有可读原因），不伪造成功。
+   * ===================================================================== */
+
+  /** 打开二次确认框：展示目标 + 原文全文 + 会花钱/写历史的警告。 */
+  function openSayConfirm() {
+    const write = writeChannelState();
+    if (write.available !== true) {
+      toast('写通道不可用：' + write.reason);
+      return;
+    }
+    const prompt = $('#prompt');
+    const text = prompt && typeof prompt.value === 'string' ? prompt.value.trim() : '';
+    if (text === '') { toast('消息内容不能为空'); return; }
+    if (Array.from(text).length > 4000) { toast('消息超过 4000 字符上限，请删短后再发'); return; }
+    const label = butlerLabelOf(bindingOf());
+    const target = $('#confirmTarget');
+    if (target) target.textContent = '目标：' + label + '（会话 ' + String(write.sessionId || '—').slice(0, 18) + '…）';
+    const preview = $('#confirmPreview');
+    if (preview) preview.textContent = text;
+    const mask = $('#confirmMask');
+    if (mask) {
+      mask.hidden = false;
+      const ok = $('#confirmSend');
+      if (ok) ok.focus();
+    }
+  }
+
+  /** 关闭二次确认框（取消 / Esc / 点遮罩）。 */
+  function closeSayConfirm() {
+    const mask = $('#confirmMask');
+    if (mask) mask.hidden = true;
+  }
+
+  /** 把写通道的失败响应翻译成页面能直接读的结果对象。 */
+  function sayResultFromResponse(response, data) {
+    if (data && typeof data === 'object') {
+      if (data.ok === true) return data;
+      return { ok: false, code: data.code || ('http-' + response.status), reason: data.reason || ('宿主拒绝（HTTP ' + response.status + '）'), retryable: data.retryable === true };
+    }
+    return { ok: false, code: 'http-' + response.status, reason: '写通道返回了非 JSON 响应（HTTP ' + response.status + '）' };
+  }
+
+  /** 真正发送：POST api/butler/say，带注入 token；回执用真实响应。 */
+  async function sendButlerSay() {
+    closeSayConfirm();
+    const write = writeChannelState();
+    if (write.available !== true) { toast('写通道不可用：' + write.reason); return; }
+    const prompt = $('#prompt');
+    const text = prompt && typeof prompt.value === 'string' ? prompt.value.trim() : '';
+    if (text === '') { toast('消息内容不能为空'); return; }
+    state.write.sending = true;
+    const requestId = 'panel-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    const receipt = addReceipt('butler-say', 'pending', '发送中…（' + text.slice(0, 24) + (text.length > 24 ? '…' : '') + '）');
+    let result;
+    try {
+      const response = await fetch('api/butler/say', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: {
+          'content-type': 'application/json',
+          accept: 'application/json',
+          'x-butler-write-token': INJECTED_WRITE.token
+        },
+        body: JSON.stringify({ sessionId: write.sessionId, content: text, requestId: requestId }),
+        signal: timeoutSignal(SAY_TIMEOUT_MS)
+      });
+      if (response.status === 404 || response.status === 405) {
+        result = { ok: false, unsupported: true, code: 'say-route-missing', reason: '写通道路由尚未加载（HTTP ' + response.status + '）：0.8.0 Host 需重启 DSH 后生效' };
+      } else {
+        let data = null;
+        try { data = await response.json(); } catch (error) { data = null; }
+        result = sayResultFromResponse(response, data);
+      }
+    } catch (error) {
+      result = { ok: false, code: 'say-unreachable', reason: '写通道请求失败：' + shortReason(error) };
+    } finally {
+      state.write.sending = false;
+    }
+    if (result.ok === true) {
+      updateReceipt(receipt, { ok: true, detail: '已发送，等待大管家回复（requestId ' + String(result.requestId || requestId).slice(0, 24) + '）' });
+      if (prompt) prompt.value = '';
+      renderWriteChannel();
+      toast('已发送，等待大管家回复');
+      loadDialog();
+    } else {
+      updateReceipt(receipt, result);
+      toast((result.unsupported === true ? '写通道未加载：' : '发送失败：') + String(result.reason || '原因未给出').slice(0, 80));
+    }
+  }
+
+  /** 专属会话不存在时重建：POST api/butler/session（备份 + 写回配置由 Host 做）。 */
+  async function rebuildButlerSession() {
+    const button = $('#rebuildBtn');
+    if (INJECTED_WRITE === null || typeof INJECTED_WRITE.token !== 'string' || INJECTED_WRITE.token === '') {
+      setBindNote('页面没有拿到写通道 token（需重启 DSH 后重新加载页面）', true);
+      return;
+    }
+    const binding = bindingOf();
+    const action = binding && typeof binding.sessionId === 'string' && binding.sessionId !== '' ? 'rebuild' : 'ensure';
+    if (button) button.disabled = true;
+    setBindNote(action === 'rebuild' ? '正在重建专属会话…' : '正在创建专属会话…', false);
+    let result;
+    try {
+      const response = await fetch('api/butler/session', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: { 'content-type': 'application/json', accept: 'application/json', 'x-butler-write-token': INJECTED_WRITE.token },
+        body: JSON.stringify({ action: action }),
+        signal: timeoutSignal(SESSION_ACTION_TIMEOUT_MS)
+      });
+      if (response.status === 404 || response.status === 405) {
+        result = { ok: false, unsupported: true, reason: '会话路由尚未加载（HTTP ' + response.status + '）：0.8.0 Host 需重启 DSH 后生效' };
+      } else {
+        let data = null;
+        try { data = await response.json(); } catch (error) { data = null; }
+        result = data && typeof data === 'object' ? data : { ok: false, reason: '会话路由返回非 JSON（HTTP ' + response.status + '）' };
+      }
+    } catch (error) {
+      result = { ok: false, reason: '请求失败：' + shortReason(error) };
+    } finally {
+      if (button) button.disabled = false;
+    }
+    if (result.ok === true) {
+      const persisted = result.persisted === true;
+      setBindNote('已创建专属会话 ' + String(result.sessionId || '').slice(0, 8) + '…' +
+        (persisted ? ' 并写回配置' : '（未写回配置：' + String((result.config && result.config.reason) || '原因未给出') + '）'), !persisted);
+      toast('专属会话已创建：' + String(result.sessionId || '').slice(0, 8) + '…');
+      loadButler();
+      loadDialog();
+    } else {
+      setBindNote((result.unsupported === true ? '未加载：' : '创建失败：') + String(result.reason || '原因未给出'), true);
+    }
+  }
+
+  /** 绑定条下方的提示文字（重建/失败回执都写这里）。 */
+  function setBindNote(text, bad) {
+    const note = $('#bindNote');
+    if (!note) return;
+    note.hidden = false;
+    note.className = 'bind-note' + (bad ? ' bad' : '');
+    note.textContent = String(text || '');
+  }
+
+  /** 绑定写通道交互：状态条展开、输入框 Enter、发送确认、重建按钮。 */
+  function initWriteChannel() {
+    const toggle = $('#statusToggle');
+    if (toggle) toggle.addEventListener('click', function () { setStatusBarExpanded(!state.statusBar.expanded); });
+    const prompt = $('#prompt');
+    if (prompt) prompt.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        openSayConfirm();
+      }
+    });
+    const send = $('#sendBtn');
+    if (send) send.addEventListener('click', function () { openSayConfirm(); });
+    const cancel = $('#confirmCancel');
+    if (cancel) cancel.addEventListener('click', closeSayConfirm);
+    const ok = $('#confirmSend');
+    if (ok) ok.addEventListener('click', function () { void sendButlerSay(); });
+    const mask = $('#confirmMask');
+    if (mask) mask.addEventListener('click', function (event) { if (event.target === mask) closeSayConfirm(); });
+    const rebuild = $('#rebuildBtn');
+    if (rebuild) rebuild.addEventListener('click', function () { void rebuildButlerSession(); });
+  }
   function runNewSession() { return callClient('new-session'); }
   function runDispatch() { return callClient('dispatch'); }
   function runDispatchDraft() { return callClient('dispatch-draft'); }
@@ -2497,15 +3037,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       renderReceipts();
       toast('动作回执已清空');
     });
-    const prompt = $('#prompt');
-    if (prompt) prompt.addEventListener('keydown', function (event) {
-      if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        toast('示例对话不支持发送；请用左侧快捷动作做真实操作');
-      }
-    });
-    const send = $('#sendBtn');
-    if (send) send.addEventListener('click', function () { toast('示例对话，不可发送'); });
+    // 0.8.0：底部输入框/发送按钮的绑定在 initWriteChannel()（只发专属会话 + 二次确认）。
     const memoryProbe = $('#memoryProbe');
     if (memoryProbe) memoryProbe.addEventListener('click', function () { fireAction('notes'); });
   }
@@ -3011,27 +3543,14 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
    * 右栏：派活层级（T0 大管家 → T1 活会话 → T2/T3 子代理）
    * 数据来源：api/tiers（本机活会话 + 子代理血缘 + 远端 interconnect.list）。
    * ===================================================================== */
-  function buildTierView() {
-    const tiers = state.tiers;
-    if (tiers.kind === 'loading') {
-      return {
-        tree: { tier: 0, id: 'root', name: '大管家', device: '—', status: 'run', statusText: '运行中', start: '—',
-          task: '层级数据载入中…', meta: [], children: [], emptyNote: '载入中…', emptySub: '正在读取活会话与子代理血缘' },
-        counts: null, degraded: '', source: null
-      };
-    }
-    if (tiers.kind !== 'real') {
-      const reason = tiers.reason || '层级数据不可用';
-      const hint = /404/.test(reason)
-        ? 'api/tiers 路由尚未加载（HTTP 404）：新版 Host 需重启 DSH 后生效'
-        : reason;
-      return {
-        tree: { tier: 0, id: 'root', name: '大管家', device: 'pc-ky614', status: 'run', statusText: '运行中', start: '—',
-          task: '层级数据不可用', meta: [], children: [], emptyNote: '层级数据不可用', emptySub: hint },
-        counts: null, degraded: hint, source: null
-      };
-    }
-    const data = tiers.data;
+  /**
+   * 扁平节点 → 右栏树视图：`api/butler/sessions` 与 `api/tiers` 两种 payload 共用一份转换。
+   * 只认 payload 里给的真实字段（status/statusText/updatedAt/readonly/mode），不在这里编状态。
+   * @param {object} data 含 root / nodes / degraded / source 的响应体
+   * @param {{kind:string, note?:string}} options kind ∈ butler|tiers
+   */
+  function tierViewFromPayload(data, options) {
+    const opts = options || {};
     const root = data.root || {};
     const rawNodes = Array.isArray(data.nodes) ? data.nodes : [];
     const byParent = new Map();
@@ -3052,29 +3571,44 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       attached.add(node.id);
       const tier = Number.isInteger(node.tier) && node.tier >= 1 ? node.tier : fallbackTier;
       const status = TIER_STATUS[node.status] ? node.status : 'idle';
+      const statusText = typeof node.statusText === 'string' && node.statusText !== ''
+        ? node.statusText
+        : (TIER_STATUS[status] || '空闲');
       const start = node.startedAt ? fmtStamp(node.startedAt) : '';
       const kids = (byParent.get(node.id) || []).map(function (kid) { return convert(kid, tier + 1); }).filter(Boolean);
       const kind = node.kind === 'subagent' ? '子代理' : '会话';
       // 官方 subagent 契约（dsh-client-ui-subagent）：mode 只对子代理有意义；T1 会话不适用。
       const mode = node.kind === 'subagent' ? (SUBAGENT_MODE[node.mode] ? node.mode : 'unknown') : '';
       const modeText = mode ? (SUBAGENT_MODE[mode] || '未知') : '';
-      const meta = (mode ? ['模式 ' + modeText] : []).concat(kids.length ? [kids.length + ' 个子代理'] : []);
+      const readonly = node.readonly === true || node.controllable === false;
+      const updatedMs = node.updatedAt ? Date.parse(node.updatedAt) : Number.NaN;
+      const updated = Number.isFinite(updatedMs) ? relTime(updatedMs) : '';
+      const meta = [];
+      if (mode) meta.push('模式 ' + modeText);
+      if (kids.length) meta.push(kids.length + ' 个子代理');
+      if (updated) meta.push('最后活动 ' + updated);
+      if (readonly) meta.push('只读');
+      const bits = [kind];
+      if (modeText) bits.push(modeText);
+      if (readonly) bits.push('跨机只读');
+      if (start) bits.push('开始 ' + start);
       return {
         tier: tier,
         id: node.id,
         name: String(node.title || node.id),
         device: String(node.device || '—'),
         status: status,
-        statusText: TIER_STATUS[status],
+        statusText: statusText,
         start: start || '—',
         mode: mode,
+        readonly: readonly,
         parentSessionId: typeof node.parentSessionId === 'string' ? node.parentSessionId : '',
         childSessionId: typeof node.childSessionId === 'string' ? node.childSessionId : '',
-        task: kind + (modeText ? ' · ' + modeText : '') + (start ? ' · 开始 ' + start : ''),
+        task: bits.join(' · '),
         meta: meta,
         children: kids,
-        emptyNote: tier === 1 && kids.length === 0 ? '暂无活子代理' : '',
-        emptySub: tier === 1 && kids.length === 0 ? '该会话目前没有正在运行的子代理' : ''
+        emptyNote: '',
+        emptySub: ''
       };
     }
     const rootId = typeof root.id === 'string' ? root.id : 'pc-ky614';
@@ -3085,7 +3619,6 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       const extra = convert(node, 1);
       if (extra) {
         extra.tier = 1;
-        if (extra.children && extra.children.length) extra.emptyNote = '';
         children.push(extra);
       }
     });
@@ -3103,11 +3636,56 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       task: '本实例 · T1 会话 ' + counts[1] + ' 个',
       meta: ['T1×' + counts[1], 'T2×' + counts[2], 'T3+×' + counts[3]],
       children: children,
-      emptyNote: children.length === 0 ? '暂无活会话' : '',
-      emptySub: children.length === 0 ? '本机与其它设备都没有活会话（或链路 down，见集群页）' : ''
+      emptyNote: children.length === 0 ? '暂无可见会话' : '',
+      emptySub: children.length === 0 ? '本机与其它设备都没有可见会话（或链路 down，见集群页）' : ''
     };
-    const degraded = data.degraded && typeof data.degraded.reason === 'string' ? data.degraded.reason : '';
-    return { tree: tree, counts: counts, degraded: degraded, source: data.source || null, generatedAt: data.generatedAt };
+    let degraded = data.degraded && typeof data.degraded.reason === 'string' ? data.degraded.reason : '';
+    if (opts.note) degraded = degraded ? (degraded + '；' + opts.note) : opts.note;
+    return {
+      kind: opts.kind || 'tiers',
+      tree: tree,
+      counts: counts,
+      degraded: degraded,
+      source: data.source || null,
+      generatedAt: data.generatedAt
+    };
+  }
+
+  /**
+   * 右栏视图：优先 M0（真实 state + 只读远端），M0 未加载时退回 api/tiers 的真实层级
+   * 并写明「状态降级」，两个都不可用时如实显示原因，绝不编造节点。
+   */
+  function buildTierView() {
+    const butler = state.butler;
+    if (butler.kind === 'real') {
+      return tierViewFromPayload(butler.data, { kind: 'butler' });
+    }
+    const tiers = state.tiers;
+    if (tiers.kind === 'real') {
+      const reason = butler.kind === 'missing' ? (butler.reason || '') : '';
+      const note = /404/.test(reason)
+        ? '右栏状态降级：api/butler/sessions 路由尚未加载（HTTP 404，需重启 DSH）；当前只显示 api/tiers 的层级快照，没有排队/等审批/等回答状态'
+        : (reason ? '右栏状态降级：api/butler/sessions 不可用（' + reason + '）；当前只显示 api/tiers 的层级快照' : '');
+      return tierViewFromPayload(tiers.data, { kind: 'tiers', note: note });
+    }
+    if (butler.kind === 'loading' || tiers.kind === 'loading') {
+      return {
+        kind: 'loading',
+        tree: { tier: 0, id: 'root', name: '大管家', device: '—', status: 'run', statusText: '运行中', start: '—',
+          task: '会话数据载入中…', meta: [], children: [], emptyNote: '载入中…', emptySub: '正在读取本机会话状态与子代理血缘' },
+        counts: null, degraded: '', source: null
+      };
+    }
+    const reason = butler.reason || tiers.reason || '会话数据不可用';
+    const hint = /404/.test(reason)
+      ? 'api/butler/sessions 与 api/tiers 路由尚未加载（HTTP 404）：新版 Host 需重启 DSH 后生效'
+      : reason;
+    return {
+      kind: 'missing',
+      tree: { tier: 0, id: 'root', name: '大管家', device: 'pc-ky614', status: 'run', statusText: '运行中', start: '—',
+        task: '会话数据不可用', meta: [], children: [], emptyNote: '会话数据不可用', emptySub: hint },
+      counts: null, degraded: hint, source: null
+    };
   }
 
   /** 层级节点 → HTML。所有外部文本都过 esc()；动态值只进 data-*，不进可执行位置。 */
@@ -3125,6 +3703,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       '<div class="card">' +
         '<div class="nrow"><i class="dot ' + n.status + '"></i><span class="nname" title="' + esc(n.name) + '">' + esc(n.name) + '</span>' +
           (n.mode ? '<span class="mode-tag">' + esc(SUBAGENT_MODE[n.mode] || '未知') + '</span>' : '') +
+          (n.readonly ? '<span class="ro-tag">只读</span>' : '') +
           '<span class="nst ' + n.status + '">' + esc(n.statusText || TIER_STATUS[n.status] || '空闲') + '</span>' + fold + '</div>' +
         '<div class="nsub"><span class="dev"><svg class="i"><use href="#i-monitor"></use></svg>' + esc(n.device) + '</span>' +
           '<span class="ntask">' + esc(n.task) + '</span></div>' +
@@ -3139,7 +3718,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     }
     return '<div class="node lv' + level + '" role="none" data-id="' + esc(n.id) + '" data-name="' + esc(n.name) + '" data-device="' + esc(n.device) +
       '" data-level="T' + n.tier + '" data-status="' + esc(n.statusText || '') + '" data-task="' + esc(n.task) + '" data-start="' + esc(n.start || '—') +
-      '" data-mode="' + esc(n.mode || '') + '" data-child-session="' + esc(n.childSessionId || '') + '" data-parent-session="' + esc(n.parentSessionId || '') + '">' +
+      '" data-mode="' + esc(n.mode || '') + '" data-readonly="' + (n.readonly ? '1' : '') +
+      '" data-child-session="' + esc(n.childSessionId || '') + '" data-parent-session="' + esc(n.parentSessionId || '') + '">' +
       head + kidsHtml + '</div>';
   }
 
@@ -3178,8 +3758,9 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       applyTierSelection();
     }
     const counts = view.counts;
+    const loading = view.kind === 'loading';
     const cntT0 = $('#cntT0');
-    if (cntT0) cntT0.textContent = counts ? '1' : (state.tiers.kind === 'loading' ? '–' : '1');
+    if (cntT0) cntT0.textContent = loading ? '–' : '1';
     const cntT1 = $('#cntT1');
     if (cntT1) cntT1.textContent = counts ? String(counts[1]) : '–';
     const cntT2 = $('#cntT2');
@@ -3194,31 +3775,34 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       if (view.degraded) {
         degradedBadge.hidden = false;
         degradedBadge.textContent = '降级';
-        degradedBadge.title = '层级数据降级：' + view.degraded;
+        degradedBadge.title = '会话数据降级：' + view.degraded;
       } else {
         degradedBadge.hidden = true;
         degradedBadge.removeAttribute('title');
       }
     }
     const hhDesc = $('#hhDesc');
-    if (hhDesc) hhDesc.textContent = view.degraded ? '按层级组织，设备仅作标签 · 数据有缺口' : '按层级组织，设备仅作标签';
+    if (hhDesc) hhDesc.textContent = view.kind === 'tiers'
+      ? '按层级组织 · 层级快照（无实时状态，M0 需重启）'
+      : (view.degraded
+        ? '按层级组织 · 状态来自 sessionController · 数据有缺口'
+        : '按层级组织 · 状态来自 sessionController · 跨机只读');
     const hint = $('#tierHint');
     if (hint) hint.textContent = view.degraded
-      ? '数据缺口：' + view.degraded.slice(0, 120)
-      : '点击节点高亮 T0→… 上级路径 · T2/T3 可折叠';
+      ? '数据缺口：' + view.degraded.slice(0, 130)
+      : '点击节点高亮 T0→… 上级路径 · T2/T3 可折叠 · 远端只读';
     const sourceHint = $('#tierSourceHint');
     if (sourceHint) {
-      if (view.source) {
+      if (view.kind === 'butler' && view.source) {
+        sourceHint.textContent = '数据：' + (view.source.sessions || '—') + ' + ' + (view.source.states || '—') +
+          ' · 跨机只读 · 10 秒刷新';
+      } else if (view.source) {
         const remote = Array.isArray(view.source.remote) ? view.source.remote : [];
         const up = remote.filter(function (row) { return row.link === 'up'; }).length;
-        const modeSource = view.source.subagentMode === 'official-projection'
-          ? ' · 契约：官方投影'
-          : view.source.subagentMode === 'official-projection(no-mode)'
-            ? ' · 契约：官方投影（无 mode 数据）'
-            : ' · mode：未知（官方投影不可用）';
-        sourceHint.textContent = '数据：' + (view.source.local || '—') + ' + 远端 ' + up + '/' + remote.length + modeSource + ' · 15 秒刷新';
+        sourceHint.textContent = '数据：' + (view.source.local || '—') + ' + 远端 ' + up + '/' + remote.length +
+          ' · 层级快照（无状态） · 15 秒刷新';
       } else {
-        sourceHint.textContent = '数据：活会话 + 子代理血缘';
+        sourceHint.textContent = '数据：本机会话状态 + 子代理血缘 · 跨机只读';
       }
     }
     const drawerCount = $('#drawerCount');
@@ -3228,6 +3812,408 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       ? 'T1×' + counts[1] + ' · T2×' + counts[2] + ' · T3+×' + counts[3]
       : '层级不可用';
     renderChrome();
+  }
+
+  /* =====================================================================
+   * 0.7.0：中栏真实对话（M1）与会话选择器（选项来自 M0）
+   * ===================================================================== */
+  function renderSessionPicker() {
+    const pick = $('#sessionPick');
+    if (!pick) return;
+    const butler = state.butler;
+    const want = state.dialog.target || '';
+    if (butler.kind !== 'real') {
+      const sig = 'missing:' + butler.kind;
+      if (pick.getAttribute('data-sig') !== sig) {
+        pick.innerHTML = '<option value="">自动（会话清单不可用）</option>';
+        pick.setAttribute('data-sig', sig);
+      }
+      pick.value = want;
+      return;
+    }
+    const nodes = (Array.isArray(butler.data.nodes) ? butler.data.nodes : []).filter(function (node) {
+      return node && typeof node.id === 'string' && node.readonly !== true;
+    });
+    const sig = nodes.map(function (node) { return node.id + ':' + node.statusText + ':' + node.tier; }).join('|');
+    if (pick.getAttribute('data-sig') !== sig) {
+      const groups = { 1: [], 2: [], 3: [] };
+      nodes.forEach(function (node) {
+        const tier = node.tier >= 3 ? 3 : (node.tier >= 1 ? node.tier : 1);
+        groups[tier].push(node);
+      });
+      const optionsOf = function (list) {
+        return list.map(function (node) {
+          return '<option value="' + esc(node.id) + '">T' + node.tier + ' · ' + esc(node.title || node.id) +
+            ' · ' + esc(node.statusText || '') + '</option>';
+        }).join('');
+      };
+      let markup = '<option value="">自动（配置 / 最近根会话）</option>';
+      [1, 2, 3].forEach(function (tier) {
+        if (groups[tier].length === 0) return;
+        markup += '<optgroup label="T' + tier + (tier === 3 ? '+' : '') + ' 会话">' + optionsOf(groups[tier]) + '</optgroup>';
+      });
+      pick.innerHTML = markup;
+      pick.setAttribute('data-sig', sig);
+    }
+    pick.value = want;
+  }
+
+  function renderButler() {
+    renderSessionPicker();
+    renderTiers();
+    renderDialogHeader();
+  }
+
+  function bindingOf() {
+    return state.butler.kind === 'real' && state.butler.data && state.butler.data.binding
+      ? state.butler.data.binding
+      : null;
+  }
+
+  /**
+   * 0.8.0：专属会话的显示名。配置了 `butler.agentPreset` 时在名字后标「领导预设」，
+   * 方便一眼区分「这个会话只有领导工具、不会自己执行」。
+   */
+  function butlerLabelOf(binding) {
+    const fallback = INJECTED_WRITE && typeof INJECTED_WRITE.label === 'string' && INJECTED_WRITE.label !== ''
+      ? INJECTED_WRITE.label
+      : '大管家 · 常驻';
+    const base = binding && typeof binding.label === 'string' && binding.label !== '' ? binding.label : fallback;
+    const preset = binding && typeof binding.agentPreset === 'string' ? binding.agentPreset.trim() : '';
+    return preset === '' ? base : base + ' · 领导预设';
+  }
+
+  /**
+   * 0.8.0：写通道是否可用（唯一真相）。
+   *
+   * 可用 = M0 已加载 + 绑定的是 config 固定的专属会话 + 当前查看的就是它 +
+   * 页面拿到注入配置 + allowWrite=true + token 非空。任何一条不满足都给原因，
+   * 输入框保持禁用——写通道永远不「猜」目标。
+   */
+  function writeChannelState() {
+    const injected = INJECTED_WRITE && typeof INJECTED_WRITE === 'object' ? INJECTED_WRITE : null;
+    const binding = bindingOf();
+    const butler = state.butler;
+    if (butler.kind !== 'real') {
+      let reason;
+      if (butler.kind === 'missing') {
+        reason = /404/.test(butler.reason || '')
+          ? '写通道需重启 DSH 后生效（Host 路由未加载，HTTP 404）'
+          : '会话清单不可用：' + shortReason(butler.reason || '原因未给出');
+      } else {
+        reason = '会话清单载入中…';
+      }
+      return { available: false, reason: reason, sessionId: '' };
+    }
+    if (!binding || binding.available !== true) {
+      return {
+        available: false,
+        reason: '专属会话未绑定：' + String((binding && binding.reason) || '会话清单没有给出绑定'),
+        sessionId: binding && typeof binding.sessionId === 'string' ? binding.sessionId : ''
+      };
+    }
+    if (binding.resolvedBy !== 'config') {
+      return {
+        available: false,
+        reason: '当前是自动绑定（最近根会话），不是配置里的专属会话；写通道只对 config.butler.sessionId 生效',
+        sessionId: binding.sessionId || ''
+      };
+    }
+    if (state.dialog.target && state.dialog.target !== binding.sessionId) {
+      return { available: false, reason: '当前查看的是其它会话（只读）：切回专属会话才能发送', sessionId: binding.sessionId || '' };
+    }
+    if (injected === null) {
+      return { available: false, reason: '页面没有拿到写通道配置（直接打开文件或 Host 未重启）：写通道不可用', sessionId: binding.sessionId || '' };
+    }
+    if (injected.allowWrite !== true) {
+      return { available: false, reason: '写通道已关闭（config.butler.allowWrite=false）：输入框保持禁用', sessionId: binding.sessionId || '' };
+    }
+    if (typeof injected.token !== 'string' || injected.token === '') {
+      return { available: false, reason: '页面没有拿到写通道 token（需重启 DSH 后重新加载页面）', sessionId: binding.sessionId || '' };
+    }
+    return { available: true, reason: '', sessionId: binding.sessionId || '' };
+  }
+
+  /** 刷新 composer 与绑定条上的写状态（禁用/启用 + 人话原因）。 */
+  function renderWriteChannel() {
+    const write = writeChannelState();
+    state.write = { available: write.available === true, reason: write.reason, sessionId: write.sessionId || '', sending: state.write.sending === true };
+    const prompt = $('#prompt');
+    const send = $('#sendBtn');
+    const ro = $('#composerRo');
+    const roTag = $('#composerRoTag');
+    const label = butlerLabelOf(bindingOf());
+    if (prompt) {
+      prompt.disabled = write.available !== true;
+      prompt.placeholder = write.available === true
+        ? '发给「' + label + '」：点发送或 Enter，发送前会二次确认（Shift+Enter 换行）'
+        : '写通道不可用：' + write.reason;
+      prompt.setAttribute('aria-label', write.available === true ? '输入消息（M2 只对专属会话）' : '输入消息（写通道不可用）');
+    }
+    if (send) {
+      send.disabled = write.available !== true;
+      send.setAttribute('aria-disabled', write.available === true ? 'false' : 'true');
+      send.title = write.available === true ? '发送给专属大管家会话（每次都会二次确认）' : '写通道不可用：' + write.reason;
+      send.setAttribute('aria-label', write.available === true ? '发送（会二次确认）' : '发送（写通道不可用）');
+    }
+    if (roTag) roTag.textContent = write.available === true ? '写入' : '只读';
+    if (ro) {
+      ro.textContent = write.available === true
+        ? '写通道已开：只发给配置里的专属大管家会话；每次发送都会二次确认（会真跑模型、写对话历史）。附件本批不支持。'
+        : write.reason;
+    }
+    setDatasetFlag('write', write.available === true ? 'on' : 'off');
+    return write;
+  }
+
+  /** 顶部绑定条：专属会话标签 / 绑定会话标题 / 真实状态点 / 写通道开关 / 重建入口。 */
+  function renderDialogHeader() {
+    const dialog = state.dialog;
+    const binding = bindingOf();
+    const title = $('#sessTitle');
+    const stateText = $('#dlgStateText');
+    const dot = $('#dlgDot');
+    const ro = $('#dlgRoTag');
+    const writeTag = $('#dlgWriteTag');
+    const pinned = $('#bindPinned');
+    const rebuild = $('#rebuildBtn');
+    const note = $('#bindNote');
+    const mode = $('#bindMode');
+    const write = renderWriteChannel();
+    const live = dialog.kind === 'real' && dialog.data ? dialog.data : null;
+    if (title) {
+      // 0.8.0：标题仍显示真实会话标题（可能是自动生成的）；左侧 pin 标签固定写
+      // 「大管家 · 常驻」，让人一眼看到写通道绑定的是哪个会话。
+      title.textContent = live ? String(live.title || '真实会话') : '大管家 · 主控台';
+    }
+    let status = '载入中…';
+    let cls = 'idle';
+    if (live) {
+      const sessionState = live.state && typeof live.state === 'object' ? live.state : null;
+      if (sessionState) {
+        status = sessionState.statusText || TIER_STATUS[sessionState.status] || '空闲';
+        cls = DIALOG_DOT[sessionState.status] || 'idle';
+      } else {
+        status = '状态未知';
+        cls = 'idle';
+      }
+      if (live.stateKnown === false && sessionState) status = status + '（状态未核实）';
+    } else if (dialog.kind === 'unavailable') {
+      status = '对话不可用';
+      cls = 'blocked';
+    } else if (dialog.kind === 'missing') {
+      status = /404/.test(dialog.reason || '') ? '需重启 DSH' : '对话不可用';
+      cls = 'blocked';
+    }
+    if (stateText) stateText.textContent = status;
+    if (dot) dot.className = 'dot ' + cls;
+    const configPinned = !!(binding && binding.resolvedBy === 'config');
+    if (pinned) {
+      pinned.hidden = !configPinned;
+      if (configPinned) pinned.textContent = butlerLabelOf(binding);
+    }
+    if (ro) ro.hidden = !live || write.available === true;
+    if (writeTag) writeTag.hidden = write.available !== true;
+    // 专属会话丢了：显示「大管家会话不存在（原因）」+ 重建按钮；还没建时显示「创建专属会话」。
+    // 两种情况都绝不静默回退到别的会话绑定。
+    const missingPinned = !!(binding && configPinned && binding.available === false);
+    const needCreate = !!(missingPinned && binding && !binding.sessionId);
+    if (rebuild) {
+      rebuild.hidden = !missingPinned;
+      rebuild.textContent = needCreate ? '创建专属会话' : '重建专属会话';
+      rebuild.title = needCreate
+        ? '按 config.butler.agentPreset（' + String(binding && binding.agentPreset || '未配置') + '）创建专属大管家会话'
+        : '配置指向的专属会话不存在：按同一预设重建并写回配置';
+    }
+    if (note) {
+      if (missingPinned && needCreate) {
+        note.hidden = false;
+        note.className = 'bind-note';
+        note.textContent = '专属会话尚未创建：' + String(binding.reason || '原因未给出') +
+          (binding.agentPreset ? '（预设：' + String(binding.agentPreset) + '）' : '');
+      } else if (missingPinned) {
+        note.hidden = false;
+        note.className = 'bind-note bad';
+        note.textContent = '大管家会话不存在：' + String(binding.reason || '会话清单没有给出原因');
+      } else if (!configPinned && state.butler.kind === 'real') {
+        note.hidden = false;
+        note.className = 'bind-note';
+        note.textContent = '当前是自动绑定：写通道只对配置里的专属大管家会话生效；切回专属会话或先创建专属会话。';
+      } else {
+        note.hidden = true;
+        note.textContent = '';
+      }
+    }
+    if (mode) {
+      if (state.dialog.target && binding && state.dialog.target !== binding.sessionId) {
+        mode.textContent = '手动选择 · 只读';
+      } else if (state.dialog.target) {
+        mode.textContent = '手动选择';
+      } else if (configPinned && binding.available === true) {
+        mode.textContent = '配置固定 · 专属会话';
+      } else if (configPinned && binding.available === false) {
+        mode.textContent = '配置固定 · 会话不存在';
+      } else if (binding && binding.available === true) {
+        mode.textContent = '自动 · 最近根会话';
+      } else if (binding && binding.available === false) {
+        mode.textContent = '未绑定';
+      } else if (state.butler.kind === 'missing') {
+        mode.textContent = '绑定需重启后生效';
+      } else if (state.butler.kind === 'loading') {
+        mode.textContent = '绑定解析中…';
+      } else {
+        mode.textContent = '未绑定';
+      }
+      if (binding && binding.available === false && binding.reason) mode.title = binding.reason;
+      else mode.removeAttribute('title');
+    }
+  }
+
+  function fmtClock(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (isNaN(date.getTime())) return '';
+    return pad(date.getHours()) + ':' + pad(date.getMinutes());
+  }
+
+  /** 一条工具调用 → 紧凑可折叠卡（工具名 + 一两行参数/结果摘要）。 */
+  function toolCardHtml(tool) {
+    const row = tool && typeof tool === 'object' ? tool : {};
+    const result = row.result && typeof row.result === 'object' ? row.result : null;
+    const isError = result !== null && result.isError === true;
+    const stateText = result ? (isError ? '失败' : '完成') : '无结果';
+    const args = typeof row.args === 'string' ? row.args : '';
+    const rows = [];
+    rows.push('<div class="trow"><span class="tk">参数</span><span class="tv">' + esc(args || '—') + '</span></div>');
+    rows.push('<div class="trow"><span class="tk">结果</span><span class="tv">' +
+      esc(result ? (result.summary || (isError ? '工具报错（无摘要）' : '完成（无摘要）')) : '未返回结果（可能在下一页）') + '</span></div>');
+    if (result && typeof result.code === 'string' && result.code !== '') {
+      rows.push('<div class="trow"><span class="tk">错误码</span><span class="tv mono">' + esc(result.code) + '</span></div>');
+    }
+    return '<details class="tcard' + (isError ? ' err' : '') + '">' +
+      '<summary><svg class="i chev" aria-hidden="true"><use href="#i-chev"></use></svg>' +
+      '<span class="tname">' + esc(row.name || 'tool') + '</span>' +
+      '<span class="targs">' + esc(args || '（无参数）') + '</span>' +
+      '<span class="tstat">' + stateText + '</span></summary>' +
+      '<div class="tbody">' + rows.join('') + '</div></details>';
+  }
+  function toolsHtml(tools) {
+    if (!Array.isArray(tools) || tools.length === 0) return '';
+    return '<div class="tools">' + tools.map(toolCardHtml).join('') + '</div>';
+  }
+
+  /** 一条真实消息 → DSH 风格 HTML；所有外部文本过 esc()。 */
+  function dialogMessageHtml(message) {
+    const row = message && typeof message === 'object' ? message : {};
+    const time = fmtClock(row.time);
+    const text = typeof row.text === 'string' ? row.text : '';
+    if (row.role === 'user') {
+      return '<article class="msg user"><div class="msg-meta"><span class="who">你</span><span class="t">' +
+        esc(time) + '</span></div><div class="body dlg-text">' + esc(text) + '</div></article>';
+    }
+    if (row.role === 'notice') {
+      return '<article class="msg notice"><div class="msg-meta"><span class="who">系统注入 · ' +
+        esc(row.source || 'injected') + '</span><span class="t">' + esc(time) + '</span></div>' +
+        '<div class="body dlg-text">' + esc(text) + '</div></article>';
+    }
+    if (row.role === 'tool') {
+      return '<article class="msg bot">' + toolsHtml(row.tools) + '</article>';
+    }
+    if (row.role === 'assistant') {
+      let html = '<article class="msg bot">';
+      if (typeof row.thinking === 'string' && row.thinking !== '') {
+        html += '<details class="think"><summary><svg class="i" aria-hidden="true"><use href="#i-brain"></use></svg>' +
+          '<span>思考</span></summary><div class="think-body dlg-text">' + esc(row.thinking) + '</div></details>';
+      }
+      if (text !== '') html += '<div class="md"><p class="dlg-text">' + esc(text) + '</p></div>';
+      if (!text && !row.tools) html += '<div class="md"><p class="muted">（这一步没有可见文本）</p></div>';
+      if (row.interrupted === true) html += '<div class="msg-meta"><span class="dlg-tag">已中断</span></div>';
+      html += toolsHtml(row.tools);
+      html += '</article>';
+      return html;
+    }
+    return '';
+  }
+
+  function renderDialog() {
+    const list = $('#dialogList');
+    const empty = $('#dialogEmpty');
+    if (!list || !empty) return;
+    const dialog = state.dialog;
+    const earlier = $('#loadEarlierWrap');
+    const earlierHint = $('#loadEarlierHint');
+    const earlierBtn = $('#loadEarlier');
+    const pill = $('#pillDialog');
+
+    let emptyText = '';
+    if (dialog.kind === 'loading') {
+      emptyText = '正在读取真实会话对话…';
+    } else if (dialog.kind === 'missing') {
+      emptyText = /404/.test(dialog.reason || '')
+        ? '真实对话路由尚未加载（HTTP 404）：0.8.0 Host 需重启 DSH 后生效（M0/M1/M2 一起加载）。在此之前中栏不显示任何示例对话。'
+        : '真实对话不可用：' + (dialog.reason || '数据源不可用');
+    } else if (dialog.kind === 'unavailable') {
+      emptyText = '对话不可用：' + (dialog.reason || '宿主未给出原因');
+    } else if (dialog.messages.length === 0) {
+      const counts = dialog.data && dialog.data.counts ? dialog.data.counts : null;
+      emptyText = counts && counts.events === 0
+        ? '该会话还没有消息。'
+        : '这段窗口里没有可显示的消息（历史可能更早，或会话刚开始）。';
+    }
+
+    if (emptyText !== '') {
+      empty.hidden = false;
+      empty.textContent = emptyText;
+      list.innerHTML = '';
+    } else {
+      empty.hidden = true;
+      let html = '';
+      if (dialog.data && dialog.data.degraded && dialog.data.degraded.reason) {
+        html += '<p class="dialog-note">数据缺口：' + esc(String(dialog.data.degraded.reason).slice(0, 200)) + '</p>';
+      }
+      let previousMs = null;
+      dialog.messages.forEach(function (message) {
+        const ms = message && message.time ? new Date(message.time).getTime() : Number.NaN;
+        const gap = Number.isFinite(ms) && Number.isFinite(previousMs) ? Math.abs(ms - previousMs) : Infinity;
+        if (!Number.isFinite(previousMs) || gap >= 5 * 60 * 1000) {
+          const date = Number.isFinite(ms) ? new Date(ms) : null;
+          const label = date
+            ? (date.getMonth() + 1) + '-' + pad(date.getDate()) + ' ' + fmtClock(message.time)
+            : '';
+          html += '<div class="dlg-sep"><span>' + esc(label) + '</span></div>';
+        }
+        if (Number.isFinite(ms)) previousMs = ms;
+        html += dialogMessageHtml(message);
+      });
+      list.innerHTML = html;
+    }
+
+    // 真实对话：默认贴底（最新消息可见）；用户往上翻时保留位置，不抢滚动。
+    const thread = $('#thread');
+    if (thread && emptyText === '' && state.dialog.stickBottom !== false) {
+      thread.scrollTop = thread.scrollHeight;
+    }
+
+    const showEarlier = dialog.kind === 'real' && dialog.hasMore === true;
+    if (earlier) earlier.hidden = !showEarlier;
+    if (earlierBtn) earlierBtn.disabled = dialog.paging === true;
+    if (earlierHint) {
+      earlierHint.textContent = dialog.paging
+        ? '载入更早消息…'
+        : (showEarlier ? '已加载 ' + dialog.messages.length + ' 条（按 seq 去重合并）' : '');
+    }
+    if (pill) {
+      if (dialog.kind === 'real' && dialog.data) {
+        const counts = dialog.data.counts || {};
+        pill.textContent = '消息 ' + (Number.isFinite(counts.messages) ? counts.messages : dialog.messages.length) +
+          ' · 工具 ' + (Number.isFinite(counts.tools) ? counts.tools : 0) +
+          (dialog.hasMore ? ' · 可向上翻' : '');
+      } else if (dialog.kind === 'loading') {
+        pill.textContent = '对话载入中…';
+      } else {
+        pill.textContent = '对话不可用';
+      }
+    }
   }
 
   /* ---------- 右栏交互：折叠 / 选中上级路径 / tooltip ---------- */
@@ -3374,6 +4360,31 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     tabs.forEach(function (tab) {
       if (!tab) return;
       tab.addEventListener('click', function () { selectDialogueTab(tab.getAttribute('data-tab')); });
+    });
+  }
+
+  /* ---------- 0.7.0：会话选择器 / 加载更早消息 ---------- */
+  function initButlerDialog() {
+    const pick = $('#sessionPick');
+    if (pick) pick.addEventListener('change', function () {
+      state.dialog.target = pick.value || '';
+      state.dialog = {
+        kind: 'loading', data: null, reason: '', messages: [], cursor: null, hasMore: false,
+        target: state.dialog.target, boundSessionId: '', oldestSeq: null, paging: false, stickBottom: true
+      };
+      renderDialog();
+      renderDialogHeader();
+      loadDialog();
+    });
+    const earlier = $('#loadEarlier');
+    if (earlier) earlier.addEventListener('click', function () {
+      state.dialog.stickBottom = false;
+      loadEarlierDialog();
+    });
+    // 用户手动往上翻就不抢滚动；回到底部附近再恢复贴底。
+    const thread = $('#thread');
+    if (thread) thread.addEventListener('scroll', function () {
+      state.dialog.stickBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 80;
     });
   }
 
@@ -3543,6 +4554,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     loadHost();
     loadTiers();
     loadAlerts();
+    loadButler();
+    loadDialog();
   }
   function setDatasetFlag(kind, value) {
     try { document.body.dataset[kind] = value; } catch (error) { /* 旧内核无 dataset 也不影响功能 */ }
@@ -3553,31 +4566,39 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     setDatasetFlag('host', state.host.kind);
     setDatasetFlag('tiers', state.tiers.kind);
     setDatasetFlag('alerts', state.alerts.kind);
+    setDatasetFlag('butler', state.butler.kind);
+    setDatasetFlag('dialog', state.dialog.kind);
+    setDatasetFlag('write', state.write.available === true ? 'on' : 'off');
+    setDatasetFlag('statusbar', state.statusBar.expanded ? 'expanded' : 'collapsed');
     setDatasetFlag('page', state.page);
   }
 
   initNav();
   initActions();
+  initWriteChannel();
   initBoardTabs();
   initDialogueTabs();
+  initButlerDialog();
   initTodos();
   initTierInteractions();
   initDrawer();
   renderTopology(mockView());
   setTopoBadge('loading', '真实数据载入中…', '');
-  renderTiers();
+  renderButler();
+  renderDialog();
   renderMemory();
   renderChrome();
   renderBoardModule();
   renderThreeQuestions();
   renderHostModule();
+  setStatusBarExpanded(false);
   setPage('butler');
   markState();
 
   const refreshBtn = $('#refreshBtn');
   if (refreshBtn) refreshBtn.addEventListener('click', function () {
     refreshAll();
-    toast('已请求刷新：链路 / 共享板 / 本机 / 层级');
+    toast('已请求刷新：链路 / 共享板 / 本机 / 层级 / 会话 / 对话');
   });
   const taskList = $('#taskList');
   if (taskList) {
@@ -3603,6 +4624,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (event.key === 'Escape') {
       closeDrawer();
       hideTip();
+      closeSayConfirm();
     }
   });
   refreshAll();
@@ -3617,6 +4639,17 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (document.hidden) return;
     loadTiers();
   }, TIERS_POLL_MS);
+  /* 0.7.0：右栏真实状态（M0）10 秒；中栏真实对话（M1）2 秒，只在「大管家」页且已有可用数据时轮询。 */
+  setInterval(function () {
+    if (document.hidden) return;
+    loadButler();
+  }, BUTLER_POLL_MS);
+  setInterval(function () {
+    if (document.hidden) return;
+    if (state.page !== 'butler') return;
+    if (state.dialog.kind !== 'real') return;
+    loadDialog();
+  }, DIALOG_POLL_MS);
 })();
 </script>
 </body>

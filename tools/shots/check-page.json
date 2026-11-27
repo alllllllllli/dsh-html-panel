@@ -1,15 +1,15 @@
 {
   "file": "public/index.html",
-  "bytes": 195559,
-  "sha256": "25f29595e389b45d05102769ab8942d68558398d2f1ed42d64e13ba744c406e4",
-  "checks": 173,
+  "bytes": 249658,
+  "sha256": "10c409307dd5589e7a71469dc6a807803fd25e6e56e9c8b9fc258add0087c801",
+  "checks": 212,
   "failed": 0,
   "pass": true,
   "results": [
     {
       "name": "文件存在且非空",
       "ok": true,
-      "detail": "195559 B"
+      "detail": "249658 B"
     },
     {
       "name": "无 UTF-8 BOM",
@@ -99,22 +99,27 @@
     {
       "name": "href 仅站内锚点 / SVG use",
       "ok": true,
-      "detail": "38 个 href"
+      "detail": "29 个 href"
     },
     {
       "name": "fetch 只有同源相对路径",
       "ok": true,
-      "detail": "共 2 处 fetch"
+      "detail": "共 4 处 fetch"
     },
     {
-      "name": "四条只读路由都读了",
+      "name": "老四条只读路由都读了",
       "ok": true,
-      "detail": "实际：api/cluster, api/board, api/host, api/tiers, api/alerts"
+      "detail": "实际：api/cluster, api/board, api/host, api/tiers, api/alerts, api/butler/sessions, api/butler/dialog"
+    },
+    {
+      "name": "驾驶舱两条新只读路由都读了（M0/M1）",
+      "ok": true,
+      "detail": "api/butler/sessions, api/butler/dialog"
     },
     {
       "name": "api 路径都是相对路径",
       "ok": true,
-      "detail": "api/cluster | api/board | api/host | api/tiers | api/alerts"
+      "detail": "api/cluster | api/board | api/host | api/tiers | api/alerts | api/butler/sessions | api/butler/dialog"
     },
     {
       "name": "没有写死任何 api 外部地址",
@@ -123,6 +128,16 @@
     },
     {
       "name": "写动作只走同源 POST api/action",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "写对话通道走同源 POST api/butler/say 且带注入 token 头",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "专属会话创建/重建走同源 POST api/butler/session",
       "ok": true,
       "detail": ""
     },
@@ -144,7 +159,7 @@
     {
       "name": "CSS 花括号配平",
       "ok": true,
-      "detail": "461 { / 461 }"
+      "detail": "540 { / 540 }"
     },
     {
       "name": "内联 JS 语法可解析",
@@ -272,17 +287,17 @@
       "detail": ""
     },
     {
-      "name": "示例对话 badge 在",
+      "name": "中栏真实对话容器在",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "示例轨迹也标注",
+      "name": "页面不再有示例对话 / 静态演示",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "示例 badge 说明不是真实聊天",
+      "name": "轨迹视图诚实占位（M2 未接入，不伪造轨迹）",
       "ok": true,
       "detail": ""
     },
@@ -297,7 +312,17 @@
       "detail": ""
     },
     {
-      "name": "DSH 风格会话区（已启动卡 / 思考 / composer）",
+      "name": "DSH 风格真实对话渲染（思考折叠 / 工具卡 / composer）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "真实对话轮询 + seq 去重合并",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "加载更早消息（before 翻页）",
       "ok": true,
       "detail": ""
     },
@@ -342,12 +367,27 @@
       "detail": ""
     },
     {
-      "name": "数据来自 api/tiers（真实层级）",
+      "name": "右栏状态来自 api/butler/sessions（M0 真实 state）",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "层级降级不编节点：404 文案在",
+      "name": "右栏状态文案接真实 state（运行中/排队/等审批/等回答/空闲）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "右栏跨机节点标「只读」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "M0 未加载时退回 api/tiers 并写明降级（不编节点）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "层级降级 badge 保留",
       "ok": true,
       "detail": ""
     },
@@ -632,12 +672,22 @@
       "detail": ""
     },
     {
-      "name": "设置页版本是 0.6.0",
+      "name": "设置页版本是 0.8.1",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "设置页列出五条只读路由",
+      "name": "页脚版本是 0.8.1",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "设置页列出七条只读路由",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "设置页列出写通道路由（say/session）",
       "ok": true,
       "detail": ""
     },
@@ -647,12 +697,52 @@
       "detail": ""
     },
     {
+      "name": "设置页显示专属会话与写通道现场状态",
+      "ok": true,
+      "detail": ""
+    },
+    {
       "name": "设置页写明重启要求",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "三问条容器在",
+      "name": "细状态条容器在（statusBar + 展开按钮 + 详情面板）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "细状态条高度 36–44px（min-height:40px / max-height:44px 且无大块 padding）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "细状态条默认一行：摘要 + dot + chips + 展开箭头",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "摘要文案口径（需要你 N 条 · 高 H 中 M / 一切正常 · 在管 X 个活 · 板 Y 任务）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "详情面板默认收起（status-detail[hidden] + data-expanded=false）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "有 high 告警默认展开、同一批不重复抢回（lastHighSig）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "健康/降级用一枚小 chip 提示（N 项降级 / 健康）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "折叠面板里仍是原三问三块（是否需要我 / 系统是否健康 / 这件事的历史）",
       "ok": true,
       "detail": ""
     },
@@ -672,7 +762,7 @@
       "detail": ""
     },
     {
-      "name": "三问健康态不占位（hidden 默认 + 计数=列表长度）",
+      "name": "三问健康态不占位（计数=列表长度）",
       "ok": true,
       "detail": ""
     },
@@ -822,6 +912,111 @@
       "detail": ""
     },
     {
+      "name": "M0 会话清单：路由 + 响应校验 + binding",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "M0 会话选择器（选项来自会话清单 + 自动绑定项）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "M1 对话响应校验 + 窗口参数",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "写通道三层闸门：token 注入 + allowWrite + 只认专属会话",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "写通道默认禁用并写明原因（禁用态不假装能发）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "每次发送二次确认（没有「不再提醒」）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "二次确认文案写明会花钱/写历史",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "写通道错误如实回执（401/403/404/405/429 分支）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "附件按钮保持禁用（本批不做附件）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "专属会话 pin 标签「大管家 · 常驻」+ 配置固定文案",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "领导预设标注：agentPreset → 名字后加「· 领导预设」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "还没建会话时给「创建专属会话」（ensure），不存在时给「重建专属会话」（rebuild）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "专属会话丢失：显示原因 + 重建按钮（不静默回退）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "切到别的会话只读查看（写通道只对专属会话）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "空/不可用诚实提示（找不到会话不编对话）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "顶部显示绑定会话标题与真实状态点",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "轮询：M0 10 秒 / M1 2 秒且隐藏页跳过",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "对话计数与工具数进 composer 状态条",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "思考默认折叠 / 工具卡 result 截断显示（不塞大输出）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "消息文本全部过 esc()（XSS 防线）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "M1 无可用会话时顶部标题回落主控台（不冒充会话）",
+      "ok": true,
+      "detail": ""
+    },
+    {
       "name": "本机小部件接 api/host 真值",
       "ok": true,
       "detail": ""
@@ -844,12 +1039,12 @@
     {
       "name": "关键 id 齐全",
       "ok": true,
-      "detail": "86 个都在"
+      "detail": "118 个都在"
     },
     {
       "name": "页面 id 不重复",
       "ok": true,
-      "detail": "153 个静态 id"
+      "detail": "185 个静态 id"
     },
     {
       "name": "XSS 防护：动态文本过 esc()",

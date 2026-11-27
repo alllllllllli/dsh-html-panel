@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * tools/check-page.mjs —— `public/index.html`（大管家 0.6.0）的静态自检。
+ * tools/check-page.mjs —— `public/index.html`（大管家 0.7.0 = M0+M1 只读驾驶舱）的静态自检。
  *
  * 用法: node tools/check-page.mjs [页面文件] [--json <输出文件>]
  *       默认页面是本包的 public/index.html。
@@ -8,11 +8,19 @@
  * 覆盖：
  *   - 单文件 / UTF-8 无 BOM / DOCTYPE / charset / lang；
  *   - **零外部引用**（无 http(s)://、无 <link>、无脚本/图片外链、无 XHR/WS；href 只有站内锚点）；
- *   - 同源只读路由：恰好读 api/cluster · api/board · api/host · api/tiers · api/alerts；写动作只 POST api/action；
+ *   - 同源只读路由：api/cluster · api/board · api/host · api/tiers · api/alerts ·
+ *     api/butler/sessions · api/butler/dialog；写动作只 POST api/action；
  *   - 标签基本闭合 / 内联 CSS·JS 各一段 / CSS 花括号配平 / JS 可解析且 'use strict'；
  *   - 改名：标题、品牌、导航都叫「大管家」，页面不再出现「HTML 面板」这个入口名；
  *   - V7 三栏结构与 DSH token（选中态是 DSH 真实灰底，不是绿色）；
- *   - 五页导航（大管家/任务/集群/记忆/设置）与中栏示例对话 badge（必须明确标注）；
+ *   - 五页导航（大管家/任务/集群/记忆/设置）；
+ *   - 0.7.0：中栏是**真实对话只读流**（api/butler/dialog + seq 去重 + 工具折叠卡 +
+ *     思考折叠），**不再有示例对话**；0.8.0 起底部输入框在写通道可用时启用（只发专属会话，
+ *     每次二次确认），不可用时禁用并写明原因；
+ *   - 0.8.0：顶部三问条收成一行 36–44px 细状态条（默认摘要 + 健康/降级 chip；high 自动展开，
+ *     展开后才是原三问三块）；专属会话 pinned 标签 + 领导预设标注 + 创建/重建按钮；
+ *   - 0.7.0：右栏 T0–T3 状态来自 api/butler/sessions（sessionController.state），
+ *     跨机节点标「只读」；M0 未加载时退回 api/tiers 并写明降级；
  *   - 右栏派活层级：T0–T3 chip、折叠/选中上级路径/tooltip/900 抽屉、降级 badge、节点文本 esc；
  *   - 共享板五态 / 事件流 / 板状态 badge / 数据过期横幅 / 30 秒轮询（隐藏页跳过）；
  *   - 动作真实通道（客户端 postMessage + 宿主动作路由）/ 四态回执 / 报告预览 / 重启禁用红线；
@@ -93,11 +101,14 @@ const externalFetch = fetchArgs.filter(arg => {
   return /^[a-z][a-z0-9+.-]*:/i.test(value) || value.startsWith('//')
 })
 check('fetch 只有同源相对路径', fetchArgs.length > 0 && externalFetch.length === 0, externalFetch.join(' | ') || '共 ' + fetchArgs.length + ' 处 fetch')
-const apiPaths = [...html.matchAll(/fetchJson\(\s*'([^']+)'/g)].map(m => m[1])
-check('四条只读路由都读了', ['api/cluster', 'api/board', 'api/host', 'api/tiers'].every(p => apiPaths.includes(p)), '实际：' + [...new Set(apiPaths)].join(', '))
-check('api 路径都是相对路径', apiPaths.length > 0 && apiPaths.every(p => /^api\/[a-z]+$/.test(p)), apiPaths.join(' | '))
+const apiPaths = [...html.matchAll(/fetchJson\(\s*'([^']+)'/g)].map(m => m[1].replace(/\?$/, ''))
+check('老四条只读路由都读了', ['api/cluster', 'api/board', 'api/host', 'api/tiers'].every(p => apiPaths.includes(p)), '实际：' + [...new Set(apiPaths)].join(', '))
+check('驾驶舱两条新只读路由都读了（M0/M1）', ['api/butler/sessions', 'api/butler/dialog'].every(p => apiPaths.includes(p)), apiPaths.filter(p => p.startsWith('api/butler')).join(', '))
+check('api 路径都是相对路径', apiPaths.length > 0 && apiPaths.every(p => /^api\/(?:[a-z]+|butler\/[a-z]+)(?:\?)?$/.test(p)), apiPaths.join(' | '))
 check('没有写死任何 api 外部地址', !/fetchJson\(\s*['"`](?:https?:|\/\/)/i.test(html))
 check('写动作只走同源 POST api/action', /fetch\('api\/action'/.test(html) && /method: 'POST'/.test(html) && /JSON\.stringify\(\{ action: action \}\)/.test(html))
+check('写对话通道走同源 POST api/butler/say 且带注入 token 头', /fetch\('api\/butler\/say'/.test(html) && /x-butler-write-token/.test(html) && /INJECTED_WRITE/.test(html))
+check('专属会话创建/重建走同源 POST api/butler/session', /fetch\('api\/butler\/session'/.test(html) && /SESSION_ACTION_TIMEOUT_MS/.test(html))
 
 /* ---------- 4. 标签基本闭合 ---------- */
 const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'])
@@ -180,13 +191,15 @@ check('900/窄屏抽屉断点（≤1200px）', /@media \(max-width:1200px\)/.tes
 check('窄屏二次断点（≤980px）', /@media \(max-width:980px\)/.test(html))
 check('prefers-reduced-motion 降级动画', /@media \(prefers-reduced-motion:reduce\)/.test(html))
 
-/* ---------- 8. 中栏示例对话必须明确标注 ---------- */
-check('示例对话 badge 在', html.includes('id="demoBadge"') && /示例对话[^<]*静态演示/.test(html))
-check('示例轨迹也标注', /示例轨迹[^<]*静态演示/.test(html))
-check('示例 badge 说明不是真实聊天', /不是真实聊天/.test(html))
+/* ---------- 8. 中栏：真实对话只读流（0.7.0，不再有示例对话） ---------- */
+check('中栏真实对话容器在', html.includes('id="dialogList"') && html.includes('id="dialogEmpty"') && html.includes('id="thread"'))
+check('页面不再有示例对话 / 静态演示', !html.includes('id="demoBadge"') && !/示例对话 · 静态演示/.test(html) && !/示例轨迹 · 静态演示/.test(html))
+check('轨迹视图诚实占位（M2 未接入，不伪造轨迹）', /轨迹视图 · M2 未接入/.test(html) && /不伪造轨迹/.test(html))
 check('对话/轨迹 tab 在', html.includes('id="tab-dialogue"') && html.includes('id="tab-trajectory"'))
 check('对话与轨迹两个容器在', html.includes('id="traceDialogue"') && html.includes('id="traceTrajectory"'))
-check('DSH 风格会话区（已启动卡 / 思考 / composer）', html.includes('class="started"') && html.includes('class="think"') && html.includes('class="composer-card"'))
+check('DSH 风格真实对话渲染（思考折叠 / 工具卡 / composer）', /class="think"/.test(html) && /function toolCardHtml\(/.test(html) && /class="tcard/.test(html) && html.includes('class="composer-card"'))
+check('真实对话轮询 + seq 去重合并', /function loadDialog\(/.test(html) && /function mergeDialogMessages\(/.test(html) && /map\.set\(message\.seq, message\)/.test(html) && /fetchJson\('api\/butler\/dialog\?'/.test(html))
+check('加载更早消息（before 翻页）', /id="loadEarlier"/.test(html) && /function loadEarlierDialog\(/.test(html) && /before: oldest/.test(html))
 check('composer 里挂真实快捷动作容器', /id="actionList"/.test(html) && /class="action-strip"/.test(html))
 
 /* ---------- 9. 右栏派活层级 ---------- */
@@ -197,8 +210,11 @@ check('层级状态图例五态', ['运行中', '空闲', '排队', '阻塞', '�
 check('节点渲染函数在', /function renderNode\(/.test(html))
 check('节点文本全部过 esc()', /esc\(n\.name\)/.test(html) && /esc\(n\.device\)/.test(html) && /esc\(n\.task\)/.test(html))
 check('折叠 / 选中上级路径 / tooltip 代码都在', /classList\.toggle\('collapsed'\)/.test(html) && /has-sel/.test(html) && /function fillTip\(/.test(html))
-check('数据来自 api/tiers（真实层级）', /fetchJson\('api\/tiers'/.test(html) && /data\.nodes/.test(html) && /parentId/.test(html))
-check('层级降级不编节点：404 文案在', /api\/tiers 路由尚未加载/.test(html) && /需重启 DSH/.test(html))
+check('右栏状态来自 api/butler/sessions（M0 真实 state）', /fetchJson\('api\/butler\/sessions'/.test(html) && /data\.nodes/.test(html) && /parentId/.test(html) && /statusText/.test(html))
+check('右栏状态文案接真实 state（运行中/排队/等审批/等回答/空闲）', ['运行中', '排队', '等审批', '等回答', '空闲'].every(t => html.includes(t)))
+check('右栏跨机节点标「只读」', /class="ro-tag"/.test(html) && /data-readonly=/.test(html) && /跨机只读/.test(html))
+check('M0 未加载时退回 api/tiers 并写明降级（不编节点）', /fetchJson\('api\/tiers'/.test(html) && /右栏状态降级/.test(html) && /需重启 DSH/.test(html))
+check('层级降级 badge 保留', /id="tierDegraded"/.test(html) && /会话数据降级/.test(html))
 check('900 抽屉开关三件套', /id="drawerBtn"/.test(html) && /id="hierClose"/.test(html) && /id="mask"/.test(html))
 check('设备只是标签（节点内 .dev chip）', /class="dev"/.test(html) && /data-device=/.test(html))
 
@@ -238,7 +254,7 @@ check('报告预览面板齐全', ['reportPanel', 'reportMeta', 'reportContent',
 check('报告内容只用 textContent 渲染', /reportContent'\)\.textContent =/.test(html))
 check('二级动作按钮（回执内）走 DOM 构建', /data-hint-action/.test(html) && /r-link/.test(html))
 check('重启 DSH 仍禁用且写明红线', /disabled aria-describedby="disabledReason"/.test(html) && html.includes('红线：不由面板重启 DSH') && /runRestart/.test(html))
-check('动作通道说明在设置页', html.includes('POST api/action（只收白名单动作 id）'))
+check('动作通道说明在设置页', html.includes('POST api/action（白名单动作 id）') && html.includes('POST api/butler/say') && html.includes('POST api/butler/session'))
 
 /* ---------- 12. 集群拓扑 ---------- */
 check('mock 兜底视图存在（mockView）', /function mockView\(\)/.test(html))
@@ -260,17 +276,27 @@ check('设备/链路列表接真实字段', /function renderClusterList\(/.test(
 /* ---------- 13. 记忆 / 设置页 ---------- */
 check('记忆页真探测入口', /id="memoryProbe"/.test(html) && /fireAction\('notes'\)/.test(html))
 check('记忆状态文案来自真实回执', /state\.memory = \{ kind: 'ok'/.test(html) && /state\.memory = \{ kind: 'fail'/.test(html))
-check('设置页版本是 0.6.0', /id="setVersion">0\.6\.0</.test(html) && /setVersion\.textContent = '0\.6\.0'/.test(html))
-check('设置页列出五条只读路由', /api\/cluster · api\/board · api\/host · api\/tiers · api\/alerts/.test(html))
-check('设置页数据源接真实字段', /id="setBoard"/.test(html) && /id="setTiersSource"/.test(html) && /id="setHost"/.test(html))
-check('设置页写明重启要求', /api\/alerts/.test(html) && /official 段/.test(html) && /需重启 DSH 后才生效/.test(html))
+check('设置页版本是 0.8.1', /id="setVersion">0\.8\.1</.test(html) && /setVersion\.textContent = '0\.8\.1'/.test(html))
+check('页脚版本是 0.8.1', /v0\.8\.1 · 驾驶舱（写通道 M2 · 领导预设）/.test(html))
+check('设置页列出七条只读路由', /api\/cluster · api\/board · api\/host · api\/tiers · api\/alerts · api\/butler\/sessions · api\/butler\/dialog/.test(html))
+check('设置页列出写通道路由（say/session）', /POST api\/butler\/say/.test(html) && /POST api\/butler\/session/.test(html))
+check('设置页数据源接真实字段', /id="setBoard"/.test(html) && /id="setTiersSource"/.test(html) && /id="setHost"/.test(html) && /id="setButler"/.test(html))
+check('设置页显示专属会话与写通道现场状态', /id="setPinned"/.test(html) && /id="setWrite"/.test(html) && /function writeChannelState\(/.test(html))
+check('设置页写明重启要求', /api\/butler\/sessions/.test(html) && /official 段/.test(html) && /需重启 DSH 后才生效/.test(html))
 
-/* ---------- 13.5 三问条（0.5.0，官方 docs/005-panel.md） ---------- */
-check('三问条容器在', /id="tqBar"/.test(html) && /aria-label="三问/.test(html))
+/* ---------- 13.5 一行细状态条（0.8.0，替代 0.5.0 三问条主位） ---------- */
+check('细状态条容器在（statusBar + 展开按钮 + 详情面板）', /id="statusBar"/.test(html) && /id="statusToggle"/.test(html) && /id="statusDetail"/.test(html) && /aria-label="状态条/.test(html))
+check('细状态条高度 36–44px（min-height:40px / max-height:44px 且无大块 padding）', /\.sb-main\{[^}]*min-height:40px;[^}]*max-height:44px/.test(html) || /min-height:40px;max-height:44px/.test(html) || /\.sb-main\{[^}]*min-height:40px[^}]*max-height:44px/.test(html))
+check('细状态条默认一行：摘要 + dot + chips + 展开箭头', /id="statusSummary"/.test(html) && /id="statusDot"/.test(html) && /id="statusChips"/.test(html) && /class="i sb-chev"/.test(html))
+check('摘要文案口径（需要你 N 条 · 高 H 中 M / 一切正常 · 在管 X 个活 · 板 Y 任务）', /需要你 ' \+/.test(html) && /一切正常/.test(html) && /在管 ' \+/.test(html) && /'板 ' \+/.test(html))
+check('详情面板默认收起（status-detail[hidden] + data-expanded=false）', /<div class="status-detail" id="statusDetail" hidden>/.test(html) && /id="statusBar" data-expanded="false"/.test(html) && /detail\.hidden = !state\.statusBar\.expanded/.test(html))
+check('有 high 告警默认展开、同一批不重复抢回（lastHighSig）', /function renderStatusBar\(/.test(html) && /state\.statusBar\.lastHighSig !== sig/.test(html) && /setStatusBarExpanded\(true\)/.test(html))
+check('健康/降级用一枚小 chip 提示（N 项降级 / 健康）', /项降级<\/span>/.test(html) && /sb-chip ok">健康/.test(html) && /function statusCounts\(/.test(html))
+check('折叠面板里仍是原三问三块（是否需要我 / 系统是否健康 / 这件事的历史）', /id="statusDetail"[\s\S]{0,900}id="tqNeeds"[\s\S]{0,600}id="tqHealth"[\s\S]{0,600}id="tqHistory"/.test(html))
 for (const [id, text] of [['tqNeeds', '是否需要我'], ['tqHealth', '系统是否健康'], ['tqHistory', '这件事的历史']]) {
   check('三问项齐：' + text, new RegExp('id="' + id + '"').test(html) && html.includes(text) && new RegExp('id="' + id + 'N"').test(html) && new RegExp('id="' + id + 'List"').test(html))
 }
-check('三问健康态不占位（hidden 默认 + 计数=列表长度）', /id="tqBar"[^>]*hidden/.test(html) && /bar\.hidden = needs \+ health \+ history === 0/.test(html) && /count\.textContent = String\(rows\.length\)/.test(html))
+check('三问健康态不占位（计数=列表长度）', /count\.textContent = String\(rows\.length\)/.test(html) && /block\.hidden = true/.test(html))
 check('三问每行说「在等谁、要什么」', /class="tq-who">在等 <b>/.test(html) && /class="tq-want">要 /.test(html))
 check('三问第一问只认真实板数据（awaiting/undelivered/stale/官方可认领）', /task\.state === 'awaiting'/.test(html) && /task\.state === 'undelivered'/.test(html) && /task\.state === 'stale'/.test(html) && /task\.ready === true && !task\.ownerName/.test(html))
 check('三问第二问逐行列系统问题（链路/板/投影/本机/层级）', /function tqHealth\(/.test(html) && /官方 Agent Teams 投影/.test(html) && /官方任务板不可用/.test(html))
@@ -302,10 +328,33 @@ check('告警卡字段齐全（严重度/类目/为什么/建议/证据）', /fu
 check('告警三级配色 CSS 在', ['.al-sev.high{', '.al-sev.medium{', '.al-sev.low{', '.alert-card.sev-high{', '.alert-card.sev-medium{', '.alert-card.sev-low{'].every(rule => html.includes(rule)))
 check('任务卡命中告警有小标记且可跳转', /function taskAlertFlags\(/.test(html) && /data-alert-jump/.test(html) && /function jumpToAlert\(/.test(html) && /jumpToAlert\(jump\.getAttribute\('data-alert-jump'\)\)/.test(html))
 check('告警标记/卡片文本都过 esc()', /esc\(alert\.why/.test(html) && /esc\(alert\.suggestion/.test(html) && /esc\(alert\.categoryLabel/.test(html) && /esc\(alert\.subject/.test(html))
-check('告警降级回退旧路径（Host 未重启时行为不变）', /alertsData\(\) !== null \? renderNeedsAlerts\(\) : tqFill\('tqNeeds'/.test(html))
+check('告警降级回退旧路径（Host 未重启时行为不变）', /if \(alertsData\(\) !== null\) renderNeedsAlerts\(\)/.test(html) && /else tqFill\('tqNeeds'/.test(html) && /function statusSummaryText\(/.test(html))
 check('告警接 30 秒轮询 + body.dataset 标记', /loadAlerts\(\);/.test(html) && /setDatasetFlag\('alerts'/.test(html) && /state\.alerts = \{ kind: 'real'/.test(html))
 check('设置页显示告警数据源', /id="setAlerts"/.test(html) && /function alertsSummary\(/.test(html) && /TRAIL 规则 /.test(html))
 check('设置页写清告警路由只读与限制', /api\/alerts（TRAIL 规则，只读）/.test(html) || /api\/alerts/.test(html))
+
+/* ---------- 13.9 大管家驾驶舱 M0+M1（0.7.0，只读） + M2 写通道（0.8.0） ---------- */
+check('M0 会话清单：路由 + 响应校验 + binding', /fetchJson\('api\/butler\/sessions'/.test(html) && /function isButlerPayload\(/.test(html) && /binding\.resolvedBy/.test(html))
+check('M0 会话选择器（选项来自会话清单 + 自动绑定项）', /id="sessionPick"/.test(html) && /自动（配置 \/ 最近根会话）/.test(html) && /function renderSessionPicker\(/.test(html) && /<optgroup/.test(html))
+check('M1 对话响应校验 + 窗口参数', /function isDialogPayload\(/.test(html) && /function dialogQuery\(/.test(html) && /DIALOG_LIMIT/.test(html) && /sessionId/.test(html))
+check('写通道三层闸门：token 注入 + allowWrite + 只认专属会话', /const INJECTED_WRITE = \/\*__DSH_PANEL_WRITE__\*\/null/.test(html) && /injected\.allowWrite !== true/.test(html) && /binding\.resolvedBy !== 'config'/.test(html) && /function writeChannelState\(/.test(html))
+check('写通道默认禁用并写明原因（禁用态不假装能发）', /id="prompt"[^>]*disabled/.test(html) && /id="sendBtn"[^>]*disabled/.test(html) && /写通道不可用：/.test(html) && /id="composerRoTag"/.test(html))
+check('每次发送二次确认（没有「不再提醒」）', /id="confirmMask"/.test(html) && /id="confirmSend"/.test(html) && /id="confirmCancel"/.test(html) && /function openSayConfirm\(/.test(html) && /function sendButlerSay\(/.test(html) && /event\.key === 'Enter' && !event\.shiftKey/.test(html) && /mask\.addEventListener\('click'/.test(html))
+check('二次确认文案写明会花钱/写历史', /消耗模型额度/.test(html) && /写入对话历史/.test(html) && /不做催办 \/ 中断 \/ 归档/.test(html))
+check('写通道错误如实回执（401/403/404/405/429 分支）', /say-route-missing/.test(html) && /say-unreachable/.test(html) && /unsupported === true \? '写通道未加载：'/.test(html) && /function sayResultFromResponse\(/.test(html))
+check('附件按钮保持禁用（本批不做附件）', /添加附件（本批不支持）/.test(html) && /aria-label="添加附件（本批不支持）" disabled/.test(html))
+check('专属会话 pin 标签「大管家 · 常驻」+ 配置固定文案', /id="bindPinned" hidden>大管家 · 常驻/.test(html) && /配置固定 · 专属会话/.test(html) && /function butlerLabelOf\(/.test(html))
+check('领导预设标注：agentPreset → 名字后加「· 领导预设」', /function butlerLabelOf\(/.test(html) && /' · 领导预设'/.test(html) && /binding\.agentPreset/.test(html) && /butlerLabelOf\(bindingOf\(\)\)/.test(html))
+check('还没建会话时给「创建专属会话」（ensure），不存在时给「重建专属会话」（rebuild）', /needCreate \? '创建专属会话' : '重建专属会话'/.test(html) && /专属会话尚未创建：/.test(html) && /'rebuild' : 'ensure'/.test(html))
+check('专属会话丢失：显示原因 + 重建按钮（不静默回退）', /大管家会话不存在：/.test(html) && /id="rebuildBtn"/.test(html) && /function rebuildButlerSession\(/.test(html) && /missingPinned/.test(html))
+check('切到别的会话只读查看（写通道只对专属会话）', /当前查看的是其它会话（只读）/.test(html) && /手动选择 · 只读/.test(html) && /当前是自动绑定：写通道只对配置里的专属大管家会话生效/.test(html))
+check('空/不可用诚实提示（找不到会话不编对话）', /真实对话路由尚未加载/.test(html) && /对话不可用：/.test(html) && /该会话还没有消息/.test(html) && /不显示任何示例对话/.test(html))
+check('顶部显示绑定会话标题与真实状态点', /id="sessTitle"/.test(html) && /id="dlgStateText"/.test(html) && /id="dlgDot"/.test(html) && /id="bindMode"/.test(html) && /function renderDialogHeader\(/.test(html))
+check('轮询：M0 10 秒 / M1 2 秒且隐藏页跳过', /BUTLER_POLL_MS = 10000/.test(html) && /DIALOG_POLL_MS = 2000/.test(html) && /state\.dialog\.kind !== 'real'/.test(html) && /document\.hidden/.test(html))
+check('对话计数与工具数进 composer 状态条', /id="pillDialog"/.test(html) && /'消息 ' \+/.test(html) && /' · 工具 ' \+/.test(html))
+check('思考默认折叠 / 工具卡 result 截断显示（不塞大输出）', /row\.thinking/.test(html) && /tcard/.test(html) && /result\.summary/.test(html))
+check('消息文本全部过 esc()（XSS 防线）', /esc\(text\)/.test(html) && /esc\(row\.name/.test(html) && /esc\(args \|\| '—'\)/.test(html))
+check('M1 无可用会话时顶部标题回落主控台（不冒充会话）', /'大管家 · 主控台'/.test(html) && /未绑定/.test(html))
 /* ---------- 14. 本机 / 待办能力不退化 ---------- */
 check('本机小部件接 api/host 真值', /function renderHostModule\(/.test(html) && /host\.data\.memory/.test(html) && /fmtBytes\(/.test(html))
 check('localStorage 待办键存在', /localStorage/.test(html) && /STORE_KEY/.test(html))
@@ -314,14 +363,19 @@ check('待办在任务页（五页导航内）', /id="page-tasks"[\s\S]*id="todo
 
 /* ---------- 15. id / XSS / 交互 ---------- */
 const requiredIds = ['toast', 'chipStale', 'chipStaleText', 'statDevices', 'statBoard', 'sfSub', 'sfDev',
-  'demoBadge', 'traceDialogue', 'traceTrajectory', 'actionList', 'receiptList', 'clearReceipt',
+  'sessTitle', 'sessionPick', 'bindMode', 'dlgStateText', 'dlgDot', 'dlgRoTag', 'dialogList', 'dialogEmpty',
+  'loadEarlierWrap', 'loadEarlier', 'loadEarlierHint', 'trajBadge', 'pillDialog', 'composerRo',
+  'traceDialogue', 'traceTrajectory', 'actionList', 'receiptList', 'clearReceipt',
   'reportPanel', 'reportMeta', 'reportContent', 'closeReport', 'taskList', 'eventList','taskEmpty','eventEmpty',
   'todoForm', 'todoInput', 'todoList', 'todoCount', 'storeHint', 'todoSummary', 'clearDone', 'todoEmpty',
   'topoEdges', 'topoNodes', 'topoSource', 'topoDot', 'topoSourceText', 'topoStamp', 'topoOthers',
   'tree', 'cntT0', 'cntT1', 'cntT2', 'cntT3', 'tierDegraded', 'hier', 'hierScroll', 'drawerBtn', 'hierClose', 'mask', 'tip',
   'boardBadge', 'boardBadgeText', 'recentHint', 'clusterList', 'memoryProbe', 'memoryState', 'memoryBadge', 'memoryBadgeText',
-  'setVersion', 'setBoard', 'setOfficial', 'setCluster', 'setHost', 'setTiersSource', 'disabledReason', 'sendBtn', 'prompt', 'drawerCount', 'hhDesc', 'tierHint', 'tierSourceHint',
-  'tqBar', 'tqNeeds', 'tqNeedsN', 'tqNeedsList', 'tqHealth', 'tqHealthN', 'tqHealthList', 'tqHistory', 'tqHistoryN', 'tqHistoryList',
+  'setVersion', 'setBoard', 'setOfficial', 'setCluster', 'setHost', 'setTiersSource', 'setButler', 'setPinned', 'setWrite', 'disabledReason', 'sendBtn', 'prompt', 'drawerCount', 'hhDesc', 'tierHint', 'tierSourceHint',
+  'statusBar', 'statusToggle', 'statusSummary', 'statusDot', 'statusChips', 'statusDetail',
+  'bindPinned', 'bindNote', 'rebuildBtn', 'dlgWriteTag', 'composerRoTag',
+  'confirmMask', 'confirmTitle', 'confirmTarget', 'confirmPreview', 'confirmSend', 'confirmCancel',
+  'tqNeeds', 'tqNeedsN', 'tqNeedsList', 'tqHealth', 'tqHealthN', 'tqHealthList', 'tqHistory', 'tqHistoryN', 'tqHistoryList',
   'officialCard', 'officialList', 'officialEmpty', 'officialHint', 'officialCount', 'officialLegend', 'setAlerts']
 const markupOnly = stripRawText(html)
 const missingIds = requiredIds.filter(id => !new RegExp('id="' + id + '"').test(markupOnly))
