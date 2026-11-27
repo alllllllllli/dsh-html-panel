@@ -22,12 +22,12 @@ data\snapshot.json               对真实库跑一次的产物
 mcloud 上 `node` 不在 PATH，用绝对路径（这也是本交付实际跑的命令）：
 
 ```powershell
-$node = 'C:\Users\Admin\AppData\Local\Programs\DeepSeek Harness\resources\runtime\primary-runtime\dependencies\node\bin\node.exe'
-cd 'C:\Users\Admin\work-20261114\dsh-html-panel'
+$node = 'C:\Users\demo\AppData\Local\Programs\DeepSeek Harness\resources\runtime\primary-runtime\dependencies\node\bin\node.exe'
+cd 'C:\Users\demo\work-20261114\dsh-html-panel'
 
 # 一次性：读默认板库，写 data\snapshot.json
 & $node tools\mesh-snapshot.mjs
-# → tasks=0 events=478 bytes=120180 out=C:\Users\Admin\work-20261114\dsh-html-panel\data\snapshot.json
+# → tasks=0 events=478 bytes=120180 out=C:\Users\demo\work-20261114\dsh-html-panel\data\snapshot.json
 
 # 循环写（每 5 秒）
 & $node tools\mesh-snapshot.mjs --watch 5
@@ -58,7 +58,7 @@ cd 'C:\Users\Admin\work-20261114\dsh-html-panel'
       name: 'dsh-html-panel'
       config:
         snapshot:
-          path: 'C:\Users\Admin\work-20261114\dsh-html-panel\data\snapshot.json'
+          path: 'C:\Users\demo\work-20261114\dsh-html-panel\data\snapshot.json'
 ```
 
 面板每次加载都重读这个文件（`lib/index.js:106-109`），所以 `--watch` 或定时任务

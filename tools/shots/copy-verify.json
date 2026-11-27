@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-27T13:53:02.052Z",
+  "generatedAt": "2026-11-27T14:12:31.280Z",
   "source": "~/dsh-plugins/dsh-html-panel",
   "installedCopy": "~/.dsh/profiles/desktop/node_modules/dsh-html-panel",
   "profileDir": "~/.dsh/profiles/desktop",
   "note": "逐文件 sha256 对比；报告自身（tools/shots/copy-verify.json）不参与自哈希，但写入后会同步到副本。",
   "sync": {
-    "enabled": false,
-    "copied": 0,
+    "enabled": true,
+    "copied": 113,
     "selfReport": "tools/shots/copy-verify.json",
     "errors": []
   },
@@ -221,9 +221,9 @@
     },
     {
       "path": "tools/cdp-actions.mjs",
-      "bytes": 40968,
-      "sha256": "4bc5f7366bae63be3e6f143a427ec87e89ef3db37a41d3a2c6d27978abcc9b78",
-      "destinationSha256": "4bc5f7366bae63be3e6f143a427ec87e89ef3db37a41d3a2c6d27978abcc9b78",
+      "bytes": 40965,
+      "sha256": "de1650c42120c4920b2c0c60d913149cc333c9f170e80b5a08e78ec4dbeb57dc",
+      "destinationSha256": "de1650c42120c4920b2c0c60d913149cc333c9f170e80b5a08e78ec4dbeb57dc",
       "identical": true
     },
     {
@@ -277,9 +277,9 @@
     },
     {
       "path": "tools/fixtures/board-2026-11-21.json",
-      "bytes": 47186,
-      "sha256": "d30ad4631ea51fb2238c96bac211ae80794cb3ccef572b9bcd57e5511e4123d8",
-      "destinationSha256": "d30ad4631ea51fb2238c96bac211ae80794cb3ccef572b9bcd57e5511e4123d8",
+      "bytes": 47129,
+      "sha256": "2c74c99e4207c0cdf918b244daf44c1fd714512b2c97cbac5d4d9672cafc170a",
+      "destinationSha256": "2c74c99e4207c0cdf918b244daf44c1fd714512b2c97cbac5d4d9672cafc170a",
       "identical": true
     },
     {
@@ -298,9 +298,9 @@
     },
     {
       "path": "tools/mesh-snapshot.md",
-      "bytes": 14597,
-      "sha256": "f9aec014c200d08bbad2ddf0d60d01c545269eba6669867b5a0094372f87763d",
-      "destinationSha256": "f9aec014c200d08bbad2ddf0d60d01c545269eba6669867b5a0094372f87763d",
+      "bytes": 14593,
+      "sha256": "9ef460634668ce266f8ca8fa3dc696b6e03e6a2fbed6558b101872a729c2754c",
+      "destinationSha256": "9ef460634668ce266f8ca8fa3dc696b6e03e6a2fbed6558b101872a729c2754c",
       "identical": true
     },
     {
@@ -312,23 +312,23 @@
     },
     {
       "path": "tools/mesh-snapshot.test.mjs",
-      "bytes": 28404,
-      "sha256": "6572d5abb0fea6cfb41fe35752bfdd8d2b800126f3ab7ff4d187b71d524d3daf",
-      "destinationSha256": "6572d5abb0fea6cfb41fe35752bfdd8d2b800126f3ab7ff4d187b71d524d3daf",
+      "bytes": 28403,
+      "sha256": "55ee044979979f20ac56862d67605dcc0c5d141c282f818b5ccf68bdbe4deb86",
+      "destinationSha256": "55ee044979979f20ac56862d67605dcc0c5d141c282f818b5ccf68bdbe4deb86",
       "identical": true
     },
     {
       "path": "tools/report-actions.md",
-      "bytes": 18262,
-      "sha256": "d45e3f7feaa2e9977f60b72d832e6566fefe26cc339a52eadd43e70a35d47296",
-      "destinationSha256": "d45e3f7feaa2e9977f60b72d832e6566fefe26cc339a52eadd43e70a35d47296",
+      "bytes": 18253,
+      "sha256": "3aba8926740cf1d77ab3e55fc87e7a76a9069264ad18b6e3abf32df4864f661b",
+      "destinationSha256": "3aba8926740cf1d77ab3e55fc87e7a76a9069264ad18b6e3abf32df4864f661b",
       "identical": true
     },
     {
       "path": "tools/report-board-data.md",
-      "bytes": 18840,
-      "sha256": "7c850f6500401b3da681604ee673e716a6cad5a998b4f03ebe5b880ccdfd5c9d",
-      "destinationSha256": "7c850f6500401b3da681604ee673e716a6cad5a998b4f03ebe5b880ccdfd5c9d",
+      "bytes": 18837,
+      "sha256": "e1120a551d1ec3dab263ba8004adcba2c4d9e697030fbda5fcc00ef8693ebabb",
+      "destinationSha256": "e1120a551d1ec3dab263ba8004adcba2c4d9e697030fbda5fcc00ef8693ebabb",
       "identical": true
     },
     {
@@ -340,16 +340,16 @@
     },
     {
       "path": "tools/report-real-data.md",
-      "bytes": 16579,
-      "sha256": "f0f984446327d443752e47b5e0901efa2855b204b70a715e365614603c99229c",
-      "destinationSha256": "f0f984446327d443752e47b5e0901efa2855b204b70a715e365614603c99229c",
+      "bytes": 16575,
+      "sha256": "160bf26606583f60161249cb77ef276d136b0df4561883d7d2466f9c3c429158",
+      "destinationSha256": "160bf26606583f60161249cb77ef276d136b0df4561883d7d2466f9c3c429158",
       "identical": true
     },
     {
       "path": "tools/report-snapshot.md",
-      "bytes": 17336,
-      "sha256": "50de7fe7f1874baef1e8e3237f9840e8277a61dc700b3f668120f93d04578dfe",
-      "destinationSha256": "50de7fe7f1874baef1e8e3237f9840e8277a61dc700b3f668120f93d04578dfe",
+      "bytes": 17318,
+      "sha256": "e2c149828d095264ae5b5e53bb740cf0762eaf74e630a669359f014deb6268ef",
+      "destinationSha256": "e2c149828d095264ae5b5e53bb740cf0762eaf74e630a669359f014deb6268ef",
       "identical": true
     },
     {
@@ -774,9 +774,9 @@
     },
     {
       "path": "tools/taskview.test.mjs",
-      "bytes": 24684,
-      "sha256": "d48c0a88d1538420b2dba5ff7b79a23a332d1c1cb05039f64584f6d96245fdee",
-      "destinationSha256": "d48c0a88d1538420b2dba5ff7b79a23a332d1c1cb05039f64584f6d96245fdee",
+      "bytes": 24666,
+      "sha256": "efe5ac472c55dbe627155e054603a3726e450a249c705e697617331a07514490",
+      "destinationSha256": "efe5ac472c55dbe627155e054603a3726e450a249c705e697617331a07514490",
       "identical": true
     },
     {

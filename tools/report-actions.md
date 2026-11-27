@@ -6,7 +6,7 @@
 ## 1. 研究：能力边界从哪来
 
 DSH 安装包 `D:\Tools\DeepSeekHarness-Desktop\resources\app.asar` 用 `@electron/asar`
-解包到临时目录（`D:\DeepSeek work space\_asar-panel-research\asar`，209,083,008 B），
+解包到临时目录（`D:\<workspace>\_asar-panel-research\asar`，209,083,008 B），
 以下结论都能在解包后的源码里复核：
 
 | 问题 | 结论 | 证据（解包内路径） |
@@ -61,7 +61,7 @@ DSH 安装包 `D:\Tools\DeepSeekHarness-Desktop\resources\app.asar` 用 `@electr
 | 运行中 DSH 的页面热更新 | `GET http://127.0.0.1:51539/dsh-html-panel/index.html` | 改动前 **74,933 B / sha256 130870…98b** → 最终 **91,681 B / sha256 ba448f…7a7**，与源文件逐字节一致；页面无「演示」字样 |
 | 运行中 DSH 的页面真跑（headless Edge 只读打开 `/dsh-html-panel/index.html`，未重启、未动 GUI） | `tools/shots/live-check.json` | 页面真实渲染（`api/cluster`/`api/board`/`api/host` 都来自运行中 DSH：board 源 `http://172.24.112.11:13090`、健康在线、20 任务/12 事件）；点「打开看板」→ **成功**并真的开了 `http://172.24.112.11:13090/` 新标签页；点「查记忆」「读最新报告」→ **暂不支持：「宿主还没有可用的 api/action 路由（HTTP 405）：新版 Host 需要重启 DSH 后生效」**（运行中的旧 Host 被 webserver 的 resource 405 拦住，页面如实回报）；点「新会话/派发任务」→ 独立页无父窗口 →「暂不支持：当前页面不在 DSH 面板 iframe 里」；页面 JS 报错 **0**，网络异常 **0** |
 | 运行中 DSH 的新路由 | `GET http://127.0.0.1:51539/dsh-html-panel/api/action` | 仍 **404 `{"ok":false,"error":"not-found"}`**（GET）/ **405 空体**（POST）—— 旧 Host 半还在内存里，**新路由需重启 DSH 才注册**（本轮不许重启，如实记录） |
-| 两处副本 | 源 `C:\Users\ky614\dsh-plugins\dsh-html-panel` ↔ 已装 `…\.dsh\profiles\desktop\node_modules\dsh-html-panel` | 10 个改动文件 sha256 **全部相等**（见下表） |
+| 两处副本 | 源 `C:\Users\demo\dsh-plugins\dsh-html-panel` ↔ 已装 `…\.dsh\profiles\desktop\node_modules\dsh-html-panel` | 10 个改动文件 sha256 **全部相等**（见下表） |
 | 版本 | `package.json` | `0.2.0` → **`0.3.0`**，`files` 增加 `lib/actions.js` |
 
 两处副本 sha256（SAME = 源与已装副本逐字节相同）：

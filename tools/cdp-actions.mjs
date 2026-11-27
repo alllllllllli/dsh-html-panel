@@ -101,7 +101,7 @@ const PROBE_FAIL = {
 const REPORT_OK = {
   ok: true,
   action: 'latest-report',
-  dir: 'C:\\Users\\ky614\\mesh-0.6-dev\\repo\\docs',
+  dir: 'C:\\Users\\demo\\mesh-0.6-dev\\repo\\docs',
   dirLabel: 'docs',
   file: { name: REPORT_NAME, mtime: REPORT_MTIME, size: Buffer.byteLength(REPORT_TEXT) },
   content: REPORT_TEXT,
@@ -111,7 +111,7 @@ const REPORT_OK = {
 
 const REPORT_FAIL = {
   ok: false, action: 'latest-report', code: 'reports-dir-missing',
-  reason: '报告目录不存在：C:\\Users\\ky614\\mesh-0.6-dev\\repo\\docs',
+  reason: '报告目录不存在：C:\\Users\\demo\\mesh-0.6-dev\\repo\\docs',
 }
 
 /** Parent-window harness that answers the panel protocol like lib/client.js does. */
@@ -278,7 +278,7 @@ async function startFixtureServer() {
         return send(200, 'application/json; charset=utf-8', JSON.stringify(action.report))
       }
       if (requested === 'open-reports-folder') {
-        return send(200, 'application/json; charset=utf-8', JSON.stringify({ ok: true, action: 'open-reports-folder', dir: 'C:\\Users\\ky614\\mesh-0.6-dev\\repo\\docs', dirLabel: 'docs', detail: '已在资源管理器打开报告目录' }))
+        return send(200, 'application/json; charset=utf-8', JSON.stringify({ ok: true, action: 'open-reports-folder', dir: 'C:\\Users\\demo\\mesh-0.6-dev\\repo\\docs', dirLabel: 'docs', detail: '已在资源管理器打开报告目录' }))
       }
       return send(400, 'application/json; charset=utf-8', JSON.stringify({ ok: false, code: 'unknown-action', reason: '未知动作' }))
     }

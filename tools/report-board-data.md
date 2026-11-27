@@ -2,7 +2,7 @@
 
 日期：2026-11-21。版本：`0.1.0` → **`0.2.0`**（首次接真实共享板与本机数据）。
 本轮红线全部遵守：**没有重启/结束 DSH、没有 git 操作、没有推 GitHub、没有跑 pnpm、没改
-dsh-team-mesh 与 interconnect 配置**；只编辑了 `C:\Users\Admin\dsh-plugins\dsh-html-panel`
+dsh-team-mesh 与 interconnect 配置**；只编辑了 `C:\Users\demo\dsh-plugins\dsh-html-panel`
 （唯一编辑处）与 desktop profile 的 `cordis.patch.yml`（备份见下）；已装副本只在最后同步。
 
 ---
@@ -85,7 +85,7 @@ localStorage、标签页键盘交互、900px 布局断点、集群拓扑（inlin
 
 ## 四、profile 配置变更（唯一写 token 的地方）
 
-文件：`C:\Users\ky614\.dsh\profiles\desktop\cordis.patch.yml`
+文件：`C:\Users\demo\.dsh\profiles\desktop\cordis.patch.yml`
 备份：同目录 `cordis.patch.yml.bak-before-panel-board-20261121`（**先备份后改**，备份 = 改前原文）。
 
 ### 4.1 diff（token 已遮蔽）
@@ -211,7 +211,7 @@ XHR/WebSocket/importScripts、非 data: `url()` 全禁）；只允许同源相�
 
 ## 六、两处副本（逐字节）
 
-- 权威源码：`C:\Users\Admin\dsh-plugins\dsh-html-panel`
+- 权威源码：`C:\Users\demo\dsh-plugins\dsh-html-panel`
 - 已装副本：`%DSH_PROFILE_DIR%\node_modules\dsh-html-panel`
 - 同步范围：`lib/`、`public/`、`tools/`、`README.md`、`package.json`（整体镜像，最后只同步这一次）。
 - 逐文件 sha256 比对：**33 个文件，0 个不同，`allIdentical: true`**。

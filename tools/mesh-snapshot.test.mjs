@@ -3,7 +3,7 @@
  * tools/mesh-snapshot.test.mjs —— tools/mesh-snapshot.mjs 的断言集（零依赖自跑）。
  *
  * 跑法：
- *   "C:\Users\Admin\AppData\Local\Programs\DeepSeek Harness\resources\runtime\
+ *   "C:\Users\demo\AppData\Local\Programs\DeepSeek Harness\resources\runtime\
  *    primary-runtime\dependencies\node\bin\node.exe" tools\mesh-snapshot.test.mjs
  *
  * 覆盖什么（按被断言的东西分三组）：

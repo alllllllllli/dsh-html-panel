@@ -1,8 +1,8 @@
 # 交付报告：板库 → 只读快照导出器（dsh-html-panel）
 
 - 机器：mcloud（DESKTOP-3B45810），PowerShell 5.1，`node` 不在 PATH
-- node：`C:\Users\Admin\AppData\Local\Programs\DeepSeek Harness\resources\runtime\primary-runtime\dependencies\node\bin\node.exe`（v24.21.0）
-- 板库：`C:\Users\Admin\.dsh\team\team.db`（WAL，实测只读打开成功）
+- node：`C:\Users\demo\AppData\Local\Programs\DeepSeek Harness\resources\runtime\primary-runtime\dependencies\node\bin\node.exe`（v24.21.0）
+- 板库：`C:\Users\demo\.dsh\team\team.db`（WAL，实测只读打开成功）
 - 本报告只写文件 + 跑测试：**没有**改 `lib/`、`public/`、`package.json`、`README.md`，**没有**碰
   profile，**没有**动任何在跑的 GUI/板服务进程
 
@@ -10,16 +10,16 @@
 
 | 文件（绝对路径） | 字节 | sha256 |
 |---|---|---|
-| `C:\Users\Admin\work-20261114\dsh-html-panel\tools\mesh-snapshot.mjs` | 22784 | `b9e6e8aedca4d11b23435b0bd6b8102d95d8542d82bcbfc6ec87a546ec71a1b3` |
-| `C:\Users\Admin\work-20261114\dsh-html-panel\tools\mesh-snapshot.test.mjs` | 28404 | `6572d5abb0fea6cfb41fe35752bfdd8d2b800126f3ab7ff4d187b71d524d3daf` |
-| `C:\Users\Admin\work-20261114\dsh-html-panel\tools\mesh-snapshot.md` | 14597 | `f9aec014c200d08bbad2ddf0d60d01c545269eba6669867b5a0094372f87763d` |
-| `C:\Users\Admin\work-20261114\dsh-html-panel\data\snapshot.json` | 120180 | `1b4f22b79019fb4b651d1a8f8da8e004dcc0412584795fdcad33c352056ec2ea` |
+| `C:\Users\demo\work-20261114\dsh-html-panel\tools\mesh-snapshot.mjs` | 22784 | `b9e6e8aedca4d11b23435b0bd6b8102d95d8542d82bcbfc6ec87a546ec71a1b3` |
+| `C:\Users\demo\work-20261114\dsh-html-panel\tools\mesh-snapshot.test.mjs` | 28404 | `6572d5abb0fea6cfb41fe35752bfdd8d2b800126f3ab7ff4d187b71d524d3daf` |
+| `C:\Users\demo\work-20261114\dsh-html-panel\tools\mesh-snapshot.md` | 14597 | `f9aec014c200d08bbad2ddf0d60d01c545269eba6669867b5a0094372f87763d` |
+| `C:\Users\demo\work-20261114\dsh-html-panel\data\snapshot.json` | 120180 | `1b4f22b79019fb4b651d1a8f8da8e004dcc0412584795fdcad33c352056ec2ea` |
 
 本文件（`tools\report-snapshot.md`）不在表内：自己写自己，字节数和哈希必然自指。复核命令：
 
 ```powershell
-Get-ChildItem C:\Users\Admin\work-20261114\dsh-html-panel\tools | Get-FileHash -Algorithm SHA256
-(Get-Item C:\Users\Admin\work-20261114\dsh-html-panel\data\snapshot.json).Length
+Get-ChildItem C:\Users\demo\work-20261114\dsh-html-panel\tools | Get-FileHash -Algorithm SHA256
+(Get-Item C:\Users\demo\work-20261114\dsh-html-panel\data\snapshot.json).Length
 ```
 
 `data\snapshot.json` 的哈希只对"这一次运行"有效：`--watch` 或再跑一次都会变（内容取决于
@@ -27,16 +27,16 @@ Get-ChildItem C:\Users\Admin\work-20261114\dsh-html-panel\tools | Get-FileHash -
 
 ## 2. 测试：真实输出
 
-命令（工作目录 `C:\Users\Admin\work-20261114\dsh-html-panel`）：
+命令（工作目录 `C:\Users\demo\work-20261114\dsh-html-panel`）：
 
 ```powershell
-& 'C:\Users\Admin\AppData\Local\Programs\DeepSeek Harness\resources\runtime\primary-runtime\dependencies\node\bin\node.exe' tools\mesh-snapshot.test.mjs
+& 'C:\Users\demo\AppData\Local\Programs\DeepSeek Harness\resources\runtime\primary-runtime\dependencies\node\bin\node.exe' tools\mesh-snapshot.test.mjs
 ```
 
 退出码 `0`，真实输出（原样）：
 
 ```
-临时目录：C:\Users\Admin\AppData\Local\Temp\mesh-snapshot-test-dLkcNC
+临时目录：C:\Users\demo\AppData\Local\Temp\mesh-snapshot-test-dLkcNC
 
 A. 状态映射 rule by rule
   ✓ done → done
@@ -128,10 +128,10 @@ B4. 坏值 / 缺字段不抛错
   ✓ lease_until 是数字字符串也能比
 
 C. CLI 行为
-  ✓ 默认库路径指向 .dsh\team\team.db（C:\Users\Admin\.dsh\team\team.db）
-  ✓ 默认输出相对脚本目录解析成绝对路径（C:\Users\Admin\work-20261114\dsh-html-panel\data\snapshot.json）
+  ✓ 默认库路径指向 .dsh\team\team.db（C:\Users\demo\.dsh\team\team.db）
+  ✓ 默认输出相对脚本目录解析成绝对路径（C:\Users\demo\work-20261114\dsh-html-panel\data\snapshot.json）
   ✓ 成功时退出码 0
-  ✓ stdout 是 tasks=N events=M bytes=B out=<abs>（实际：tasks=11 events=6 bytes=9969 out=C:\Users\Admin\AppData\Local\Temp\mesh-snapshot-test-dLkcNC\out\snap.json）
+  ✓ stdout 是 tasks=N events=M bytes=B out=<abs>（实际：tasks=11 events=6 bytes=9969 out=C:\Users\demo\AppData\Local\Temp\mesh-snapshot-test-dLkcNC\out\snap.json）
   ✓ stdout 报的 tasks 数与 JSON 一致
   ✓ stdout 报的 events 数与 JSON 一致
   ✓ stdout 报的 bytes 就是磁盘上的真实字节数
@@ -150,7 +150,7 @@ C. CLI 行为
   ✓ 库不存在时退出码 1
   ✓ 库不存在时 stdout 为空
   ✓ 库不存在时 stderr 只有一行
-  ✓ stderr 说的是人话（mesh-snapshot: 板库不存在：C:\Users\Admin\AppData\Local\Temp\mesh-snapshot-test-dLkcNC\no-such.db）
+  ✓ stderr 说的是人话（mesh-snapshot: 板库不存在：C:\Users\demo\AppData\Local\Temp\mesh-snapshot-test-dLkcNC\no-such.db）
   ✓ stderr 里没有调用栈
   ✓ 库不存在时不留下输出文件
   ✓ 不是板库时退出码 1
@@ -184,13 +184,13 @@ C. CLI 行为
 ## 3. 真实库导出：真实 stdout
 
 ```powershell
-& 'C:\Users\Admin\AppData\Local\Programs\DeepSeek Harness\resources\runtime\primary-runtime\dependencies\node\bin\node.exe' tools\mesh-snapshot.mjs
+& 'C:\Users\demo\AppData\Local\Programs\DeepSeek Harness\resources\runtime\primary-runtime\dependencies\node\bin\node.exe' tools\mesh-snapshot.mjs
 ```
 
 退出码 `0`，真实输出：
 
 ```
-tasks=0 events=478 bytes=120180 out=C:\Users\Admin\work-20261114\dsh-html-panel\data\snapshot.json
+tasks=0 events=478 bytes=120180 out=C:\Users\demo\work-20261114\dsh-html-panel\data\snapshot.json
 ```
 
 - **0 条任务 / 478 条事件**（与任务书给的"当前 0 个任务"一致）
@@ -312,7 +312,7 @@ tasks=0 events=478 bytes=120180 out=C:\Users\Admin\work-20261114\dsh-html-panel\
    测试里的多行 acceptance 是我自己造的）。
 8. `data\snapshot.json` 的 sha256 只对本次运行有效（含 `generatedAt`）。
 9. 报告里引用的 `store.js` / `domain.js` / `backend.js` / `spec.js` 行号，取自
-   `C:\Users\Admin\dsh-plugins\dsh-team-mesh\` 当前版本；那边改代码后行号会漂，但
+   `C:\Users\demo\dsh-plugins\dsh-team-mesh\` 当前版本；那边改代码后行号会漂，但
    "毫秒"这个结论有真实数据反证兜底。
 10. **"不写板库一个字节"的精确含义**：`team.db` 本身没被写（跑前跑后都是 172032 字节、
     LastWriteTime 仍是 `2026/11/20 23:17:08`，`team.db-wal` 始终 0 字节）。但 SQLite 以

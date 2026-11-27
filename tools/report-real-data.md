@@ -44,7 +44,7 @@
 | `lib/index.js` | 修改 | `inject` 改为 `['webServer', 'interconnect']`（服务缺失仍不抛错）；新增常量 `CLUSTER_FILE = 'api/cluster'`；`serveCluster()` 处理 GET/HEAD、405 JSON、异常降级；`api/` 命名空间未知路径 JSON 404；`interconnectOf(ctx)` 按请求惰性读取（服务晚激活也能拿到）；注册时把 getter 传进 `servePublic`。 |
 | `public/index.html` | 修改 | 唯一 `MOCK` 常量保留为兜底；新增 `mockView()` / `realView(data)` 两个视图构建器，`renderTopology(view)` 仍只有一份渲染逻辑（4 槽位 / 5 边 / 空心待接入圆不变）；新增 `isClusterPayload()` 形状校验、`loadCluster()`、3s 超时、短原因文案、`setTopoBadge()`；面板头新增数据来源 badge（真实/兜底/载入中）；图例下新增「其它已配置对端」一行；删除节点的 `heartbeat`/`link` mock 字段与「最后心跳」文案；`<title>`/`aria-label` 按视图模型生成并做转义；页面注释、meta、noscript 同步改成「同源 api/cluster + mock 兜底」。V4 的时钟、动作回执、待办 localStorage、标签页、系统小部件、布局断点全部未动。 |
 | `package.json` | 修改 | `files` 数组补 `lib/cluster.js`（打包清单与实现一致）。 |
-| `README.md` | 重写 | 页面描述改成 V5（快捷工作台 + 集群拓扑），删掉「dense table + event stream」过时说法；新增 `api/cluster` 契约与脱敏规则；旧的 snapshot 管线**如实**写成「路由与 postMessage 保留，但 V5 页面目前不消费，任务列表仍是 mock」；Layout 表补 `lib/cluster.js` 与 `public/index.html` 现状；Acceptance 换成本轮实测证据与未验证项；安装/卸载保留，路径用 `C:\Users\Admin\...` 占位。 |
+| `README.md` | 重写 | 页面描述改成 V5（快捷工作台 + 集群拓扑），删掉「dense table + event stream」过时说法；新增 `api/cluster` 契约与脱敏规则；旧的 snapshot 管线**如实**写成「路由与 postMessage 保留，但 V5 页面目前不消费，任务列表仍是 mock」；Layout 表补 `lib/cluster.js` 与 `public/index.html` 现状；Acceptance 换成本轮实测证据与未验证项；安装/卸载保留，路径用 `C:\Users\demo\...` 占位。 |
 | `tools/cluster.test.mjs` | 新增 | `node:test` 用例：`sanitizeOrigin` 脱敏矩阵、`buildCluster` 契约/缺失/抛错/垃圾行、真 socket HTTP 路由（200/405/404/403/HEAD/204/无服务/读失败）、`inject` 与 prefix 注册断言。 |
 | `tools/check-page.mjs` | 新增 | 页面静态自检（零依赖）：禁止一切外部 URL、`fetch` 只允许同源相对路径且必须是 `api/cluster`、标签闭合、内联 CSS/JS 可解析、`MOCK` 唯一、四槽位/五边、badge 元素、无心跳文案、900px 断点。旧检查「禁止 fetch」已更新为「禁止外部 URL，允许同源相对 fetch」，没有放宽成全放行。 |
 | `tools/cdp-live.mjs` | 新增 | 起**同源静态服务器**（页面直接读 `public/index.html`，`api/cluster` 按场景给 fixture），Edge headless + CDP 断言 + 截图；8 场景：真实数据 1440、404 兜底、900 窄宽拓扑、非 JSON、结构不符、3s 超时、`interconnect:false`、真实形状（4 peer 全 down）；含 V4 交互回归与「只有同源请求」网络断言。 |
@@ -113,7 +113,7 @@
 
 ## 6. 两份副本同步与哈希
 
-- 源码/部署目录（权威）：`C:\Users\Admin\dsh-plugins\dsh-html-panel`（本文用占位路径）
+- 源码/部署目录（权威）：`C:\Users\demo\dsh-plugins\dsh-html-panel`（本文用占位路径）
 - 已装副本（运行中 DSH 实际加载）：`%DSH_PROFILE_DIR%\node_modules\dsh-html-panel`
 - 做法：逐文件 `Copy-Item -Force`（只覆盖本轮改动的文件，不整目录镜像，避免动到别的文件），
   然后对每个文件分别算 sha256 比较。`tools/shots/` 为新目录，已一并复制到已装副本。
@@ -139,7 +139,7 @@
 清单本身无法可靠地记录自身哈希，故它不在清单条目里。复核命令：
 
 ```powershell
-$src = 'C:\Users\Admin\dsh-plugins\dsh-html-panel'
+$src = 'C:\Users\demo\dsh-plugins\dsh-html-panel'
 $dst = Join-Path $env:DSH_PROFILE_DIR 'node_modules\dsh-html-panel'
 Get-FileHash -LiteralPath (Join-Path $src 'lib\cluster.js') -Algorithm SHA256
 Get-FileHash -LiteralPath (Join-Path $dst 'lib\cluster.js') -Algorithm SHA256
@@ -183,5 +183,5 @@ Get-FileHash -LiteralPath (Join-Path $dst 'lib\cluster.js') -Algorithm SHA256
 - 未改参考图 `ref-topology.png`、未改 V5 视觉风格。
 - 所有写入为 UTF-8 无 BOM（已用 `check-page` 的 BOM 断言与字节核对覆盖 HTML；脚本/报告为
   同一写入路径）。
-- 文件内无 token / 密钥 / 本机个人绝对路径：README 与报告用 `C:\Users\Admin\...` 占位，
+- 文件内无 token / 密钥 / 本机个人绝对路径：README 与报告用 `C:\Users\demo\...` 占位，
   其余文件对外只出现实例名与 `host[:port]`。
