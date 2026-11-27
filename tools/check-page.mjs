@@ -143,7 +143,7 @@ check('标签基本闭合', tagErrors.length === 0, tagErrors.join(' | ') || '�
 const styles = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)]
 const scripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
 check('内联 <style> 恰一段', styles.length === 1, '共 ' + styles.length + ' 段')
-check('内联 <script> 恰一段且无 src', scripts.length === 1 && !/\bsrc\s*=/.test(scripts[0]?.[1] ?? ''), '共 ' + scripts.length + ' 段')
+check('内联 <script> 两段（诊断 + 主程序）且无 src', scripts.length === 2 && scripts.every(x => !/\bsrc\s*=/.test(x[1])), '共 ' + scripts.length + ' 段')
 if (styles.length === 1) {
   const css = styles[0][1].replace(/\/\*[\s\S]*?\*\//g, '')
   const open = (css.match(/\{/g) || []).length
@@ -276,8 +276,8 @@ check('设备/链路列表接真实字段', /function renderClusterList\(/.test(
 /* ---------- 13. 记忆 / 设置页 ---------- */
 check('记忆页真探测入口', /id="memoryProbe"/.test(html) && /fireAction\('notes'\)/.test(html))
 check('记忆状态文案来自真实回执', /state\.memory = \{ kind: 'ok'/.test(html) && /state\.memory = \{ kind: 'fail'/.test(html))
-check('设置页版本是 0.9.0', /id="setVersion">0\.9\.0</.test(html) && /setVersion\.textContent = '0\.9\.0'/.test(html))
-check('页脚版本是 0.9.0', /v0\.9\.0 · 驾驶舱（写通道 M2 · 流式\/折叠）/.test(html))
+check('设置页版本是 0.9.2', /id="setVersion">0\.9\.2</.test(html) && /setVersion\.textContent = '0\.9\.2'/.test(html))
+check('页脚版本是 0.9.2', /v0\.9\.2 · 驾驶舱（写通道 M2 · 模型切换 · 自诊断）/.test(html))
 check('设置页列出七条只读路由', /api\/cluster · api\/board · api\/host · api\/tiers · api\/alerts · api\/butler\/sessions · api\/butler\/dialog/.test(html))
 check('设置页列出写通道路由（say/session）', /POST api\/butler\/say/.test(html) && /POST api\/butler\/session/.test(html))
 check('设置页数据源接真实字段', /id="setBoard"/.test(html) && /id="setTiersSource"/.test(html) && /id="setHost"/.test(html) && /id="setButler"/.test(html))
@@ -342,7 +342,7 @@ check('写通道默认禁用并写明原因（禁用态不假装能发）', /id=
 check('每次发送二次确认（没有「不再提醒」）', /id="confirmMask"/.test(html) && /id="confirmSend"/.test(html) && /id="confirmCancel"/.test(html) && /function openSayConfirm\(/.test(html) && /function sendButlerSay\(/.test(html) && /event\.key === 'Enter' && !event\.shiftKey/.test(html) && /mask\.addEventListener\('click'/.test(html))
 check('二次确认文案写明会花钱/写历史', /消耗模型额度/.test(html) && /写入对话历史/.test(html) && /不做催办 \/ 中断 \/ 归档/.test(html))
 check('写通道错误如实回执（401/403/404/405/429 分支）', /say-route-missing/.test(html) && /say-unreachable/.test(html) && /unsupported === true \? '写通道未加载：'/.test(html) && /function sayResultFromResponse\(/.test(html))
-check('附件按钮保持禁用（本批不做附件）', /添加附件（本批不支持）/.test(html) && /aria-label="添加附件（本批不支持）" disabled/.test(html))
+check('附件按钮明确禁用（本轮仅文本，无 hover 假象）', /id="attachBtn"/.test(html) && /本轮仅文本/.test(html) && /aria-disabled="true" disabled/.test(html) && /\.add:disabled\{/.test(html) && /\.add:disabled:hover/.test(html))
 check('专属会话 pin 标签「大管家 · 常驻」+ 配置固定文案', /id="bindPinned" hidden>大管家 · 常驻/.test(html) && /配置固定 · 专属会话/.test(html) && /function butlerLabelOf\(/.test(html))
 check('领导预设标注：agentPreset → 名字后加「· 领导预设」', /function butlerLabelOf\(/.test(html) && /' · 领导预设'/.test(html) && /binding\.agentPreset/.test(html) && /butlerLabelOf\(bindingOf\(\)\)/.test(html))
 check('还没建会话时给「创建专属会话」（ensure），不存在时给「重建专属会话」（rebuild）', /needCreate \? '创建专属会话' : '重建专属会话'/.test(html) && /专属会话尚未创建：/.test(html) && /'rebuild' : 'ensure'/.test(html))
@@ -396,12 +396,29 @@ check('不再整段直出系统注入（旧 .msg.notice .body 已移除）', !/\
 check('客户端兜底摘要（host 没给 summary 也能折叠）', /function clientInjectionSummary\(/.test(html) && /function noticeView\(/.test(html) && /row\.sourceLabel/.test(html))
 check('展开体 20k 截断并标注', /NOTICE_TEXT_MAX = 20000/.test(html) && /已截断，共 ' \+ view\.chars/.test(html))
 check('SSE 只绑绑定会话：EventSource + api/butler/dialog/stream（URL 不带 token）', /new EventSource\(STREAM_PATH \+ '\?sessionId=' \+ encodeURIComponent\(sessionId\)\)/.test(html) && /STREAM_PATH = 'api\/butler\/dialog\/stream'/.test(html) && !/EventSource\([^)]*token/.test(html))
-check('live 气泡单独渲染且不写进 durable messages', /function liveBubbleHtml\(/.test(html) && /live-cursor/.test(html) && /html \+= liveBubbleHtml\(\)/.test(html) && !/state\.dialog\.messages\.push\([^)]*live/.test(html))
+check('live 气泡独立增量渲染且不写进 durable messages', /function liveBubbleInnerHtml\(/.test(html) && /function liveBubbleHtml\(/.test(html) && /live-cursor/.test(html) && /syncDialogLiveNode\(list\)/.test(html) && /list\.appendChild\(dialogLiveNode\)/.test(html) && /commitDialogList\(list, html\)/.test(html) && !/html \+= liveBubbleHtml\(\)/.test(html) && !/state\.dialog\.messages\.push\([^)]*live/.test(html))
+check('durable 列表内容未变不写 DOM + 按住指针推迟重建（点击不被吞）', /dialogDurableHtml/.test(html) && /if \(durableHtml !== dialogDurableHtml\)/.test(html) && /if \(dialogPointerDown\) \{ dialogRebuildPending = true; return; \}/.test(html) && /function initDialogPointerGuard\(/.test(html) && /safeStep\('initDialogPointerGuard', initDialogPointerGuard\)/.test(html) && /if \(dialogRebuildPending\) \{/.test(html))
+check('live 节点回收：断流/换绑时移除（closeDialogStream + resetDialogRenderCache）', /function resetDialogRenderCache\(/.test(html) && /resetDialogRenderCache\(\)/.test(html) && /dialogLiveNode\.parentNode\.removeChild\(dialogLiveNode\)/.test(html) && /typeof renderDialog === 'function'/.test(html))
 check('实时/轮询/离线徽标 + body.dataset.stream', /id="dlgStreamBadge"/.test(html) && /function streamBadge\(kind\)/.test(html) && /'实时' : /.test(html) && /'轮询' : /.test(html) && /'离线'/.test(html) && /document\.body\.dataset\.stream = kind/.test(html))
 check('断线退轮询 + 30s 重连 + tick 去抖 + 页面隐藏关 ES', /STREAM_RETRY_MS = 30000/.test(html) && /function fallbackToPolling\(/.test(html) && /STREAM_TICK_DEBOUNCE_MS = 180/.test(html) && /visibilitychange/.test(html) && /closeDialogStream\('hidden'\)/.test(html))
 check('end.committed 后清 live 并静默拉 durable（300ms 重试一次）', /function handleStreamEnd\(/.test(html) && /loadDialog\(\{ quiet: true \}\)/.test(html) && /setTimeout\(function \(\) \{ retry\(attempt \+ 1\); \}, 300\)/.test(html))
 check('实时态 durable 兜底 8 秒、轮询态保持 2 秒', /STREAM_POLL_MS = 8000/.test(html) && /stream\.kind === 'live' \? STREAM_POLL_MS : DIALOG_POLL_MS/.test(html))
 check('SSE 帧处理齐全（hello/start/assistant/reset/end/tick）', ['hello', 'start', 'assistant', 'reset', 'end', 'tick'].every(name => new RegExp("addEventListener\\('" + name + "'").test(html)))
+
+/* ---------- 13.10 0.9.1：自诊断 + SSE 退避 + 抽屉硬化（真机 429 风暴/死点击加固） ---------- */
+check('启动期异常红条：window.error/unhandledrejection + #panelDiag', /id = 'panelDiag'/.test(html) && /window\.addEventListener\('error'/.test(html) && /window\.addEventListener\('unhandledrejection'/.test(html) && /window\.__panelReportError/.test(html))
+check('init 逐步隔离：safeStep 包住每个 init/render，单步失败不掐断后续', /function safeStep\(label, fn\)/.test(html) && /safeStep\('initNav', initNav\)/.test(html) && /safeStep\('initTodos', initTodos\)/.test(html) && /safeStep\('markState', markState\)/.test(html) && /__panelBootLog/.test(html))
+check('SSE 退避：fallback 后 suppressUntil 期间 loadDialog 不再重连（429 风暴修复）', /s\.suppressUntil = Date\.now\(\) \+ STREAM_RETRY_MS/.test(html) && /if \(s\.suppressUntil && Date\.now\(\) < s\.suppressUntil\) return;/.test(html) && /s\.suppressUntil = 0;/.test(html))
+check('窄屏遮罩硬化：初始化强制复位 drawer + mask hidden/aria', /safeStep\('resetDrawer'/.test(html) && /mask\.hidden = true; mask\.setAttribute\('aria-hidden', 'true'\)/.test(html) && /mask\.hidden = false; mask\.setAttribute\('aria-hidden', 'false'\)/.test(html))
+check('临时自检已移除（避免生产页多一块调试面板）', !html.includes('runPanelSelfTest') && !html.includes('panelSelfTest'))
+
+/* ---------- 13.11 0.9.2：composer 接官方模型（真实 chip/菜单/确认/权限只读） ---------- */
+check('模型 chip 是真按钮（不是占位 span）', /id="modelChip"/.test(html) && /<button class="model" type="button" id="modelChip"/.test(html) && !/样式占位/.test(html) && !/DeepSeek V4\.1 Flash <b>Max<\/b>/.test(html))
+check('模型菜单是 listbox（官方 catalog 分组 + 选中态 + Esc 关闭）', /id="modelMenu"[^>]*role="listbox"/.test(html) && /model-item/.test(html) && /aria-selected/.test(html) && /closeModelMenu\(\)/.test(html) && /event\.key === 'Escape'/.test(html))
+check('模型切换走官方 selectModel + 写 token + 绑定会话 + 二次确认', /api\/butler\/select-model/.test(html) && /x-butler-write-token/.test(html) && /openModelConfirm\(/.test(html) && /state\.confirm\.kind === 'model'/.test(html) && /reasoningEffort/.test(html))
+check('模型目录读官方 modelCatalog/投影（不写死模型）', /api\/butler\/model-catalog/.test(html) && /currentSource/.test(html) && /projections/.test(html) && /modelDisplayName\(/.test(html))
+check('权限徽标只读（无假下拉/假按钮；官方无切已有会话权限的远程方法）', /id="permBadge"[^>]*class="perm-ro"|class="perm-ro"[^>]*id="permBadge"/.test(html) && /权限由桌面端决定/.test(html) && !/权限设置（视觉占位）/.test(html) && !/id="permBadge"[^>]*<button/.test(html))
+check('附件按钮明确禁用（本轮仅文本，无 hover 假象）', /id="attachBtn"/.test(html) && /本轮仅文本/.test(html) && /aria-disabled="true"/.test(html) && /\.add:disabled\{/.test(html) && /\.add:disabled:hover/.test(html))
 
 /* ---------- 汇总 ---------- */
 const failed = checks.filter(c => !c.ok)

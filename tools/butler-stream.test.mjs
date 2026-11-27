@@ -158,27 +158,30 @@ test('背压：单 session pending 超 64KB 关连接并清空缓冲', () => {
   assert.ok(STREAM_MAX_PENDING_BYTES >= 64 * 1024)
 })
 
-test('subscriber 增删与上限：每 session 2 条、全局 8 条', () => {
+test('subscriber 上限：每 session 2 条/全局 8 条，超限关最旧而不是 429（半开连接自愈）', () => {
   const { hub } = makeHub()
-  const makeSink = () => ({ send() {}, close() {} })
-  const first = hub.addSubscriber('session-a', makeSink())
+  const closed = []
+  const makeSink = (label) => ({ label, send() {}, close(reason) { closed.push(label + ':' + reason) } })
+  const first = hub.addSubscriber('session-a', makeSink('a1'))
   assert.equal(first.ok, true)
-  assert.equal(hub.addSubscriber('session-a', makeSink()).ok, true)
-  const third = hub.addSubscriber('session-a', makeSink())
-  assert.equal(third.ok, false)
-  assert.equal(third.code, 'stream-limit-session')
-  assert.equal(STREAM_MAX_PER_SESSION, 2)
-  first.unsubscribe()
-  assert.equal(hub.countFor('session-a'), 1)
+  assert.equal(hub.addSubscriber('session-a', makeSink('a2')).ok, true)
+  const third = hub.addSubscriber('session-a', makeSink('a3'))
+  assert.equal(third.ok, true, '超限不再拒绝，而是淘汰最旧')
+  assert.equal(hub.countFor('session-a'), 2)
+  assert.deepEqual(closed, ['a1:replaced'], '最旧的一条被关闭')
+  first.unsubscribe() // 已是被淘汰的 sink：unsubscribe 必须幂等
+  assert.equal(hub.countFor('session-a'), 2)
   let last = null
-  for (let i = 0; i < 7; i += 1) last = hub.addSubscriber('session-' + i, makeSink())
+  for (let i = 0; i < 7; i += 1) last = hub.addSubscriber('session-' + i, makeSink('s' + i))
   assert.equal(hub.countAll(), 8)
   assert.equal(last.ok, true)
-  const ninth = hub.addSubscriber('session-overflow', makeSink())
-  assert.equal(ninth.ok, false)
-  assert.equal(ninth.code, 'stream-limit-total')
+  const ninth = hub.addSubscriber('session-overflow', makeSink('overflow'))
+  assert.equal(ninth.ok, true, '全局超限同样关最旧')
+  assert.equal(hub.countAll(), 8)
+  assert.ok(closed.length >= 2)
+  assert.equal(STREAM_MAX_PER_SESSION, 2)
   assert.equal(STREAM_MAX_TOTAL, 8)
-  const empty = hub.addSubscriber('', makeSink())
+  const empty = hub.addSubscriber('', makeSink('empty'))
   assert.equal(empty.ok, false)
 })
 
@@ -312,8 +315,8 @@ test('SSE：405（非 GET）/ 403（跨站、非回环 Host/Origin）/ 404（无
   hub.addSubscriber('session-a', { send() {}, close() {} })
   const limitedRes = new FakeResponse()
   await handleButlerStreamRequest(new FakeRequest(), limitedRes, handlerDeps({ hub }))
-  assert.equal(limitedRes.status, 429)
-  assert.match(limitedRes.text(), /stream-limit-session/)
+  assert.equal(limitedRes.status, 200, '超限关最旧，不再 429（避免半开连接把用户锁在轮询）')
+  assert.match(limitedRes.text(), /event: hello/)
 })
 
 test('SSE：空闲超时自动关闭', async () => {

@@ -4,7 +4,7 @@
     "width": 1440,
     "height": 1000
   },
-  "generatedAt": "2026-11-27T12:21:31.762Z",
+  "generatedAt": "2026-11-27T17:16:26.732Z",
   "checks": [
     {
       "name": "页面标题是大管家",
@@ -437,9 +437,9 @@
       "detail": "actual=\"settings\" expected=\"settings\""
     },
     {
-      "name": "设置页插件版本 0.9.0",
+      "name": "设置页插件版本 0.9.2",
       "ok": true,
-      "detail": "actual=\"0.9.0\" expected=\"0.9.0\""
+      "detail": "actual=\"0.9.2\" expected=\"0.9.2\""
     },
     {
       "name": "设置页驾驶舱状态显示真实绑定",
@@ -852,6 +852,111 @@
       "detail": "needle=已发送"
     },
     {
+      "name": "模型 chip 显示官方目录里的真实当前模型",
+      "ok": true,
+      "detail": "needle=DeepSeek V4.1 Flash"
+    },
+    {
+      "name": "写通道可用时模型 chip 可点",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "权限徽标是非交互 span（无假下拉）",
+      "ok": true,
+      "detail": "actual=\"SPAN\" expected=\"SPAN\""
+    },
+    {
+      "name": "权限徽标写官方当前值",
+      "ok": true,
+      "detail": "needle=完全权限"
+    },
+    {
+      "name": "点模型 chip 打开菜单",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "Esc 关闭模型菜单",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "选模型后先弹二次确认（未直接发）",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "确认框标题为切换模型",
+      "ok": true,
+      "detail": "needle=V4.1 Pro"
+    },
+    {
+      "name": "确认前不发 select-model 请求",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "确认后真的 POST 一次 select-model",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "select-model 带页面注入 token",
+      "ok": true,
+      "detail": "actual=\"cdp-fixture-write-token\" expected=\"cdp-fixture-write-token\""
+    },
+    {
+      "name": "select-model 目标=专属会话",
+      "ok": true,
+      "detail": "actual=\"session-butler\" expected=\"session-butler\""
+    },
+    {
+      "name": "select-model 选择 pro 模型",
+      "ok": true,
+      "detail": "needle=deepseek-v4.1-pro"
+    },
+    {
+      "name": "切换成功后 chip 更新为官方返回的新模型",
+      "ok": true,
+      "detail": "needle=V4.1 Pro"
+    },
+    {
+      "name": "真实指针点击导航→任务页（窄屏）",
+      "ok": true,
+      "detail": "actual=\"tasks\" expected=\"tasks\""
+    },
+    {
+      "name": "真实指针点击导航→大管家（窄屏）",
+      "ok": true,
+      "detail": "actual=\"butler\" expected=\"butler\""
+    },
+    {
+      "name": "真实指针点击状态条→展开",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "真实指针再点状态条→收起",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "窄屏 mask 不拦截（pointer-events=none）",
+      "ok": true,
+      "detail": "actual=\"none\" expected=\"none\""
+    },
+    {
+      "name": "初始化未被误加 body.drawer",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "窄屏导航命中测试未被遮挡",
+      "ok": true,
+      "detail": "{\"maskDisplay\":\"block\",\"maskPe\":\"none\",\"drawer\":false,\"navHit\":true}"
+    },
+    {
       "name": "900 窄屏无横向溢出（0.8.0 状态条）",
       "ok": true,
       "detail": "overflow=0"
@@ -957,6 +1062,21 @@
       "detail": "{\"first\":\"正在生成…turn 5 · step 1流式\",\"now\":\"正在生成…turn 5 · step 1流式增量\"}"
     },
     {
+      "name": "live 是独立节点且位于 durable 列表末尾",
+      "ok": true,
+      "detail": "{\"liveRows\":1,\"durableMsgs\":3,\"lastIsLive\":true,\"liveConnected\":true,\"cursor\":true}"
+    },
+    {
+      "name": "live 节点带流式光标 .live-cursor",
+      "ok": true,
+      "detail": "{\"liveRows\":1,\"durableMsgs\":3,\"lastIsLive\":true,\"liveConnected\":true,\"cursor\":true}"
+    },
+    {
+      "name": "流式帧不再重建 durable 列表节点（增量渲染）",
+      "ok": true,
+      "detail": "{\"same\":true,\"connected\":true}"
+    },
+    {
       "name": "durable 结算后 live 清空",
       "ok": true,
       "detail": "actual=0 expected=0"
@@ -1042,6 +1162,16 @@
       "detail": "actual=true expected=true"
     },
     {
+      "name": "未绑定会话时模型 chip 禁用",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "未绑定会话时点 chip 不打开菜单",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
       "name": "点创建 → 真的 POST 一次 session ensure",
       "ok": true,
       "detail": "actual=1 expected=1"
@@ -1069,7 +1199,7 @@
     {
       "name": "截图数量 ≥ 5",
       "ok": true,
-      "detail": "shots=30"
+      "detail": "shots=34"
     }
   ],
   "shots": [
@@ -1094,6 +1224,10 @@
     "tools/shots/shot-butler08-status-collapsed-1440.png",
     "tools/shots/shot-butler08-status-expanded-1440.png",
     "tools/shots/shot-butler08-confirm-1440.png",
+    "tools/shots/shot-butler092-model-menu-1440.png",
+    "tools/shots/shot-butler092-model-confirm-1440.png",
+    "tools/shots/shot-butler092-model-switched-1440.png",
+    "tools/shots/shot-butler091-narrow-1000-realclick.png",
     "tools/shots/shot-butler08-narrow-900.png",
     "tools/shots/shot-butler09-ctx-collapsed-1440.png",
     "tools/shots/shot-butler09-ctx-expanded-1440.png",
@@ -1275,5 +1409,5 @@
   ],
   "ok": true,
   "failed": 0,
-  "passed": 213
+  "passed": 239
 }

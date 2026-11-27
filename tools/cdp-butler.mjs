@@ -290,7 +290,7 @@ const DIALOG_PINNED_STREAMED = {
 
 /* ───────────────────────── fixture HTTP 服务 ───────────────────────── */
 async function startFixtureServer() {
-  const state = { scenario: 'real', sayRequests: [], sessionRequests: [], streamed: false, sse: { connections: 0, closed: 0, res: null, timers: [] } }
+  const state = { scenario: 'real', sayRequests: [], sessionRequests: [], modelRequests: [], modelCurrent: { provider: 'deepseek', model: 'deepseek-v4.1-flash', reasoningEffort: 'max' }, streamed: false, sse: { connections: 0, closed: 0, res: null, timers: [] } }
   const isPinned = () => state.scenario === 'real-pinned' || state.scenario === 'real-pinned-missing' || state.scenario === 'real-unbound' || state.scenario === 'real-pinned-stream'
   const server = createServer(async (req, res) => {
     const url = new URL(req.url, 'http://127.0.0.1')
@@ -319,6 +319,46 @@ async function startFixtureServer() {
         res.writeHead(500, { 'content-type': 'text/plain' })
         res.end(String((error && error.message) || error))
       }
+      return
+    }
+    if (pathname === ROUTE + '/api/butler/model-catalog' && req.method === 'GET') {
+      sendJson(200, {
+        ok: true,
+        catalog: {
+          default: { provider: 'deepseek', model: 'deepseek-v4.1-flash', reasoningEffort: 'max' },
+          routableProviders: ['deepseek'],
+          groups: [{ id: 'deepseek', name: 'DeepSeek', models: [
+            { id: 'deepseek-v4.1-flash', name: 'DeepSeek V4.1 Flash', reasoning: { efforts: [{ id: 'max', name: 'Max' }], defaultEffort: 'max' } },
+            { id: 'deepseek-v4.1-pro', name: 'DeepSeek V4.1 Pro' },
+          ] }],
+          failures: [],
+        },
+        current: state.modelCurrent,
+        currentSource: 'session',
+        permission: 'danger-full-access',
+      })
+      return
+    }
+    if (pathname === ROUTE + '/api/butler/select-model' && req.method === 'POST') {
+      const chunks = []
+      for await (const chunk of req) chunks.push(chunk)
+      let parsed = null
+      try { parsed = JSON.parse(Buffer.concat(chunks).toString('utf8')) } catch { parsed = null }
+      const token = req.headers['x-butler-write-token']
+      if (token !== 'cdp-fixture-write-token') {
+        sendJson(401, { ok: false, code: 'write-token-missing', reason: 'CDP fixture：token 不对' })
+        return
+      }
+      state.modelCurrent = { provider: parsed && parsed.provider, model: parsed && parsed.model, ...(parsed && parsed.reasoningEffort ? { reasoningEffort: parsed.reasoningEffort } : {}) }
+      state.modelRequests.push({
+        token: String(token),
+        sessionId: parsed && parsed.sessionId,
+        provider: parsed && parsed.provider,
+        model: parsed && parsed.model,
+        reasoningEffort: parsed && parsed.reasoningEffort,
+        requestId: parsed && parsed.requestId,
+      })
+      sendJson(200, { ok: true, selected: { provider: parsed && parsed.provider, model: parsed && parsed.model, ...(parsed && parsed.reasoningEffort ? { reasoningEffort: parsed.reasoningEffort } : {}) }, requestId: parsed && parsed.requestId })
       return
     }
     if (pathname === ROUTE + '/api/butler/say' && req.method === 'POST') {
@@ -426,7 +466,7 @@ async function startFixtureServer() {
         if (!res.writableEnded) res.write('event: ' + event + '\ndata: ' + JSON.stringify(data) + '\n\n')
       }
       const timers = []
-      if (state.sse.connections === 1) {
+      if (true) {
         timers.push(setTimeout(() => send('start', { attemptId: 'att-cdp', revision: 1, turn: 5, step: 1, startedAt: NOW }), 300))
         timers.push(setTimeout(() => send('assistant', { attemptId: 'att-cdp', revision: 2, turn: 5, step: 1, text: '流式', thinking: '', startedAt: NOW }), 1000))
         timers.push(setTimeout(() => send('assistant', { attemptId: 'att-cdp', revision: 3, turn: 5, step: 1, text: '流式增量', thinking: '', startedAt: NOW }), 1900))
@@ -473,6 +513,7 @@ async function startFixtureServer() {
     setScenario: name => { state.scenario = name },
     sayRequests: () => state.sayRequests.slice(),
     sessionRequests: () => state.sessionRequests.slice(),
+    modelRequests: () => state.modelRequests.slice(),
     sseStats: () => ({ connections: state.sse.connections, closed: state.sse.closed, open: state.sse.res !== null, streamed: state.streamed }),
     dropSse: () => {
       const target = state.sse.res
@@ -884,6 +925,15 @@ async function main() {
       if (result !== 'clicked') throw new Error('click failed: ' + selector + ' -> ' + result)
       await sleep(120)
     }
+    /** 0.9.1：真实指针点击（Input.dispatchMouseEvent），用于验证窄屏/iframe 下不是只靠 DOM click。 */
+    async function realClick(selector) {
+      const point = await evaluate('(() => { const el = document.querySelector(' + JSON.stringify(selector) + '); if (!el) return null; const r = el.getBoundingClientRect(); if (!r.width || !r.height) return null; return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()')
+      if (!point) throw new Error('realClick target missing: ' + selector)
+      await browser.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: point.x, y: point.y })
+      await browser.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: point.x, y: point.y, button: 'left', clickCount: 1 })
+      await browser.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: point.x, y: point.y, button: 'left', clickCount: 1 })
+      await sleep(200)
+    }
     async function selectPage(page) {
       await click('.nav-item[data-page="' + page + '"]')
       await waitFor('(() => { const el = document.getElementById("page-' + page + '"); return el && !el.hidden; })()', 5000, 'page ' + page)
@@ -1047,7 +1097,7 @@ async function main() {
     await selectPage('settings')
     s = await state()
     eq('设置页可见', s.visiblePages.join(','), 'settings')
-    eq('设置页插件版本 0.9.0', s.settings.version, '0.9.0')
+    eq('设置页插件版本 0.9.2', s.settings.version, '0.9.2')
     has('设置页驾驶舱状态显示真实绑定', s.settings.butler, '绑定')
     has('设置页驾驶舱状态说明只读', s.settings.butler, '只读')
     has('设置页官方任务板数据源可见', s.settingsOfficial, '可用 · 2 任务 · 1 个团队')
@@ -1244,6 +1294,63 @@ async function main() {
     eq('发送成功后输入框清空', s.dialog.composerValue, '')
     has('发送回执写明已发送', s.receipts[0].text, '已发送')
 
+    /* ---------- 0.9.2：composer 模型选择（官方 model-catalog/selectModel） ---------- */
+    await sleep(250)
+    const modelInit = await evaluate('(() => { const c = document.querySelector("#modelChip"); const p = document.querySelector("#permBadge"); return { text: c ? c.textContent.trim() : "", disabled: c ? c.disabled : null, permTag: p ? p.tagName : "", permText: p ? p.textContent.trim() : "" }; })()')
+    has('模型 chip 显示官方目录里的真实当前模型', modelInit.text, 'DeepSeek V4.1 Flash')
+    eq('写通道可用时模型 chip 可点', modelInit.disabled, false)
+    eq('权限徽标是非交互 span（无假下拉）', modelInit.permTag, 'SPAN')
+    has('权限徽标写官方当前值', modelInit.permText, '完全权限')
+    await click('#modelChip')
+    eq('点模型 chip 打开菜单', await evaluate('document.querySelector("#modelMenu").hidden'), false)
+    await shot('shot-butler092-model-menu-1440.png')
+    await browser.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 })
+    await browser.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 })
+    await sleep(120)
+    eq('Esc 关闭模型菜单', await evaluate('document.querySelector("#modelMenu").hidden'), true)
+    await click('#modelChip')
+    await click('.model-item[data-model="deepseek-v4.1-pro"]')
+    await sleep(150)
+    s = await state()
+    eq('选模型后先弹二次确认（未直接发）', s.confirm.visible, true)
+    has('确认框标题为切换模型', s.confirm.target, 'V4.1 Pro')
+    eq('确认前不发 select-model 请求', fixture.modelRequests().length, 0)
+    await shot('shot-butler092-model-confirm-1440.png')
+    await click('#confirmSend')
+    await sleep(350)
+    const modelRequests = fixture.modelRequests()
+    eq('确认后真的 POST 一次 select-model', modelRequests.length, 1)
+    eq('select-model 带页面注入 token', modelRequests[0].token, 'cdp-fixture-write-token')
+    eq('select-model 目标=专属会话', modelRequests[0].sessionId, 'session-butler')
+    has('select-model 选择 pro 模型', modelRequests[0].model, 'deepseek-v4.1-pro')
+    const chipAfter = await evaluate('document.querySelector("#modelChip").textContent')
+    has('切换成功后 chip 更新为官方返回的新模型', chipAfter, 'V4.1 Pro')
+    await shot('shot-butler092-model-switched-1440.png')
+
+    /* ---------- 0.9.1 回归：1000px 窄屏真实指针点击（嵌入有效宽 <1200 的典型值） ---------- */
+    await setViewport(1000, 900)
+    await selectPage('butler')
+    await sleep(200)
+    await realClick('.nav-item[data-page="tasks"]')
+    s = await state()
+    eq('真实指针点击导航→任务页（窄屏）', s.dataset.page, 'tasks')
+    await realClick('.nav-item[data-page="butler"]')
+    s = await state()
+    eq('真实指针点击导航→大管家（窄屏）', s.dataset.page, 'butler')
+    await realClick('#statusToggle')
+    s = await state()
+    eq('真实指针点击状态条→展开', s.statusDetail, true)
+    await realClick('#statusToggle')
+    s = await state()
+    eq('真实指针再点状态条→收起', s.statusDetail, false)
+    const narrowGuard = await evaluate('(() => { const m = document.querySelector("#mask"); const cs = getComputedStyle(m); const nav = document.querySelectorAll(".nav-item")[1]; const r = nav.getBoundingClientRect(); const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return { maskDisplay: cs.display, maskPe: cs.pointerEvents, drawer: document.body.classList.contains("drawer"), navHit: hit === nav || nav.contains(hit) }; })()')
+    eq('窄屏 mask 不拦截（pointer-events=none）', narrowGuard.maskPe, 'none')
+    eq('初始化未被误加 body.drawer', narrowGuard.drawer, false)
+    ck('窄屏导航命中测试未被遮挡', narrowGuard.navHit === true, JSON.stringify(narrowGuard))
+    await shot('shot-butler091-narrow-1000-realclick.png')
+    await setViewport(VIEWPORT.width, VIEWPORT.height)
+    await sleep(200)
+
     // 900 窄屏（交付截图）：状态条 + 绑定条 + 对话都不溢出
     await setViewport(900, 1000)
     await sleep(350)
@@ -1297,6 +1404,13 @@ async function main() {
     const firstLive = s.dialog.liveText
     for (let i = 0; i < 60; i += 1) { if (/流式增量/.test(s.dialog.liveText)) break; await sleep(100); s = await state() }
     ck('live 文本增长（流式）', /流式增量/.test(s.dialog.liveText) && s.dialog.liveText.length > firstLive.length, JSON.stringify({ first: firstLive, now: s.dialog.liveText }))
+    const liveIdentity = await evaluate('(() => { const list = document.querySelector("#dialogList"); if (!list) return null; const msgs = Array.from(list.querySelectorAll(".msg")); const live = list.querySelector(".live-row"); return { liveRows: msgs.filter(m => m.classList.contains("live-row")).length, durableMsgs: msgs.filter(m => !m.classList.contains("live-row")).length, lastIsLive: list.lastElementChild === live, liveConnected: live ? live.isConnected : false, cursor: live ? !!live.querySelector(".live-cursor") : false }; })()')
+    ck('live 是独立节点且位于 durable 列表末尾', !!liveIdentity && liveIdentity.liveRows === 1 && liveIdentity.lastIsLive === true && liveIdentity.liveConnected === true, JSON.stringify(liveIdentity))
+    ck('live 节点带流式光标 .live-cursor', !!liveIdentity && liveIdentity.cursor === true, JSON.stringify(liveIdentity))
+    await evaluate('window.__probeDurable = document.querySelector("#dialogList .msg:not(.live-row)"); true')
+    await sleep(350)
+    const stableDurable = await evaluate('(() => ({ same: window.__probeDurable === document.querySelector("#dialogList .msg:not(.live-row)"), connected: !!(window.__probeDurable && window.__probeDurable.isConnected) }))()')
+    ck('流式帧不再重建 durable 列表节点（增量渲染）', !!stableDurable && stableDurable.same === true && stableDurable.connected === true, JSON.stringify(stableDurable))
     await shot('shot-butler09-stream-live-1440.png')
     for (let i = 0; i < 50; i += 1) { if (s.dialog.liveRows === 0 && /流式增量（durable 结算）/.test(s.dialog.text)) break; await sleep(100); s = await state() }
     eq('durable 结算后 live 清空', s.dialog.liveRows, 0)
@@ -1335,6 +1449,9 @@ async function main() {
     has('绑定条写明专属会话尚未创建', s.dialog.bindNote, '专属会话尚未创建')
     has('绑定条写明预设名', s.dialog.bindNote, 'butler-lead')
     eq('未创建时写通道禁用', s.dialog.composerDisabled, true)
+    eq('未绑定会话时模型 chip 禁用', await evaluate('document.querySelector("#modelChip").disabled'), true)
+    await click('#modelChip')
+    eq('未绑定会话时点 chip 不打开菜单', await evaluate('document.querySelector("#modelMenu").hidden'), true)
     await click('#rebuildBtn')
     // 绑定条会被下一轮 M0 轮询刷回「尚未创建」，所以用 toast / 请求事实做回执断言。
     await waitFor('document.querySelector("#toast") && document.querySelector("#toast").textContent.indexOf("专属会话已创建") !== -1', 8000, 'create receipt')

@@ -1,6 +1,71 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<script>
+/* 0.9.1 自诊断：真实错误才出现的顶部红条。
+ *
+ * 为什么要有：主人报「几乎所有 UI 点了没反应」时，页面表面一切正常、没有可见报错，
+ * 只能靠猜。这段在**所有其它脚本之前**装上 window.onerror / unhandledrejection 捕获，
+ * 把 message / file:line 渲染成页面顶部一条可关闭的红条 —— 下次再坏，主人刷新就能看见真因。
+ * 没有任何错误时它**完全不出现**（不占位、不遮挡）。
+ */
+(function () {
+  var box = null;
+  var list = null;
+  window.__panelErrors = [];
+  function ensureBox() {
+    if (box) return box;
+    box = document.createElement('div');
+    box.id = 'panelDiag';
+    box.setAttribute('role', 'alert');
+    box.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:2147483647;max-height:42vh;display:flex;' +
+      'flex-direction:column;background:#b00020;color:#fff;font:12px/17px ui-monospace,Consolas,monospace;' +
+      'box-shadow:0 2px 14px rgba(0,0,0,.55)';
+    var head = document.createElement('div');
+    head.style.cssText = 'display:flex;align-items:center;gap:10px;padding:6px 12px;background:rgba(0,0,0,.28)';
+    var title = document.createElement('strong');
+    title.textContent = '面板脚本错误（请把这段回报给开发者）';
+    title.style.cssText = 'font-weight:600;flex:1 1 auto';
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = '关闭';
+    close.setAttribute('aria-label', '关闭错误提示');
+    close.style.cssText = 'flex:0 0 auto;cursor:pointer;border:1px solid rgba(255,255,255,.55);' +
+      'background:transparent;color:#fff;border-radius:4px;padding:1px 9px;font:11px/16px inherit';
+    close.addEventListener('click', function () { box.remove(); box = null; list = null; });
+    head.appendChild(title);
+    head.appendChild(close);
+    list = document.createElement('div');
+    list.style.cssText = 'padding:7px 12px 9px;overflow:auto;white-space:pre-wrap';
+    box.appendChild(head);
+    box.appendChild(list);
+    (document.body || document.documentElement).appendChild(box);
+    return box;
+  }
+  window.__panelReportError = function (where, error) {
+    var text = '';
+    try { text = error && (error.stack || error.message) || String(error); } catch (e) { text = '不可序列化错误'; }
+    var line = '[' + where + '] ' + String(text).split('\n').slice(0, 4).join('\n');
+    window.__panelErrors.push(line);
+    try {
+      ensureBox();
+      list.textContent = window.__panelErrors.slice(-6).join('\n\n');
+    } catch (e) { /* 渲染失败也不影响页面其它部分 */ }
+  };
+  window.addEventListener('error', function (event) {
+    var at = '';
+    if (event && event.filename) at = ' @ ' + String(event.filename).split('/').pop() + ':' + (event.lineno || 0);
+    if (at !== '') {
+      window.__panelReportError('window.error' + at, (event && (event.error || event.message)) || 'unknown');
+    } else {
+      window.__panelReportError('window.error', (event && (event.error || event.message)) || 'unknown');
+    }
+  });
+  window.addEventListener('unhandledrejection', function (event) {
+    window.__panelReportError('unhandledrejection', (event && event.reason) || 'unknown');
+  });
+})();
+</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
@@ -292,6 +357,33 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .model:hover{background:var(--hover)}
 .model b{color:var(--label-secondary);font-weight:500}
 .model .chev{width:12px;height:12px;color:var(--label-caption)}
+.model:disabled{cursor:not-allowed;opacity:.6}
+.model-name{overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.composer-card{position:relative}
+.model-menu{
+  position:absolute;right:10px;bottom:60px;width:min(340px,92vw);max-height:340px;overflow:auto;
+  padding:6px;border-radius:12px;background:var(--bg-layer-2,var(--input-major));border:1px solid var(--border-l3);
+  box-shadow:var(--elevation-soft);z-index:60;
+}
+.model-menu[hidden]{display:none}
+.model-menu-empty{margin:0;padding:10px;color:var(--label-tertiary);font-size:12px}
+.model-group-name{padding:8px 8px 4px;font-size:11px;color:var(--label-caption);letter-spacing:.2px}
+.model-item{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:32px;
+  padding:6px 8px;border:0;border-radius:8px;background:transparent;color:var(--label-primary);
+  font:inherit;font-size:13px;text-align:left;cursor:pointer;
+}
+.model-item:hover,.model-item:focus-visible{background:var(--hover);outline:none}
+.model-item.is-selected{background:var(--hover)}
+.model-item-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.model-item-meta{display:flex;align-items:center;gap:6px;flex:0 0 auto;color:var(--label-caption);font-size:11px}
+.model-badge{padding:0 5px;border-radius:4px;background:var(--bg-layer-3)}
+.model-eff{font-variant-numeric:tabular-nums}
+.model-check{width:12px;color:var(--accent)}
+.perm-ro{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 4px;border-radius:var(--radius-sm);color:var(--label-tertiary);font-size:12px;white-space:nowrap;cursor:default}
+.perm-ro .i{width:14px;height:14px;color:var(--label-caption)}
+.add:disabled{cursor:not-allowed;opacity:.45;background:transparent}
+.add:disabled:hover{background:transparent}
 .send{
   width:34px;height:34px;border-radius:999px;display:grid;place-items:center;flex:0 0 auto;
   background:var(--accent);color:#fff;cursor:pointer;transform:translateY(-2px);
@@ -967,7 +1059,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     <div class="side-foot">
       <div class="sf-1"><i class="dot run" id="sfDot"></i><span id="sfText">本机在线</span><span class="sf-dev" id="sfDev">—</span></div>
       <div class="sf-sub" id="sfSub">链路数据载入中…</div>
-      <div class="sf-ver" id="sfVer">v0.9.0 · 驾驶舱（写通道 M2 · 流式/折叠）</div>
+      <div class="sf-ver" id="sfVer">v0.9.2 · 驾驶舱（写通道 M2 · 模型切换 · 自诊断）</div>
     </div>
   </aside>
 
@@ -1091,14 +1183,15 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           </div>
           <div class="composer-row">
             <div class="cb-l">
-              <button class="add" type="button" title="添加附件（M2 本批不支持附件）" aria-label="添加附件（本批不支持）" disabled><svg class="i"><use href="#i-plus"></use></svg></button>
-              <button class="perm" type="button" title="权限设置（视觉占位）" disabled><svg class="i"><use href="#i-info"></use></svg>写入<svg class="i chev"><use href="#i-chevd"></use></svg></button>
+              <button class="add" type="button" id="attachBtn" title="本轮仅文本：不支持附件上传" aria-label="添加附件（本轮仅文本，不支持）" aria-disabled="true" disabled><svg class="i"><use href="#i-plus"></use></svg></button>
+              <span class="perm-ro" id="permBadge" title="权限由桌面端决定（本面板只读）"><svg class="i"><use href="#i-info"></use></svg><span id="permBadgeText">权限由桌面端决定</span></span>
             </div>
             <div class="cb-r">
-              <span class="model" title="样式占位；页面不读模型配置">DeepSeek V4.1 Flash <b>Max</b><svg class="i chev"><use href="#i-chevd"></use></svg></span>
+              <button class="model" type="button" id="modelChip" title="模型载入中…" aria-haspopup="listbox" aria-expanded="false" aria-label="切换大管家会话模型" disabled><span class="model-name">模型载入中…</span><svg class="i chev" aria-hidden="true"><use href="#i-chevd"></use></svg></button>
               <button class="send" type="button" id="sendBtn" aria-disabled="true" aria-label="发送（写通道加载中）" title="写通道加载中…" disabled><svg class="i"><use href="#i-up"></use></svg></button>
             </div>
           </div>
+          <div class="model-menu" id="modelMenu" role="listbox" aria-label="选择模型" hidden></div>
         </div>
         <div class="composer-ro"><span class="ro-tag" id="composerRoTag">只读</span><span id="composerRo">写通道加载中：M2 只对配置里的专属大管家会话开放；发送前每次都会二次确认。</span></div>
         <div class="composer-stats">
@@ -1228,7 +1321,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         <section class="card" aria-labelledby="set-h">
           <div class="card-h"><span id="set-h">版本与路由</span></div>
           <ul class="kv-list">
-            <li><b>插件版本</b><span class="mono" id="setVersion">0.9.0</span></li>
+            <li><b>插件版本</b><span class="mono" id="setVersion">0.9.2</span></li>
             <li><b>页面路由</b><span class="mono">/dsh-html-panel/</span></li>
             <li><b>只读数据路由</b><span class="mono">api/cluster · api/board · api/host · api/tiers · api/alerts · api/butler/sessions · api/butler/dialog</span></li>
             <li><b>驾驶舱（只读）</b><span id="setButler">—</span></li>
@@ -1880,7 +1973,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       if (!isDialogPayload(data)) throw new Error('结构不符');
       if (data.available === true) {
         const boundChanged = state.dialog.boundSessionId && state.dialog.boundSessionId !== data.sessionId;
-        if (boundChanged) closeDialogStream('bound-changed');
+        if (boundChanged) { closeDialogStream('bound-changed'); resetDialogRenderCache(); }
         // 换绑/首次加载：整页替换；同一会话轮询：按 seq 合并；翻旧页：prepend 合并。
         const messages = before !== null
           ? mergeDialogMessages(data.messages, true)
@@ -1992,12 +2085,16 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     s.fails = 0;
     state.dialog.live = null;
     streamBadge('off');
+    // 立即回收 live 节点（否则断流/换绑后 live 气泡会残留到下一次 renderDialog）。
+    if (typeof renderDialog === 'function' && document.getElementById('dialogList')) renderDialog();
   }
   function scheduleStreamRetry() {
     const s = state.dialog.stream;
     if (s.retryTimer) return;
+    s.suppressUntil = Date.now() + STREAM_RETRY_MS;
     s.retryTimer = setTimeout(function () {
       s.retryTimer = null;
+      s.suppressUntil = 0;
       if (document.hidden) return;
       ensureDialogStream();
     }, STREAM_RETRY_MS);
@@ -2012,6 +2109,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
     state.dialog.live = null;
     streamBadge('poll');
+    // 关键：退轮询后由 30s 定时器负责重连，loadDialog 的 ensure 不得每秒重试（否则 429 风暴）。
+    if (!s.retryTimer) s.suppressUntil = Date.now() + STREAM_RETRY_MS;
     renderDialog();
     scheduleStreamRetry();
   }
@@ -2089,6 +2188,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     es.addEventListener('hello', function (event) {
       if (s.es !== es) return;
       s.fails = 0;
+      s.suppressUntil = 0;
       let payload = null;
       try { payload = JSON.parse(event.data); } catch (e) { payload = null; }
       streamBadge('live');
@@ -2153,6 +2253,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     // 页面可见后再由事件补一次 durable（无头测试环境 hidden 恒为 true 时也能验证流式）。
     const sessionId = streamSessionId();
     const s = state.dialog.stream;
+    // 退避窗口内不重连：避免 SSE 429/断线时每个 2s 轮询都重新发起连接（真机 console 已见风暴）。
+    if (s.suppressUntil && Date.now() < s.suppressUntil) return;
     if (!sessionId) {
       document.body.dataset.streamError = 'no-session';
       if (s.kind !== 'off') closeDialogStream('no-session');
@@ -2303,7 +2405,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (pillHost) pillHost.textContent = host.pill;
 
     const setVersion = $('#setVersion');
-    if (setVersion) setVersion.textContent = '0.9.0';
+    if (setVersion) setVersion.textContent = '0.9.2';
     const setButler = $('#setButler');
     if (setButler) {
       const butler = state.butler;
@@ -3029,6 +3131,11 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 
   /** 打开二次确认框：展示目标 + 原文全文 + 会花钱/写历史的警告。 */
   function openSayConfirm() {
+    state.confirm = { kind: 'say' };
+    const title = $('#confirmTitle');
+    if (title) title.textContent = '确认发送给专属大管家会话？';
+    const okButton = $('#confirmSend');
+    if (okButton) { okButton.textContent = '确认发送'; okButton.disabled = false; }
     const write = writeChannelState();
     if (write.available !== true) {
       toast('写通道不可用：' + write.reason);
@@ -3167,6 +3274,344 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     note.textContent = String(text || '');
   }
 
+﻿  /* =====================================================================
+   * 0.9.2：composer 模型选择（官方 sessionController.modelCatalog/selectModel）
+   *
+   * 官方参考（_cq 解包源码）：
+   *   - session-controller/src/index.ts:343 modelCatalog()：provider 分组 + default
+   *   - session-controller/src/index.ts:316 selectModel({sessionId,provider,model,
+   *     reasoningEffort?})：切当前会话模型，返回归一化 selected
+   *   - 当前模型：sessionController.list() 的 projections.values.modelSelection
+   *     （官方 dsh-agent 投影 wire view { lastUsed, next }），由 Host 路由读出
+   * 权限：官方 permission-presets 只有只读 catalog Remote，没有「给已有会话切
+   *   预设」的远程方法（见 _cq/dsh-api-remotes/src/client/index.ts:25），所以这里
+   *   只做只读徽标，不留 disabled 假按钮。
+   * 附件：官方 composer 支持上传，但本面板本轮不做；按钮明确 disabled。
+   * ===================================================================== */
+  state.model = {
+    catalog: null,
+    current: null,
+    currentSource: '',
+    permission: '',
+    loading: false,
+    error: '',
+    unavailable: false,
+    open: false
+  };
+  state.confirm = { kind: 'say' };
+
+  /** provider/model/reasoningEffort 拼成稳定比较键。 */
+  function modelRouteKey(selection) {
+    if (!selection || typeof selection !== 'object') return '';
+    return String(selection.provider || '') + '\u0000' + String(selection.model || '');
+  }
+
+  /** 官方目录里找当前模型条目（找不到返回 null）。 */
+  function modelEntryOf(catalog, selection) {
+    if (!catalog || !Array.isArray(catalog.groups) || !selection) return null;
+    for (let i = 0; i < catalog.groups.length; i += 1) {
+      const group = catalog.groups[i];
+      if (!group || !Array.isArray(group.models)) continue;
+      for (let j = 0; j < group.models.length; j += 1) {
+        const model = group.models[j];
+        if (model && group.id === selection.provider && model.id === selection.model) {
+          return { group: group, model: model };
+        }
+      }
+    }
+    return null;
+  }
+
+  /** 模型显示名：优先目录里的 name（官方展示名），否则退回 id。 */
+  function modelDisplayName(selection) {
+    if (!selection) return '模型未加载';
+    const found = modelEntryOf(state.model.catalog, selection);
+    return found && found.model && typeof found.model.name === 'string' && found.model.name !== ''
+      ? found.model.name
+      : String(selection.model || '未知模型');
+  }
+
+  /** 把权限 preset 值翻成人话（官方值: auto / danger-full-access / custom / 配置 key）。 */
+  function permissionLabelOf(value) {
+    const preset = String(value || '');
+    if (preset === 'auto') return '自动';
+    if (preset === 'danger-full-access') return '完全权限';
+    if (preset === 'custom') return '自定义';
+    return preset === '' ? '由桌面端决定' : preset;
+  }
+
+  /** 画模型 chip：真实当前模型名 + reasoning effort 小标；写通道不可用时禁用。 */
+  function renderComposerModel() {
+    const chip = $('#modelChip');
+    if (!chip) return;
+    const write = state.write || { available: false, reason: '写通道加载中…' };
+    const current = state.model.current;
+    chip.textContent = '';
+    const name = document.createElement('span');
+    name.className = 'model-name';
+    name.textContent = state.model.loading && current === null
+      ? '模型载入中…'
+      : (current === null ? '模型信息不可用' : modelDisplayName(current));
+    chip.appendChild(name);
+    if (current && typeof current.reasoningEffort === 'string' && current.reasoningEffort !== '') {
+      const effort = document.createElement('b');
+      effort.textContent = current.reasoningEffort;
+      chip.appendChild(effort);
+    }
+    chip.insertAdjacentHTML('beforeend', '<svg class="i chev" aria-hidden="true"><use href="#i-chevd"></use></svg>');
+    const disabled = write.available !== true || state.model.catalog === null || state.model.unavailable === true;
+    chip.disabled = disabled;
+    chip.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    chip.title = disabled
+      ? (write.available !== true ? '写通道不可用：' + write.reason : '模型目录不可用：' + (state.model.error || '宿主未返回模型列表'))
+      : '切换大管家会话模型（只影响当前绑定会话）';
+    if (current) {
+      chip.setAttribute('data-provider', current.provider);
+      chip.setAttribute('data-model', current.model);
+    } else {
+      chip.removeAttribute('data-provider');
+      chip.removeAttribute('data-model');
+    }
+  }
+
+  /** 画权限只读徽标：有官方 projections.permissions 就显示真实值，否则明确“由桌面端决定”。 */
+  function renderPermissionBadge() {
+    const badge = $('#permBadge');
+    const text = $('#permBadgeText');
+    if (!badge || !text) return;
+    const value = state.model.permission;
+    text.textContent = permissionLabelOf(value);
+    badge.title = value === ''
+      ? '权限由桌面端决定：官方 permission-presets 没有「给已有会话切预设」的远程方法，本面板只读'
+      : '当前会话权限：' + permissionLabelOf(value) + '（只读徽标；权限由桌面端/官方权限预设决定）';
+  }
+
+  /** 画模型菜单：provider 分组 + 选项 + 当前选中态（aria-selected）。 */
+  function renderModelMenu() {
+    const menu = $('#modelMenu');
+    if (!menu) return;
+    menu.textContent = '';
+    const catalog = state.model.catalog;
+    if (!catalog || !Array.isArray(catalog.groups) || catalog.groups.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'model-menu-empty';
+      empty.textContent = state.model.error || '没有可用模型';
+      menu.appendChild(empty);
+      return;
+    }
+    const currentKey = modelRouteKey(state.model.current);
+    catalog.groups.forEach(function (group) {
+      if (!group || !Array.isArray(group.models) || group.models.length === 0) return;
+      const heading = document.createElement('div');
+      heading.className = 'model-group-name';
+      heading.textContent = String(group.name || group.id || '');
+      menu.appendChild(heading);
+      group.models.forEach(function (model) {
+        if (!model) return;
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'model-item';
+        item.setAttribute('role', 'option');
+        item.setAttribute('data-provider', String(group.id || ''));
+        item.setAttribute('data-model', String(model.id || ''));
+        const effort = model.reasoning && typeof model.reasoning.defaultEffort === 'string' ? model.reasoning.defaultEffort : '';
+        if (effort !== '') item.setAttribute('data-effort', effort);
+        const selected = currentKey !== '' && modelRouteKey({ provider: group.id, model: model.id }) === currentKey;
+        item.setAttribute('aria-selected', selected ? 'true' : 'false');
+        if (selected) item.classList.add('is-selected');
+        const label = document.createElement('span');
+        label.className = 'model-item-name';
+        label.textContent = String(model.name || model.id || '');
+        item.appendChild(label);
+        const meta = document.createElement('span');
+        meta.className = 'model-item-meta';
+        if (model.badge && typeof model.badge.label === 'string') {
+          const badgeText = document.createElement('span');
+          badgeText.className = 'model-badge';
+          badgeText.textContent = model.badge.label;
+          meta.appendChild(badgeText);
+        }
+        if (effort !== '') {
+          const effortText = document.createElement('span');
+          effortText.className = 'model-eff';
+          effortText.textContent = effort;
+          meta.appendChild(effortText);
+        }
+        const check = document.createElement('span');
+        check.className = 'model-check';
+        check.textContent = selected ? '✓' : '';
+        meta.appendChild(check);
+        item.appendChild(meta);
+        menu.appendChild(item);
+      });
+    });
+  }
+
+  function openModelMenu() {
+    const menu = $('#modelMenu');
+    const chip = $('#modelChip');
+    if (!menu || !chip || chip.disabled) return;
+    renderModelMenu();
+    menu.hidden = false;
+    state.model.open = true;
+    chip.setAttribute('aria-expanded', 'true');
+    const first = menu.querySelector('.model-item');
+    if (first) first.focus();
+  }
+
+  function closeModelMenu() {
+    const menu = $('#modelMenu');
+    const chip = $('#modelChip');
+    if (menu) menu.hidden = true;
+    state.model.open = false;
+    if (chip) chip.setAttribute('aria-expanded', 'false');
+  }
+
+  /** 读官方模型目录 + 当前会话模型（Host 路由已按官方 API 归一化）。 */
+  async function loadModelCatalog() {
+    state.model.loading = true;
+    state.model.error = '';
+    renderComposerModel();
+    let result = null;
+    try {
+      const response = await fetch('api/butler/model-catalog', {
+        cache: 'no-store',
+        headers: { accept: 'application/json' },
+        signal: timeoutSignal(8000)
+      });
+      if (response.status === 404 || response.status === 405) {
+        result = { ok: false, unsupported: true, reason: '模型路由尚未加载（HTTP ' + response.status + '）：0.9.2 Host 需重启 DSH 后生效' };
+      } else {
+        let data = null;
+        try { data = await response.json(); } catch (error) { data = null; }
+        result = data && typeof data === 'object' ? data : { ok: false, reason: '模型路由返回非 JSON（HTTP ' + response.status + '）' };
+      }
+    } catch (error) {
+      result = { ok: false, reason: '读取模型目录失败：' + shortReason(error) };
+    } finally {
+      state.model.loading = false;
+    }
+    if (result && result.ok === true && result.catalog && typeof result.catalog === 'object') {
+      state.model.catalog = result.catalog;
+      state.model.current = result.current && typeof result.current === 'object' ? result.current : null;
+      state.model.currentSource = typeof result.currentSource === 'string' ? result.currentSource : '';
+      state.model.permission = typeof result.permission === 'string' ? result.permission : '';
+      state.model.unavailable = false;
+      state.model.error = '';
+    } else {
+      state.model.catalog = null;
+      state.model.current = null;
+      state.model.permission = '';
+      state.model.unavailable = true;
+      state.model.error = String((result && result.reason) || '模型目录不可用');
+    }
+    renderComposerModel();
+    renderPermissionBadge();
+    if (state.model.open) renderModelMenu();
+    return result;
+  }
+
+  /** 切换模型前二次确认（复用 #confirmMask；kind=model 让确认按钮走 select-model）。 */
+  function openModelConfirm(provider, model, effort) {
+    const write = writeChannelState();
+    if (write.available !== true) { toast('写通道不可用：' + write.reason); return; }
+    const selection = { provider: String(provider || ''), model: String(model || '') };
+    if (effort !== '') selection.reasoningEffort = String(effort);
+    state.confirm = { kind: 'model', selection: selection };
+    const title = $('#confirmTitle');
+    const target = $('#confirmTarget');
+    const preview = $('#confirmPreview');
+    const ok = $('#confirmSend');
+    if (title) title.textContent = '确认切换大管家会话模型？';
+    if (target) target.textContent = '目标：' + modelDisplayName(selection) + '（' + selection.provider + ' / ' + selection.model + '）';
+    if (preview) preview.textContent = '只切当前绑定的专属大管家会话；新模型从下一轮回复开始生效，不会改其他会话，也不会改桌面端的全局默认。';
+    if (ok) { ok.textContent = '确认切换'; ok.disabled = false; }
+    const mask = $('#confirmMask');
+    if (mask) { mask.hidden = false; if (ok) ok.focus(); }
+  }
+
+  /** 真正切换模型：POST api/butler/select-model（写 token + 绑定会话 + requestId 幂等）。 */
+  async function sendSelectModel() {
+    closeSayConfirm();
+    const write = writeChannelState();
+    if (write.available !== true) { toast('写通道不可用：' + write.reason); return; }
+    const selection = state.confirm && state.confirm.kind === 'model' ? state.confirm.selection : null;
+    if (!selection) { toast('没有待切换的模型'); return; }
+    if (INJECTED_WRITE === null || typeof INJECTED_WRITE.token !== 'string' || INJECTED_WRITE.token === '') {
+      toast('页面没有拿到写通道 token（需重启 DSH 后重新加载页面）');
+      return;
+    }
+    const requestId = 'panel-model-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+    const body = { sessionId: write.sessionId, provider: selection.provider, model: selection.model, requestId: requestId };
+    if (selection.reasoningEffort) body.reasoningEffort = selection.reasoningEffort;
+    let result = null;
+    try {
+      const response = await fetch('api/butler/select-model', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: {
+          'content-type': 'application/json',
+          accept: 'application/json',
+          'x-butler-write-token': INJECTED_WRITE.token
+        },
+        body: JSON.stringify(body),
+        signal: timeoutSignal(20000)
+      });
+      if (response.status === 404 || response.status === 405) {
+        result = { ok: false, unsupported: true, reason: '模型切换路由尚未加载（HTTP ' + response.status + '）：0.9.2 Host 需重启 DSH 后生效' };
+      } else {
+        let data = null;
+        try { data = await response.json(); } catch (error) { data = null; }
+        result = data && typeof data === 'object' ? data : { ok: false, reason: '模型路由返回非 JSON（HTTP ' + response.status + '）' };
+      }
+    } catch (error) {
+      result = { ok: false, reason: '切换请求失败：' + shortReason(error) };
+    }
+    if (result && result.ok === true) {
+      const selected = result.selected && typeof result.selected === 'object' ? result.selected : selection;
+      state.model.current = selected;
+      state.model.currentSource = 'selected';
+      renderComposerModel();
+      renderModelMenu();
+      toast('已切换模型：' + modelDisplayName(selected));
+      loadModelCatalog();
+      loadDialog();
+    } else {
+      toast((result && result.unsupported === true ? '模型路由未加载：' : '切换失败：') + String((result && result.reason) || '原因未给出').slice(0, 100));
+    }
+  }
+
+  /** 绑定 composer 模型交互：chip 打开菜单、菜单选项、Esc/外点关闭。 */
+  function initComposerModel() {
+    const chip = $('#modelChip');
+    const menu = $('#modelMenu');
+    if (chip) {
+      chip.addEventListener('click', function (event) {
+        event.preventDefault();
+        if (state.model.open) closeModelMenu();
+        else openModelMenu();
+      });
+    }
+    if (menu) {
+      menu.addEventListener('click', function (event) {
+        const item = event.target.closest ? event.target.closest('.model-item') : null;
+        if (!item) return;
+        event.preventDefault();
+        const provider = item.getAttribute('data-provider') || '';
+        const model = item.getAttribute('data-model') || '';
+        const effort = item.getAttribute('data-effort') || '';
+        closeModelMenu();
+        openModelConfirm(provider, model, effort);
+      });
+    }
+    document.addEventListener('click', function (event) {
+      if (!state.model.open) return;
+      const inside = (chip && chip.contains(event.target)) || (menu && menu.contains(event.target));
+      if (!inside) closeModelMenu();
+    });
+    loadModelCatalog();
+  }
+
   /** 绑定写通道交互：状态条展开、输入框 Enter、发送确认、重建按钮。 */
   function initWriteChannel() {
     const toggle = $('#statusToggle');
@@ -3183,7 +3628,10 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     const cancel = $('#confirmCancel');
     if (cancel) cancel.addEventListener('click', closeSayConfirm);
     const ok = $('#confirmSend');
-    if (ok) ok.addEventListener('click', function () { void sendButlerSay(); });
+    if (ok) ok.addEventListener('click', function () {
+      if (state.confirm && state.confirm.kind === 'model') void sendSelectModel();
+      else void sendButlerSay();
+    });
     const mask = $('#confirmMask');
     if (mask) mask.addEventListener('click', function (event) { if (event.target === mask) closeSayConfirm(); });
     const rebuild = $('#rebuildBtn');
@@ -4229,6 +4677,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         : write.reason;
     }
     setDatasetFlag('write', write.available === true ? 'on' : 'off');
+    if (typeof renderComposerModel === 'function' && state.model) renderComposerModel();
+    if (typeof renderPermissionBadge === 'function' && state.model) renderPermissionBadge();
     return write;
   }
 
@@ -4481,7 +4931,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   }
 
   /** 0.9.0：流式 live 气泡（只做展示；end.committed 后由 durable 接替）。 */
-  function liveBubbleHtml() {
+  function liveBubbleInnerHtml() {
     const live = state.dialog.live;
     if (!live) return '';
     const text = typeof live.text === 'string' ? live.text : '';
@@ -4489,8 +4939,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     const stepText = live.turn !== null && live.turn !== undefined
       ? 'turn ' + live.turn + (live.step !== null && live.step !== undefined ? ' · step ' + live.step : '')
       : '';
-    let html = '<article class="msg bot live-row" data-live-attempt="' + esc(live.attemptId || '') + '">' +
-      '<div class="live-head"><i class="live-dot" aria-hidden="true"></i><span>正在生成…</span>' +
+    let html = '<div class="live-head"><i class="live-dot" aria-hidden="true"></i><span>正在生成…</span>' +
       (stepText !== '' ? '<span class="t">' + esc(stepText) + '</span>' : '') + '</div>';
     if (thinking !== '') {
       html += '<details class="think"><summary><svg class="i" aria-hidden="true"><use href="#i-brain"></use></svg>' +
@@ -4501,8 +4950,90 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     } else if (thinking === '') {
       html += '<div class="md"><p class="muted live-cursor">（等待首个 token…）</p></div>';
     }
-    html += '</article>';
     return html;
+  }
+  function liveBubbleHtml() {
+    const inner = liveBubbleInnerHtml();
+    if (inner === '') return '';
+    const live = state.dialog.live || {};
+    return '<article class="msg bot live-row" data-live-attempt="' + esc(live.attemptId || '') + '">' + inner + '</article>';
+  }
+
+  /* =====================================================================
+   * 0.9.1 点击修复：对话列表不再无条件整段重建。
+   *
+   * 旧行为（0.9.0）：renderDialog() 结尾一律 `list.innerHTML = html`，而它被
+   * 每 DIALOG_POLL_MS(2 秒) 的轮询**无条件**调用，流式时 applyLiveFrame() 更是
+   * **每一帧**都调一次。于是整棵对话列表（23 个节点 / 18 个 <details> / 4.8 万字符）
+   * 每隔一小会儿被拆掉重造，实测单次 84–110ms 主线程长任务、帧间隔 133ms。
+   * 后果：
+   *   - mousedown → mouseup 之间目标节点被替换，浏览器不派发 click（「点了没反应」）；
+   *   - 刚展开的 <details> 立刻被收回（看起来像点不动）；
+   *   - 窄屏/DPR2 下重排更贵，卡顿更明显（主人机器就是这样）。
+   * 修法（最小改动，三条）：
+   *   1. durable 列表的 HTML 没变就**不写 DOM**；
+   *   2. live 气泡是**独立节点**，逐帧只改它的文本，不动 durable 列表；
+   *   3. 指针按住期间**推迟**任何列表重建，等松开再做 —— 保证 mousedown/mouseup 同目标。
+   * ===================================================================== */
+  let dialogDurableHtml = null;   // 上次写进 #dialogList 的 durable HTML
+  /** 换绑/重置时强制下一次 renderDialog 重建 durable 列表并回收 live 节点。 */
+  function resetDialogRenderCache() {
+    dialogDurableHtml = null;
+    dialogLiveHtml = null;
+    if (dialogLiveNode && dialogLiveNode.parentNode) dialogLiveNode.parentNode.removeChild(dialogLiveNode);
+    dialogLiveNode = null;
+    dialogRebuildPending = false;
+  }
+  let dialogLiveHtml = null;      // 上次写进 live 节点的内部 HTML
+  let dialogLiveNode = null;      // 当前 live 节点（article.live-row）
+  let dialogRebuildPending = false; // 按住指针期间被推迟的重建
+  let dialogPointerDown = false;  // 是否有指针正按着
+
+  /** 写 durable 列表：内容没变不写；按住指针时推迟。 */
+  function commitDialogList(list, durableHtml) {
+    if (durableHtml !== dialogDurableHtml) {
+      if (dialogPointerDown) { dialogRebuildPending = true; return; }
+      list.innerHTML = durableHtml;
+      dialogDurableHtml = durableHtml;
+      dialogLiveNode = null;
+      dialogLiveHtml = null;
+    }
+    syncDialogLiveNode(list);
+  }
+
+  /** 只更新 live 气泡这一个节点；durable 列表原样不动。 */
+  function syncDialogLiveNode(list) {
+    const inner = liveBubbleInnerHtml();
+    if (inner === '') {
+      if (dialogLiveNode) {
+        if (dialogLiveNode.parentNode) dialogLiveNode.parentNode.removeChild(dialogLiveNode);
+        dialogLiveNode = null;
+      }
+      dialogLiveHtml = null;
+      return;
+    }
+    if (inner === dialogLiveHtml && dialogLiveNode && dialogLiveNode.parentNode === list) return;
+    if (!dialogLiveNode || dialogLiveNode.parentNode !== list) {
+      const live = state.dialog.live || {};
+      dialogLiveNode = document.createElement('article');
+      dialogLiveNode.className = 'msg bot live-row';
+      dialogLiveNode.setAttribute('data-live-attempt', live.attemptId || '');
+      list.appendChild(dialogLiveNode);
+    }
+    dialogLiveNode.innerHTML = inner;
+    dialogLiveHtml = inner;
+  }
+
+  /** 指针按下/松开：松开后把被推迟的重建补上。 */
+  function initDialogPointerGuard() {
+    document.addEventListener('mousedown', function () { dialogPointerDown = true; }, true);
+    document.addEventListener('mouseup', function () {
+      dialogPointerDown = false;
+      if (dialogRebuildPending) {
+        dialogRebuildPending = false;
+        renderDialog();
+      }
+    }, true);
   }
 
   function renderDialog() {
@@ -4534,7 +5065,10 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (emptyText !== '' && !dialog.live) {
       empty.hidden = false;
       empty.textContent = emptyText;
-      list.innerHTML = '';
+      dialogDurableHtml = '';
+      dialogLiveHtml = null;
+      dialogLiveNode = null;
+      if (list.innerHTML !== '') list.innerHTML = '';
     } else {
       empty.hidden = true;
       let html = '';
@@ -4555,8 +5089,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         if (Number.isFinite(ms)) previousMs = ms;
         html += dialogMessageHtml(message);
       });
-      html += liveBubbleHtml();
-      list.innerHTML = html;
+      // 0.9.1：live 气泡不再拼进 durable HTML —— 它是独立节点，逐帧只改它。
+      commitDialogList(list, html);
     }
 
     // 真实对话：默认贴底（最新消息可见）；用户往上翻时保留位置，不抢滚动。
@@ -4688,12 +5222,16 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   /* ---------- 窄屏抽屉 ---------- */
   function openDrawer() {
     document.body.classList.add('drawer');
+    var mask = $('#mask');
+    if (mask) { mask.hidden = false; mask.setAttribute('aria-hidden', 'false'); }
     const btn = $('#drawerBtn');
     if (btn) btn.setAttribute('aria-expanded', 'true');
     hideTip();
   }
   function closeDrawer() {
     document.body.classList.remove('drawer');
+    var mask = $('#mask');
+    if (mask) { mask.hidden = true; mask.setAttribute('aria-hidden', 'true'); }
     const btn = $('#drawerBtn');
     if (btn) btn.setAttribute('aria-expanded', 'false');
   }
@@ -4944,27 +5482,46 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     setDatasetFlag('page', state.page);
   }
 
-  initNav();
-  initActions();
-  initWriteChannel();
-  initBoardTabs();
-  initDialogueTabs();
-  initButlerDialog();
-  initTodos();
-  initTierInteractions();
-  initDrawer();
-  renderTopology(mockView());
-  setTopoBadge('loading', '真实数据载入中…', '');
-  renderButler();
-  renderDialog();
-  renderMemory();
-  renderChrome();
-  renderBoardModule();
-  renderThreeQuestions();
-  renderHostModule();
-  setStatusBarExpanded(false);
-  setPage('butler');
-  markState();
+  /* 0.9.1：逐项隔离初始化——任何一步抛错只记红条，不掐断后面的监听器/数据加载。 */
+  window.__panelBootLog = [];
+  function safeStep(label, fn) {
+    try { fn(); window.__panelBootLog.push(label + ':ok'); return true; }
+    catch (error) {
+      window.__panelBootLog.push(label + ':fail');
+      if (window.__panelReportError) window.__panelReportError('init ' + label, error);
+      return false;
+    }
+  }
+  safeStep('initNav', initNav);
+  safeStep('initActions', initActions);
+  safeStep('initWriteChannel', initWriteChannel);
+  safeStep('initComposerModel', initComposerModel);
+  safeStep('initBoardTabs', initBoardTabs);
+  safeStep('initDialogueTabs', initDialogueTabs);
+  safeStep('initButlerDialog', initButlerDialog);
+  safeStep('initTodos', initTodos);
+  safeStep('initTierInteractions', initTierInteractions);
+  safeStep('initDrawer', initDrawer);
+  safeStep('initDialogPointerGuard', initDialogPointerGuard);
+  safeStep('resetDrawer', function () {
+    document.body.classList.remove('drawer');
+    var mask = document.getElementById('mask');
+    if (mask) { mask.hidden = true; mask.setAttribute('aria-hidden', 'true'); }
+    var drawerBtn = document.getElementById('drawerBtn');
+    if (drawerBtn) drawerBtn.setAttribute('aria-expanded', 'false');
+  });
+  safeStep('renderTopology', function () { renderTopology(mockView()); });
+  safeStep('setTopoBadge', function () { setTopoBadge('loading', '真实数据载入中…', ''); });
+  safeStep('renderButler', renderButler);
+  safeStep('renderDialog', renderDialog);
+  safeStep('renderMemory', renderMemory);
+  safeStep('renderChrome', renderChrome);
+  safeStep('renderBoardModule', renderBoardModule);
+  safeStep('renderThreeQuestions', renderThreeQuestions);
+  safeStep('renderHostModule', renderHostModule);
+  safeStep('setStatusBarExpanded', function () { setStatusBarExpanded(false); });
+  safeStep('setPage', function () { setPage('butler'); });
+  safeStep('markState', markState);
 
   const refreshBtn = $('#refreshBtn');
   if (refreshBtn) refreshBtn.addEventListener('click', function () {
@@ -4996,6 +5553,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       closeDrawer();
       hideTip();
       closeSayConfirm();
+      closeModelMenu();
     }
   });
   refreshAll();
@@ -5034,6 +5592,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       return;
     }
     if (state.page === 'butler' && state.dialog.kind === 'real') {
+      state.dialog.stream.suppressUntil = 0;
       loadDialog({ quiet: true }).then(function () { ensureDialogStream(); });
     }
   });

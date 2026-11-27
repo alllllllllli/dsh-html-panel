@@ -906,8 +906,36 @@ const SESSION_PATH = `${ROUTE_PREFIX}/${BUTLER_SESSION_FILE}`
 
 /** 假 sessionController：prompt/create/rename 可编排，记录调用参数。 */
 function fakeController(overrides = {}) {
-  const calls = { prompt: [], create: [], rename: [] }
+  const calls = { prompt: [], create: [], rename: [], modelCatalog: 0, selectModel: [], list: 0 }
   const controller = {
+    async modelCatalog() {
+      calls.modelCatalog += 1
+      if (overrides.catalogError) throw overrides.catalogError
+      return overrides.catalog ?? {
+        default: { provider: 'deepseek', model: 'm-flash', reasoningEffort: 'max' },
+        routableProviders: ['deepseek'],
+        groups: [{ id: 'deepseek', name: 'DeepSeek', models: [
+          { id: 'm-flash', name: 'M Flash', reasoning: { efforts: [{ id: 'max', name: 'Max' }], defaultEffort: 'max' } },
+          { id: 'm-pro', name: 'M Pro' },
+        ] }],
+        failures: [],
+      }
+    },
+    async list() {
+      calls.list += 1
+      return overrides.list ?? { items: [{
+        sessionId: 's-butler',
+        projections: { values: {
+          modelSelection: { lastUsed: null, next: { provider: 'deepseek', model: 'm-pro', reasoningEffort: 'max' } },
+          permissions: { currentValue: 'danger-full-access' },
+        } },
+      }] }
+    },
+    async selectModel(request) {
+      calls.selectModel.push(request)
+      if (overrides.selectModelError) throw overrides.selectModelError
+      return { selected: { provider: request.provider, model: request.model, ...(request.reasoningEffort === undefined ? {} : { reasoningEffort: request.reasoningEffort }) } }
+    },
     async prompt(request) {
       calls.prompt.push(request)
       if (overrides.promptError) throw overrides.promptError
@@ -1446,7 +1474,7 @@ test('0.8.1 领导预设：apply 只传 deny（不传 allow），tools/change �
 
 test('0.8.1 领导预设：预设工厂/面板配置互相对齐（agentPreset 与 exports）', async () => {
   const pkg = JSON.parse(await readFile(resolve(ROOT, 'package.json'), 'utf8'))
-  assert.equal(pkg.version, '0.9.0')
+  assert.equal(pkg.version, '0.9.2')
   assert.equal(pkg.exports['./butler-preset'], './lib/agent-preset-auto-team.js')
   assert.ok(pkg.files.includes('lib/agent-preset-auto-team.js'), 'files 必须带 agent-preset-auto-team.js，否则安装副本缺文件')
   assert.equal(pkg.files.includes('lib/agent-preset.js'), false, '旧实现文件已退役')
@@ -1506,4 +1534,41 @@ test('0.8.1 补丁：package exports / files 指向自动 Team 版预设插件',
   assert.equal(pkg.exports['./butler-preset-auto-team'], './lib/agent-preset-auto-team.js')
   assert.ok(pkg.files.includes('lib/agent-preset-auto-team.js'))
   assert.equal(pkg.files.includes('lib/agent-preset.js'), false)
+})
+
+/* ─────────────────────── I. 0.9.2 模型目录 / 切模型 ─────────────────────── */
+
+test('0.9.2 模型目录：官方 catalog + 会话投影（当前模型/权限不写死）', async () => {
+  const { channel, calls } = writeChannel()
+  const result = await channel.modelCatalog()
+  assert.equal(result.status, 200)
+  assert.equal(result.body.ok, true)
+  assert.deepEqual(result.body.current, { provider: 'deepseek', model: 'm-pro', reasoningEffort: 'max' })
+  assert.equal(result.body.currentSource, 'session')
+  assert.equal(result.body.permission, 'danger-full-access')
+  assert.equal(result.body.catalog.groups[0].models.length, 2)
+  assert.equal(calls.modelCatalog, 1)
+  assert.equal(calls.list, 1)
+})
+
+test('0.9.2 切模型：token / 白名单会话 / 官方 selectModel / requestId 幂等', async () => {
+  const { channel, calls } = writeChannel()
+  assert.equal((await channel.selectModel({}, { sessionId: 's-butler', provider: 'deepseek', model: 'm-pro' })).status, 401)
+  assert.equal((await channel.selectModel(sayHeaders(), { sessionId: 's-other', provider: 'deepseek', model: 'm-pro' })).status, 403)
+  const body = { sessionId: 's-butler', provider: 'deepseek', model: 'm-pro', reasoningEffort: 'max', requestId: 'rid-model-1' }
+  const ok = await channel.selectModel(sayHeaders(), body)
+  assert.equal(ok.status, 200)
+  assert.deepEqual(ok.body.selected, { provider: 'deepseek', model: 'm-pro', reasoningEffort: 'max' })
+  assert.equal(calls.selectModel.length, 1)
+  assert.deepEqual(calls.selectModel[0], { sessionId: 's-butler', provider: 'deepseek', model: 'm-pro', reasoningEffort: 'max' })
+  const again = await channel.selectModel(sayHeaders(), body)
+  assert.equal(again.body.deduped, true)
+  assert.equal(calls.selectModel.length, 1)
+})
+
+test('0.9.2 切模型错误映射：官方 model-unavailable → 422（不伪造成功）', async () => {
+  const { channel } = writeChannel({ controller: { selectModelError: Object.assign(new Error('no model'), { code: 'session/model-unavailable' }) } })
+  const result = await channel.selectModel(sayHeaders(), { sessionId: 's-butler', provider: 'deepseek', model: 'nope' })
+  assert.equal(result.status, 422)
+  assert.equal(result.body.code, 'model-unavailable')
 })
