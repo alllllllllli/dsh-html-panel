@@ -1059,7 +1059,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     <div class="side-foot">
       <div class="sf-1"><i class="dot run" id="sfDot"></i><span id="sfText">本机在线</span><span class="sf-dev" id="sfDev">—</span></div>
       <div class="sf-sub" id="sfSub">链路数据载入中…</div>
-      <div class="sf-ver" id="sfVer">v0.9.2 · 驾驶舱（写通道 M2 · 模型切换 · 自诊断）</div>
+      <div class="sf-ver" id="sfVer">v0.9.3 · 驾驶舱（写通道 M2 · 模型切换 · 自诊断）</div>
     </div>
   </aside>
 
@@ -1321,7 +1321,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         <section class="card" aria-labelledby="set-h">
           <div class="card-h"><span id="set-h">版本与路由</span></div>
           <ul class="kv-list">
-            <li><b>插件版本</b><span class="mono" id="setVersion">0.9.2</span></li>
+            <li><b>插件版本</b><span class="mono" id="setVersion">0.9.3</span></li>
             <li><b>页面路由</b><span class="mono">/dsh-html-panel/</span></li>
             <li><b>只读数据路由</b><span class="mono">api/cluster · api/board · api/host · api/tiers · api/alerts · api/butler/sessions · api/butler/dialog</span></li>
             <li><b>驾驶舱（只读）</b><span id="setButler">—</span></li>
@@ -1689,6 +1689,36 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     tierSelectedId: ''
   };
 
+  /* ---------------- 0.9.3：dialog 状态统一重建（修复 0.9.2 换会话红条） ----------------
+   * 0.9.2 有三处手写 state.dialog 整体重建，其中会话选择器那处漏了 live/stream，
+   * 紧接着 renderDialogHeader() 读 state.dialog.stream.kind 就抛 TypeError，并连锁
+   * unhandledrejection（loadDialog）与 2 秒轮询报错。以下统一走 resetDialogState()：
+   * 无论谁重建都带 live（默认 null）与 stream（默认保留旧对象或全新默认对象）。 */
+  function freshDialogStream() {
+    return { kind: 'off', fails: 0, lastPollAt: 0, es: null, retryTimer: null, tickTimer: null, pollTimer: null, endRetry: 0, suppressUntil: 0 };
+  }
+  /** 取当前 stream 对象；字段被弄丢时当场补一个默认对象（双保险，不让一个字段炸整页）。 */
+  function dialogStreamOf() {
+    if (!state.dialog || typeof state.dialog !== 'object') state.dialog = resetDialogState({});
+    if (!state.dialog.stream || typeof state.dialog.stream !== 'object') state.dialog.stream = freshDialogStream();
+    return state.dialog.stream;
+  }
+  /** 统一重建 state.dialog：默认带 live:null 与 stream（保留上一个对象）；patch.stream=null 表示换全新连接状态。 */
+  function resetDialogState(patch) {
+    const previous = state.dialog && typeof state.dialog === 'object' ? state.dialog : {};
+    const next = {
+      kind: 'loading', data: null, reason: '', messages: [], cursor: null, hasMore: false,
+      target: previous.target || '', boundSessionId: '', oldestSeq: null, paging: false, stickBottom: true,
+      live: null,
+      stream: previous.stream && typeof previous.stream === 'object' ? previous.stream : freshDialogStream()
+    };
+    if (patch && typeof patch === 'object') {
+      Object.assign(next, patch);
+      if (patch.stream === null) next.stream = freshDialogStream();
+    }
+    return next;
+  }
+
   /* ---------------- toast ---------------- */
   let toastTimer = null;
   function toast(msg) {
@@ -1978,40 +2008,39 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         const messages = before !== null
           ? mergeDialogMessages(data.messages, true)
           : (boundChanged ? data.messages.slice() : mergeDialogMessages(data.messages, false));
-        state.dialog = {
+        const previous = state.dialog;
+        state.dialog = resetDialogState({
           kind: 'real',
           data: data,
           reason: '',
           messages: messages,
           cursor: Number.isFinite(data.cursor) ? data.cursor : null,
           hasMore: data.hasMore === true,
-          target: state.dialog.target,
+          target: previous.target,
           boundSessionId: data.sessionId,
           oldestSeq: messages.length ? messages[0].seq : null,
           paging: false,
-          stickBottom: boundChanged ? true : state.dialog.stickBottom,
-          live: state.dialog.live,
-          stream: state.dialog.stream
-        };
+          stickBottom: boundChanged ? true : previous.stickBottom,
+          live: previous.live,
+          stream: previous.stream
+        });
         noteSuccess('dialog');
         // 0.9.0：真实对话就绪后按当前绑定会话开/续 SSE（失败自动退轮询）。
         ensureDialogStream();
       } else {
         closeDialogStream('dialog-unavailable');
-        state.dialog = {
+        state.dialog = resetDialogState({
           kind: 'unavailable',
           data: data,
           reason: data.reason || '对话不可用',
           messages: [],
           cursor: null,
           hasMore: false,
-          target: state.dialog.target,
           boundSessionId: '',
           oldestSeq: null,
           paging: false,
-          live: null,
-          stream: state.dialog.stream
-        };
+          live: null
+        });
         streamBadge('off');
       }
     } catch (error) {
@@ -2021,10 +2050,9 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       } else if (state.dialog.kind === 'real' || state.dialog.kind === 'unavailable') {
         noteFailure('dialog', reason);
       } else {
-        state.dialog = Object.assign({}, state.dialog, {
+        state.dialog = resetDialogState({
           kind: 'missing', data: null, reason: reason, messages: [], cursor: null,
-          hasMore: false, target: state.dialog.target, boundSessionId: '', oldestSeq: null, paging: false,
-          live: null
+          hasMore: false, boundSessionId: '', oldestSeq: null, paging: false, live: null
         });
         streamBadge('off');
       }
@@ -2049,7 +2077,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
    * 并退回现有轮询，每 30 秒重连；页面隐藏关 ES，可见重连。 */
   function streamBadge(kind) {
     const badge = $('#dlgStreamBadge');
-    state.dialog.stream.kind = kind;
+    dialogStreamOf().kind = kind;
     document.body.dataset.stream = kind;
     if (!badge) return;
     const visible = state.page === 'butler' && state.dialog.kind === 'real';
@@ -2072,7 +2100,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     return boundId;
   }
   function closeDialogStream(reason) {
-    const s = state.dialog.stream;
+    const s = dialogStreamOf();
     document.body.dataset.streamError = 'closed:' + String(reason || '');
     if (s.tickTimer) { clearTimeout(s.tickTimer); s.tickTimer = null; }
     if (s.retryTimer) { clearTimeout(s.retryTimer); s.retryTimer = null; }
@@ -2089,7 +2117,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (typeof renderDialog === 'function' && document.getElementById('dialogList')) renderDialog();
   }
   function scheduleStreamRetry() {
-    const s = state.dialog.stream;
+    const s = dialogStreamOf();
     if (s.retryTimer) return;
     s.suppressUntil = Date.now() + STREAM_RETRY_MS;
     s.retryTimer = setTimeout(function () {
@@ -2100,7 +2128,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     }, STREAM_RETRY_MS);
   }
   function fallbackToPolling(reason) {
-    const s = state.dialog.stream;
+    const s = dialogStreamOf();
     document.body.dataset.streamError = String(reason || '');
     if (s.es) {
       try { s.es.onerror = null; s.es.close(); } catch (e) { /* 忽略 */ }
@@ -2135,7 +2163,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     renderDialog();
   }
   function scheduleTickPull() {
-    const s = state.dialog.stream;
+    const s = dialogStreamOf();
     if (s.tickTimer) clearTimeout(s.tickTimer);
     s.tickTimer = setTimeout(function () {
       s.tickTimer = null;
@@ -2162,7 +2190,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     retry(outcome.kind === 'committed' ? 0 : 1);
   }
   function connectDialogStream(sessionId) {
-    const s = state.dialog.stream;
+    const s = dialogStreamOf();
     document.body.dataset.streamTarget = sessionId;
     if (typeof EventSource !== 'function') { fallbackToPolling('unsupported'); return; }
     if (s.es) {
@@ -2252,7 +2280,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     // 不按 document.hidden 早退：隐藏状态由 visibilitychange 负责关流；首次加载即使隐藏也先连上，
     // 页面可见后再由事件补一次 durable（无头测试环境 hidden 恒为 true 时也能验证流式）。
     const sessionId = streamSessionId();
-    const s = state.dialog.stream;
+    const s = dialogStreamOf();
     // 退避窗口内不重连：避免 SSE 429/断线时每个 2s 轮询都重新发起连接（真机 console 已见风暴）。
     if (s.suppressUntil && Date.now() < s.suppressUntil) return;
     if (!sessionId) {
@@ -2405,7 +2433,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (pillHost) pillHost.textContent = host.pill;
 
     const setVersion = $('#setVersion');
-    if (setVersion) setVersion.textContent = '0.9.2';
+    if (setVersion) setVersion.textContent = '0.9.3';
     const setButler = $('#setButler');
     if (setButler) {
       const butler = state.butler;
@@ -4784,7 +4812,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       else mode.removeAttribute('title');
     }
     // 0.9.0：实时/轮询/离线徽标跟随当前 dialog + stream 状态（页面隐藏时由 streamBadge 统一处理可见性）。
-    streamBadge(state.dialog.stream.kind);
+    streamBadge((state.dialog.stream && state.dialog.stream.kind) || 'off');
   }
 
   function fmtClock(value) {
@@ -5276,11 +5304,9 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   function initButlerDialog() {
     const pick = $('#sessionPick');
     if (pick) pick.addEventListener('change', function () {
-      state.dialog.target = pick.value || '';
-      state.dialog = {
-        kind: 'loading', data: null, reason: '', messages: [], cursor: null, hasMore: false,
-        target: state.dialog.target, boundSessionId: '', oldestSeq: null, paging: false, stickBottom: true
-      };
+      const target = pick.value || '';
+      closeDialogStream('switch');
+      state.dialog = resetDialogState({ target: target, stream: null });
       renderDialog();
       renderDialogHeader();
       loadDialog();
@@ -5578,7 +5604,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (document.hidden) return;
     if (state.page !== 'butler') return;
     if (state.dialog.kind !== 'real') return;
-    const stream = state.dialog.stream;
+    const stream = state.dialog.stream || freshDialogStream();
     const interval = stream.kind === 'live' ? STREAM_POLL_MS : DIALOG_POLL_MS;
     const now = Date.now();
     if (now - (stream.lastPollAt || 0) < interval) return;
@@ -5592,7 +5618,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       return;
     }
     if (state.page === 'butler' && state.dialog.kind === 'real') {
-      state.dialog.stream.suppressUntil = 0;
+      dialogStreamOf().suppressUntil = 0;
       loadDialog({ quiet: true }).then(function () { ensureDialogStream(); });
     }
   });

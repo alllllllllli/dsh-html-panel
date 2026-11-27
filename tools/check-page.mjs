@@ -276,8 +276,8 @@ check('设备/链路列表接真实字段', /function renderClusterList\(/.test(
 /* ---------- 13. 记忆 / 设置页 ---------- */
 check('记忆页真探测入口', /id="memoryProbe"/.test(html) && /fireAction\('notes'\)/.test(html))
 check('记忆状态文案来自真实回执', /state\.memory = \{ kind: 'ok'/.test(html) && /state\.memory = \{ kind: 'fail'/.test(html))
-check('设置页版本是 0.9.2', /id="setVersion">0\.9\.2</.test(html) && /setVersion\.textContent = '0\.9\.2'/.test(html))
-check('页脚版本是 0.9.2', /v0\.9\.2 · 驾驶舱（写通道 M2 · 模型切换 · 自诊断）/.test(html))
+check('设置页版本是 0.9.3', /id="setVersion">0\.9\.3</.test(html) && /setVersion\.textContent = '0\.9\.3'/.test(html))
+check('页脚版本是 0.9.3', /v0\.9\.3 · 驾驶舱（写通道 M2 · 模型切换 · 自诊断）/.test(html))
 check('设置页列出七条只读路由', /api\/cluster · api\/board · api\/host · api\/tiers · api\/alerts · api\/butler\/sessions · api\/butler\/dialog/.test(html))
 check('设置页列出写通道路由（say/session）', /POST api\/butler\/say/.test(html) && /POST api\/butler\/session/.test(html))
 check('设置页数据源接真实字段', /id="setBoard"/.test(html) && /id="setTiersSource"/.test(html) && /id="setHost"/.test(html) && /id="setButler"/.test(html))
@@ -419,6 +419,12 @@ check('模型切换走官方 selectModel + 写 token + 绑定会话 + 二次确�
 check('模型目录读官方 modelCatalog/投影（不写死模型）', /api\/butler\/model-catalog/.test(html) && /currentSource/.test(html) && /projections/.test(html) && /modelDisplayName\(/.test(html))
 check('权限徽标只读（无假下拉/假按钮；官方无切已有会话权限的远程方法）', /id="permBadge"[^>]*class="perm-ro"|class="perm-ro"[^>]*id="permBadge"/.test(html) && /权限由桌面端决定/.test(html) && !/权限设置（视觉占位）/.test(html) && !/id="permBadge"[^>]*<button/.test(html))
 check('附件按钮明确禁用（本轮仅文本，无 hover 假象）', /id="attachBtn"/.test(html) && /本轮仅文本/.test(html) && /aria-disabled="true"/.test(html) && /\.add:disabled\{/.test(html) && /\.add:disabled:hover/.test(html))
+
+/* ---------- 13.12 0.9.3：dialog 重建统一 + stream 兜底（真机换会话红条 hotfix） ---------- */
+check('dialog 重建统一走 resetDialogState（页面无裸 state.dialog = { 赋值）', !/state\.dialog = \{/.test(html) && /function resetDialogState\(patch\)/.test(html) && /live: null/.test(html) && /stream: previous\.stream/.test(html))
+check('resetDialogState 同时兜住 live 与 stream（不再漏字段）', /live: null,\n      stream: previous\.stream/.test(html) && /patch\.stream === null/.test(html) && /function freshDialogStream\(/.test(html))
+check('stream 读取容错：dialogStreamOf + renderDialogHeader/轮询/可见性三处防御', /function dialogStreamOf\(/.test(html) && /dialogStreamOf\(\)\.kind = kind/.test(html) && /streamBadge\(\(state\.dialog\.stream && state\.dialog\.stream\.kind\) \|\| 'off'\)/.test(html) && /state\.dialog\.stream \|\| freshDialogStream\(\)/.test(html) && /dialogStreamOf\(\)\.suppressUntil = 0/.test(html))
+check('会话选择器切会话：先关流再给全新 stream（本次触发点）', /closeDialogStream\('switch'\)/.test(html) && /resetDialogState\(\{ target: target, stream: null \}\)/.test(html))
 
 /* ---------- 汇总 ---------- */
 const failed = checks.filter(c => !c.ok)

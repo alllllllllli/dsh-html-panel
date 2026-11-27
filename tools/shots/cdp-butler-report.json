@@ -4,7 +4,7 @@
     "width": 1440,
     "height": 1000
   },
-  "generatedAt": "2026-11-27T17:16:26.732Z",
+  "generatedAt": "2026-11-27T17:45:05.778Z",
   "checks": [
     {
       "name": "页面标题是大管家",
@@ -437,9 +437,9 @@
       "detail": "actual=\"settings\" expected=\"settings\""
     },
     {
-      "name": "设置页插件版本 0.9.2",
+      "name": "设置页插件版本 0.9.3",
       "ok": true,
-      "detail": "actual=\"0.9.2\" expected=\"0.9.2\""
+      "detail": "actual=\"0.9.3\" expected=\"0.9.3\""
     },
     {
       "name": "设置页驾驶舱状态显示真实绑定",
@@ -850,6 +850,26 @@
       "name": "发送回执写明已发送",
       "ok": true,
       "detail": "needle=已发送"
+    },
+    {
+      "name": "存在会话选择器并可触发 change",
+      "ok": true,
+      "detail": "actual=\"dispatched\" expected=\"dispatched\""
+    },
+    {
+      "name": "切会话后仍无页面红条（#panelDiag）",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "切会话后页面 JS 报错未增加",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "切会话后对话列表仍正常渲染",
+      "ok": true,
+      "detail": "true"
     },
     {
       "name": "模型 chip 显示官方目录里的真实当前模型",
@@ -1409,5 +1429,5 @@
   ],
   "ok": true,
   "failed": 0,
-  "passed": 239
+  "passed": 243
 }

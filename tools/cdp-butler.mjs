@@ -1097,7 +1097,7 @@ async function main() {
     await selectPage('settings')
     s = await state()
     eq('设置页可见', s.visiblePages.join(','), 'settings')
-    eq('设置页插件版本 0.9.2', s.settings.version, '0.9.2')
+    eq('设置页插件版本 0.9.3', s.settings.version, '0.9.3')
     has('设置页驾驶舱状态显示真实绑定', s.settings.butler, '绑定')
     has('设置页驾驶舱状态说明只读', s.settings.butler, '只读')
     has('设置页官方任务板数据源可见', s.settingsOfficial, '可用 · 2 任务 · 1 个团队')
@@ -1293,6 +1293,15 @@ async function main() {
     has('say 内容来自输入框', sayRequests[0].content, '连通性测试')
     eq('发送成功后输入框清空', s.dialog.composerValue, '')
     has('发送回执写明已发送', s.receipts[0].text, '已发送')
+
+    /* ---------- 0.9.3 hotfix：切换对话会话选择器 → 不得红条/报错 ---------- */
+    const beforeSwitchErrors = (await state()).errors.length
+    const switchResult = await evaluate('(() => { const sel = document.querySelector("#sessionPick"); if (!sel) return "no-select"; sel.dispatchEvent(new Event("change", { bubbles: true })); return "dispatched"; })()')
+    eq('存在会话选择器并可触发 change', switchResult, 'dispatched')
+    await sleep(600)
+    eq('切会话后仍无页面红条（#panelDiag）', await evaluate('!!document.querySelector("#panelDiag")'), false)
+    eq('切会话后页面 JS 报错未增加', (await state()).errors.length, beforeSwitchErrors)
+    ck('切会话后对话列表仍正常渲染', await evaluate('!!document.querySelector("#dialogList")'), true)
 
     /* ---------- 0.9.2：composer 模型选择（官方 model-catalog/selectModel） ---------- */
     await sleep(250)
