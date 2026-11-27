@@ -915,7 +915,7 @@ function fakeController(overrides = {}) {
         default: { provider: 'deepseek', model: 'm-flash', reasoningEffort: 'max' },
         routableProviders: ['deepseek'],
         groups: [{ id: 'deepseek', name: 'DeepSeek', models: [
-          { id: 'm-flash', name: 'M Flash', reasoning: { efforts: [{ id: 'max', name: 'Max' }], defaultEffort: 'max' } },
+          { id: 'm-flash', name: 'M Flash', reasoning: { efforts: [{ id: 'low', name: 'Low' }, { id: 'high', name: 'High' }, { id: 'max', name: 'Max' }], defaultEffort: 'high' } },
           { id: 'm-pro', name: 'M Pro' },
         ] }],
         failures: [],
@@ -1474,7 +1474,7 @@ test('0.8.1 领导预设：apply 只传 deny（不传 allow），tools/change �
 
 test('0.8.1 领导预设：预设工厂/面板配置互相对齐（agentPreset 与 exports）', async () => {
   const pkg = JSON.parse(await readFile(resolve(ROOT, 'package.json'), 'utf8'))
-  assert.equal(pkg.version, '0.9.3')
+  assert.equal(pkg.version, '0.9.4')
   assert.equal(pkg.exports['./butler-preset'], './lib/agent-preset-auto-team.js')
   assert.ok(pkg.files.includes('lib/agent-preset-auto-team.js'), 'files 必须带 agent-preset-auto-team.js，否则安装副本缺文件')
   assert.equal(pkg.files.includes('lib/agent-preset.js'), false, '旧实现文件已退役')
@@ -1555,12 +1555,12 @@ test('0.9.2 切模型：token / 白名单会话 / 官方 selectModel / requestId
   const { channel, calls } = writeChannel()
   assert.equal((await channel.selectModel({}, { sessionId: 's-butler', provider: 'deepseek', model: 'm-pro' })).status, 401)
   assert.equal((await channel.selectModel(sayHeaders(), { sessionId: 's-other', provider: 'deepseek', model: 'm-pro' })).status, 403)
-  const body = { sessionId: 's-butler', provider: 'deepseek', model: 'm-pro', reasoningEffort: 'max', requestId: 'rid-model-1' }
+  const body = { sessionId: 's-butler', provider: 'deepseek', model: 'm-flash', reasoningEffort: 'low', requestId: 'rid-model-1' }
   const ok = await channel.selectModel(sayHeaders(), body)
   assert.equal(ok.status, 200)
-  assert.deepEqual(ok.body.selected, { provider: 'deepseek', model: 'm-pro', reasoningEffort: 'max' })
+  assert.deepEqual(ok.body.selected, { provider: 'deepseek', model: 'm-flash', reasoningEffort: 'low' })
   assert.equal(calls.selectModel.length, 1)
-  assert.deepEqual(calls.selectModel[0], { sessionId: 's-butler', provider: 'deepseek', model: 'm-pro', reasoningEffort: 'max' })
+  assert.deepEqual(calls.selectModel[0], { sessionId: 's-butler', provider: 'deepseek', model: 'm-flash', reasoningEffort: 'low' })
   const again = await channel.selectModel(sayHeaders(), body)
   assert.equal(again.body.deduped, true)
   assert.equal(calls.selectModel.length, 1)
@@ -1568,7 +1568,21 @@ test('0.9.2 切模型：token / 白名单会话 / 官方 selectModel / requestId
 
 test('0.9.2 切模型错误映射：官方 model-unavailable → 422（不伪造成功）', async () => {
   const { channel } = writeChannel({ controller: { selectModelError: Object.assign(new Error('no model'), { code: 'session/model-unavailable' }) } })
-  const result = await channel.selectModel(sayHeaders(), { sessionId: 's-butler', provider: 'deepseek', model: 'nope' })
+  const result = await channel.selectModel(sayHeaders(), { sessionId: 's-butler', provider: 'deepseek', model: 'm-flash', reasoningEffort: 'low' })
   assert.equal(result.status, 422)
   assert.equal(result.body.code, 'model-unavailable')
+})
+
+test('0.9.4 思考档位白名单：非法档位/不支持档位/未知模型都明确报错', async () => {
+  const { channel, calls } = writeChannel()
+  const badEffort = await channel.selectModel(sayHeaders(), { sessionId: 's-butler', provider: 'deepseek', model: 'm-flash', reasoningEffort: 'ultra' })
+  assert.equal(badEffort.status, 400)
+  assert.equal(badEffort.body.code, 'bad-reasoning-effort')
+  const noEffort = await channel.selectModel(sayHeaders(), { sessionId: 's-butler', provider: 'deepseek', model: 'm-pro', reasoningEffort: 'max' })
+  assert.equal(noEffort.status, 400)
+  assert.equal(noEffort.body.code, 'effort-unavailable')
+  const unknown = await channel.selectModel(sayHeaders(), { sessionId: 's-butler', provider: 'deepseek', model: 'nope' })
+  assert.equal(unknown.status, 400)
+  assert.equal(unknown.body.code, 'unknown-model')
+  assert.equal(calls.selectModel.length, 0, '非法档位绝不能真的调用官方 selectModel')
 })

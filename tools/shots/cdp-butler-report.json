@@ -4,7 +4,7 @@
     "width": 1440,
     "height": 1000
   },
-  "generatedAt": "2026-11-27T17:45:05.778Z",
+  "generatedAt": "2026-11-27T18:07:04.625Z",
   "checks": [
     {
       "name": "页面标题是大管家",
@@ -437,9 +437,9 @@
       "detail": "actual=\"settings\" expected=\"settings\""
     },
     {
-      "name": "设置页插件版本 0.9.3",
+      "name": "设置页插件版本 0.9.4",
       "ok": true,
-      "detail": "actual=\"0.9.3\" expected=\"0.9.3\""
+      "detail": "actual=\"0.9.4\" expected=\"0.9.4\""
     },
     {
       "name": "设置页驾驶舱状态显示真实绑定",
@@ -942,6 +942,46 @@
       "detail": "needle=V4.1 Pro"
     },
     {
+      "name": "当前模型不支持档位时显示明确文案",
+      "ok": true,
+      "detail": "actual=\"该模型不支持思考档位\" expected=\"该模型不支持思考档位\""
+    },
+    {
+      "name": "无档位模型不渲染任何档位按钮",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "有档位模型列出官方 efforts",
+      "ok": true,
+      "detail": "actual=3 expected=3"
+    },
+    {
+      "name": "选档位也先弹二次确认",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "确认框写明思考档位",
+      "ok": true,
+      "detail": "needle=思考档位 low"
+    },
+    {
+      "name": "选档位真的 POST 一次 select-model",
+      "ok": true,
+      "detail": "actual=3 expected=3"
+    },
+    {
+      "name": "请求体含 reasoningEffort=low",
+      "ok": true,
+      "detail": "actual=\"low\" expected=\"low\""
+    },
+    {
+      "name": "切档后 chip 立刻显示新档位",
+      "ok": true,
+      "detail": "needle=low"
+    },
+    {
       "name": "真实指针点击导航→任务页（窄屏）",
       "ok": true,
       "detail": "actual=\"tasks\" expected=\"tasks\""
@@ -1219,7 +1259,7 @@
     {
       "name": "截图数量 ≥ 5",
       "ok": true,
-      "detail": "shots=34"
+      "detail": "shots=37"
     }
   ],
   "shots": [
@@ -1247,6 +1287,9 @@
     "tools/shots/shot-butler092-model-menu-1440.png",
     "tools/shots/shot-butler092-model-confirm-1440.png",
     "tools/shots/shot-butler092-model-switched-1440.png",
+    "tools/shots/shot-butler094-effort-empty-1440.png",
+    "tools/shots/shot-butler094-effort-menu-1440.png",
+    "tools/shots/shot-butler094-effort-switched-1440.png",
     "tools/shots/shot-butler091-narrow-1000-realclick.png",
     "tools/shots/shot-butler08-narrow-900.png",
     "tools/shots/shot-butler09-ctx-collapsed-1440.png",
@@ -1429,5 +1472,5 @@
   ],
   "ok": true,
   "failed": 0,
-  "passed": 243
+  "passed": 251
 }

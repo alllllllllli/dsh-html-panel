@@ -379,6 +379,17 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .model-item-meta{display:flex;align-items:center;gap:6px;flex:0 0 auto;color:var(--label-caption);font-size:11px}
 .model-badge{padding:0 5px;border-radius:4px;background:var(--bg-layer-3)}
 .model-eff{font-variant-numeric:tabular-nums}
+.model-menu-sep{height:1px;margin:6px 4px;background:var(--border-l2)}
+.model-effort-list{display:flex;flex-direction:column;gap:2px}
+.model-effort-item{
+  display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;border:0;border-radius:8px;
+  background:transparent;color:var(--label-primary);font:inherit;font-size:13px;text-align:left;cursor:pointer;
+}
+.model-effort-item:hover,.model-effort-item:focus-visible{background:var(--hover);outline:none}
+.model-effort-item.is-selected{background:var(--hover)}
+.model-effort-name{flex:0 0 auto;font-weight:500}
+.model-effort-desc{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--label-caption);font-size:11px}
+.model-effort-empty{margin:0;padding:8px;color:var(--label-tertiary);font-size:12px}
 .model-check{width:12px;color:var(--accent)}
 .perm-ro{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 4px;border-radius:var(--radius-sm);color:var(--label-tertiary);font-size:12px;white-space:nowrap;cursor:default}
 .perm-ro .i{width:14px;height:14px;color:var(--label-caption)}
@@ -1059,7 +1070,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     <div class="side-foot">
       <div class="sf-1"><i class="dot run" id="sfDot"></i><span id="sfText">本机在线</span><span class="sf-dev" id="sfDev">—</span></div>
       <div class="sf-sub" id="sfSub">链路数据载入中…</div>
-      <div class="sf-ver" id="sfVer">v0.9.3 · 驾驶舱（写通道 M2 · 模型切换 · 自诊断）</div>
+      <div class="sf-ver" id="sfVer">v0.9.4 · 驾驶舱（写通道 M2 · 模型/档位 · 自诊断）</div>
     </div>
   </aside>
 
@@ -1321,7 +1332,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         <section class="card" aria-labelledby="set-h">
           <div class="card-h"><span id="set-h">版本与路由</span></div>
           <ul class="kv-list">
-            <li><b>插件版本</b><span class="mono" id="setVersion">0.9.3</span></li>
+            <li><b>插件版本</b><span class="mono" id="setVersion">0.9.4</span></li>
             <li><b>页面路由</b><span class="mono">/dsh-html-panel/</span></li>
             <li><b>只读数据路由</b><span class="mono">api/cluster · api/board · api/host · api/tiers · api/alerts · api/butler/sessions · api/butler/dialog</span></li>
             <li><b>驾驶舱（只读）</b><span id="setButler">—</span></li>
@@ -2433,7 +2444,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (pillHost) pillHost.textContent = host.pill;
 
     const setVersion = $('#setVersion');
-    if (setVersion) setVersion.textContent = '0.9.3';
+    if (setVersion) setVersion.textContent = '0.9.4';
     const setButler = $('#setButler');
     if (setButler) {
       const butler = state.butler;
@@ -3359,6 +3370,25 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       : String(selection.model || '未知模型');
   }
 
+  /** 当前 selection 的显式档位；没显式就给官方 reasoning.defaultEffort。 */
+  function effectiveEffortOf(selection) {
+    if (!selection) return '';
+    const explicit = typeof selection.reasoningEffort === 'string' ? selection.reasoningEffort.trim() : '';
+    if (explicit !== '') return explicit;
+    const found = modelEntryOf(state.model.catalog, selection);
+    return found && found.model && found.model.reasoning && typeof found.model.reasoning.defaultEffort === 'string'
+      ? found.model.reasoning.defaultEffort
+      : '';
+  }
+
+  /** 当前模型官方可选档位（空数组 = 该模型不支持思考档位）。 */
+  function effortsOfCurrent() {
+    const found = modelEntryOf(state.model.catalog, state.model.current);
+    return found && found.model && found.model.reasoning && Array.isArray(found.model.reasoning.efforts)
+      ? found.model.reasoning.efforts
+      : [];
+  }
+
   /** 把权限 preset 值翻成人话（官方值: auto / danger-full-access / custom / 配置 key）。 */
   function permissionLabelOf(value) {
     const preset = String(value || '');
@@ -3381,9 +3411,10 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       ? '模型载入中…'
       : (current === null ? '模型信息不可用' : modelDisplayName(current));
     chip.appendChild(name);
-    if (current && typeof current.reasoningEffort === 'string' && current.reasoningEffort !== '') {
+    const shownEffort = effectiveEffortOf(current);
+    if (shownEffort !== '') {
       const effort = document.createElement('b');
-      effort.textContent = current.reasoningEffort;
+      effort.textContent = shownEffort;
       chip.appendChild(effort);
     }
     chip.insertAdjacentHTML('beforeend', '<svg class="i chev" aria-hidden="true"><use href="#i-chevd"></use></svg>');
@@ -3459,7 +3490,13 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           badgeText.textContent = model.badge.label;
           meta.appendChild(badgeText);
         }
-        if (effort !== '') {
+        const modelEfforts = model.reasoning && Array.isArray(model.reasoning.efforts) ? model.reasoning.efforts : [];
+        if (modelEfforts.length === 0) {
+          const noEffort = document.createElement('span');
+          noEffort.className = 'model-eff';
+          noEffort.textContent = '不支持档位';
+          meta.appendChild(noEffort);
+        } else if (effort !== '') {
           const effortText = document.createElement('span');
           effortText.className = 'model-eff';
           effortText.textContent = effort;
@@ -3473,6 +3510,58 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         menu.appendChild(item);
       });
     });
+
+    // 0.9.4：当前模型的「思考档位」段（官方 reasoning.efforts；空数组=不支持）
+    const current = state.model.current;
+    if (current) {
+      const sep = document.createElement('div');
+      sep.className = 'model-menu-sep';
+      menu.appendChild(sep);
+      const heading = document.createElement('div');
+      heading.className = 'model-group-name';
+      heading.textContent = '思考档位 · ' + modelDisplayName(current);
+      menu.appendChild(heading);
+      const efforts = effortsOfCurrent();
+      if (efforts.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'model-effort-empty';
+        empty.textContent = '该模型不支持思考档位';
+        menu.appendChild(empty);
+        return;
+      }
+      const shown = effectiveEffortOf(current);
+      const list = document.createElement('div');
+      list.className = 'model-effort-list';
+      list.setAttribute('role', 'group');
+      list.setAttribute('aria-label', '思考档位');
+      efforts.forEach(function (effort) {
+        if (!effort || typeof effort.id !== 'string' || effort.id === '') return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'model-effort-item';
+        btn.setAttribute('role', 'option');
+        btn.setAttribute('data-effort', effort.id);
+        const selected = effort.id === shown;
+        btn.setAttribute('aria-selected', selected ? 'true' : 'false');
+        if (selected) btn.classList.add('is-selected');
+        const name = document.createElement('span');
+        name.className = 'model-effort-name';
+        name.textContent = String(effort.name || effort.id);
+        btn.appendChild(name);
+        if (typeof effort.description === 'string' && effort.description !== '') {
+          const desc = document.createElement('span');
+          desc.className = 'model-effort-desc';
+          desc.textContent = effort.description;
+          btn.appendChild(desc);
+        }
+        const check = document.createElement('span');
+        check.className = 'model-check';
+        check.textContent = selected ? '✓' : '';
+        btn.appendChild(check);
+        list.appendChild(btn);
+      });
+      menu.appendChild(list);
+    }
   }
 
   function openModelMenu() {
@@ -3550,9 +3639,16 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     const target = $('#confirmTarget');
     const preview = $('#confirmPreview');
     const ok = $('#confirmSend');
-    if (title) title.textContent = '确认切换大管家会话模型？';
-    if (target) target.textContent = '目标：' + modelDisplayName(selection) + '（' + selection.provider + ' / ' + selection.model + '）';
-    if (preview) preview.textContent = '只切当前绑定的专属大管家会话；新模型从下一轮回复开始生效，不会改其他会话，也不会改桌面端的全局默认。';
+    const effortLabel = selection.reasoningEffort === undefined ? '' : String(selection.reasoningEffort);
+    if (effortLabel !== '') {
+      if (title) title.textContent = '确认切换大管家会话的思考档位？';
+      if (target) target.textContent = '目标：' + modelDisplayName(selection) + ' · 思考档位 ' + effortLabel + '（' + selection.provider + ' / ' + selection.model + '）';
+      if (preview) preview.textContent = '把思考档位改成 ' + effortLabel + '，会重新写入当前绑定大管家会话的模型选择；从下一轮回复起生效，不会改其他会话，也不会改桌面端的全局默认。';
+    } else {
+      if (title) title.textContent = '确认切换大管家会话模型？';
+      if (target) target.textContent = '目标：' + modelDisplayName(selection) + '（' + selection.provider + ' / ' + selection.model + '）';
+      if (preview) preview.textContent = '只切当前绑定的专属大管家会话；新模型从下一轮回复开始生效，不会改其他会话，也不会改桌面端的全局默认。';
+    }
     if (ok) { ok.textContent = '确认切换'; ok.disabled = false; }
     const mask = $('#confirmMask');
     if (mask) { mask.hidden = false; if (ok) ok.focus(); }
@@ -3622,6 +3718,16 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     }
     if (menu) {
       menu.addEventListener('click', function (event) {
+        const effortItem = event.target.closest ? event.target.closest('.model-effort-item') : null;
+        if (effortItem) {
+          event.preventDefault();
+          const current = state.model.current;
+          if (!current) return;
+          const effort = effortItem.getAttribute('data-effort') || '';
+          closeModelMenu();
+          openModelConfirm(current.provider, current.model, effort);
+          return;
+        }
         const item = event.target.closest ? event.target.closest('.model-item') : null;
         if (!item) return;
         event.preventDefault();

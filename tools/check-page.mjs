@@ -276,8 +276,8 @@ check('设备/链路列表接真实字段', /function renderClusterList\(/.test(
 /* ---------- 13. 记忆 / 设置页 ---------- */
 check('记忆页真探测入口', /id="memoryProbe"/.test(html) && /fireAction\('notes'\)/.test(html))
 check('记忆状态文案来自真实回执', /state\.memory = \{ kind: 'ok'/.test(html) && /state\.memory = \{ kind: 'fail'/.test(html))
-check('设置页版本是 0.9.3', /id="setVersion">0\.9\.3</.test(html) && /setVersion\.textContent = '0\.9\.3'/.test(html))
-check('页脚版本是 0.9.3', /v0\.9\.3 · 驾驶舱（写通道 M2 · 模型切换 · 自诊断）/.test(html))
+check('设置页版本是 0.9.4', /id="setVersion">0\.9\.4</.test(html) && /setVersion\.textContent = '0\.9\.4'/.test(html))
+check('页脚版本是 0.9.4', /v0\.9\.4 · 驾驶舱（写通道 M2 · 模型\/档位 · 自诊断）/.test(html))
 check('设置页列出七条只读路由', /api\/cluster · api\/board · api\/host · api\/tiers · api\/alerts · api\/butler\/sessions · api\/butler\/dialog/.test(html))
 check('设置页列出写通道路由（say/session）', /POST api\/butler\/say/.test(html) && /POST api\/butler\/session/.test(html))
 check('设置页数据源接真实字段', /id="setBoard"/.test(html) && /id="setTiersSource"/.test(html) && /id="setHost"/.test(html) && /id="setButler"/.test(html))
@@ -425,6 +425,12 @@ check('dialog 重建统一走 resetDialogState（页面无裸 state.dialog = { �
 check('resetDialogState 同时兜住 live 与 stream（不再漏字段）', /live: null,\n      stream: previous\.stream/.test(html) && /patch\.stream === null/.test(html) && /function freshDialogStream\(/.test(html))
 check('stream 读取容错：dialogStreamOf + renderDialogHeader/轮询/可见性三处防御', /function dialogStreamOf\(/.test(html) && /dialogStreamOf\(\)\.kind = kind/.test(html) && /streamBadge\(\(state\.dialog\.stream && state\.dialog\.stream\.kind\) \|\| 'off'\)/.test(html) && /state\.dialog\.stream \|\| freshDialogStream\(\)/.test(html) && /dialogStreamOf\(\)\.suppressUntil = 0/.test(html))
 check('会话选择器切会话：先关流再给全新 stream（本次触发点）', /closeDialogStream\('switch'\)/.test(html) && /resetDialogState\(\{ target: target, stream: null \}\)/.test(html))
+
+/* ---------- 13.13 0.9.4：思考档位选择器（官方 reasoning.efforts） ---------- */
+check('思考档位控件存在：当前模型 efforts 段 + 选项 + 选中态', /function effortsOfCurrent\(/.test(html) && /model-effort-item/.test(html) && /data-effort/.test(html) && /aria-selected/.test(html) && /思考档位 · /.test(html))
+check('空 efforts 模型明确禁用（该模型不支持思考档位，不给假选项）', /model-effort-empty/.test(html) && /该模型不支持思考档位/.test(html) && /modelEfforts\.length === 0/.test(html))
+check('chip 显示当前有效档位（显式 effort 优先，其次官方 defaultEffort）', /function effectiveEffortOf\(/.test(html) && /shownEffort/.test(html) && /reasoning\.defaultEffort/.test(html))
+check('选档位走同一条写通道 + 二次确认（换档=重写模型选择）', /model-effort-item/.test(html) && /openModelConfirm\(current\.provider, current\.model, effort\)/.test(html) && /把思考档位改成 /.test(html) && /state\.confirm\.kind === 'model'/.test(html))
 
 /* ---------- 汇总 ---------- */
 const failed = checks.filter(c => !c.ok)

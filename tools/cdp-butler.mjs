@@ -290,7 +290,7 @@ const DIALOG_PINNED_STREAMED = {
 
 /* ───────────────────────── fixture HTTP 服务 ───────────────────────── */
 async function startFixtureServer() {
-  const state = { scenario: 'real', sayRequests: [], sessionRequests: [], modelRequests: [], modelCurrent: { provider: 'deepseek', model: 'deepseek-v4.1-flash', reasoningEffort: 'max' }, streamed: false, sse: { connections: 0, closed: 0, res: null, timers: [] } }
+  const state = { scenario: 'real', sayRequests: [], sessionRequests: [], modelRequests: [], modelCurrent: { provider: 'deepseek', model: 'deepseek-v4.1-flash', reasoningEffort: 'high' }, streamed: false, sse: { connections: 0, closed: 0, res: null, timers: [] } }
   const isPinned = () => state.scenario === 'real-pinned' || state.scenario === 'real-pinned-missing' || state.scenario === 'real-unbound' || state.scenario === 'real-pinned-stream'
   const server = createServer(async (req, res) => {
     const url = new URL(req.url, 'http://127.0.0.1')
@@ -325,10 +325,10 @@ async function startFixtureServer() {
       sendJson(200, {
         ok: true,
         catalog: {
-          default: { provider: 'deepseek', model: 'deepseek-v4.1-flash', reasoningEffort: 'max' },
+          default: { provider: 'deepseek', model: 'deepseek-v4.1-flash', reasoningEffort: 'high' },
           routableProviders: ['deepseek'],
           groups: [{ id: 'deepseek', name: 'DeepSeek', models: [
-            { id: 'deepseek-v4.1-flash', name: 'DeepSeek V4.1 Flash', reasoning: { efforts: [{ id: 'max', name: 'Max' }], defaultEffort: 'max' } },
+            { id: 'deepseek-v4.1-flash', name: 'DeepSeek V4.1 Flash', reasoning: { efforts: [{ id: 'low', name: 'Low', description: '省算力' }, { id: 'high', name: 'High' }, { id: 'max', name: 'Max' }], defaultEffort: 'high' } },
             { id: 'deepseek-v4.1-pro', name: 'DeepSeek V4.1 Pro' },
           ] }],
           failures: [],
@@ -1097,7 +1097,7 @@ async function main() {
     await selectPage('settings')
     s = await state()
     eq('设置页可见', s.visiblePages.join(','), 'settings')
-    eq('设置页插件版本 0.9.3', s.settings.version, '0.9.3')
+    eq('设置页插件版本 0.9.4', s.settings.version, '0.9.4')
     has('设置页驾驶舱状态显示真实绑定', s.settings.butler, '绑定')
     has('设置页驾驶舱状态说明只读', s.settings.butler, '只读')
     has('设置页官方任务板数据源可见', s.settingsOfficial, '可用 · 2 任务 · 1 个团队')
@@ -1335,6 +1335,33 @@ async function main() {
     const chipAfter = await evaluate('document.querySelector("#modelChip").textContent')
     has('切换成功后 chip 更新为官方返回的新模型', chipAfter, 'V4.1 Pro')
     await shot('shot-butler092-model-switched-1440.png')
+
+    /* ---------- 0.9.4：思考档位（官方 reasoning.efforts） ---------- */
+    {
+      await click('#modelChip')
+      eq('当前模型不支持档位时显示明确文案', await evaluate('(document.querySelector("#modelMenu .model-effort-empty") || {}).textContent'), '该模型不支持思考档位')
+      eq('无档位模型不渲染任何档位按钮', await evaluate('document.querySelectorAll("#modelMenu .model-effort-item").length'), 0)
+      await shot('shot-butler094-effort-empty-1440.png')
+      await click('.model-item[data-model="deepseek-v4.1-flash"]')
+      await sleep(120)
+      await click('#confirmSend')
+      await sleep(300)
+      await click('#modelChip')
+      eq('有档位模型列出官方 efforts', await evaluate('document.querySelectorAll("#modelMenu .model-effort-item").length'), 3)
+      await shot('shot-butler094-effort-menu-1440.png')
+      await click('.model-effort-item[data-effort="low"]')
+      await sleep(120)
+      s = await state()
+      eq('选档位也先弹二次确认', s.confirm.visible, true)
+      has('确认框写明思考档位', s.confirm.target, '思考档位 low')
+      await click('#confirmSend')
+      await sleep(320)
+      const effortRequests = fixture.modelRequests()
+      eq('选档位真的 POST 一次 select-model', effortRequests.length, 3)
+      eq('请求体含 reasoningEffort=low', effortRequests[effortRequests.length - 1].reasoningEffort, 'low')
+      has('切档后 chip 立刻显示新档位', await evaluate('document.querySelector("#modelChip").textContent'), 'low')
+      await shot('shot-butler094-effort-switched-1440.png')
+    }
 
     /* ---------- 0.9.1 回归：1000px 窄屏真实指针点击（嵌入有效宽 <1200 的典型值） ---------- */
     await setViewport(1000, 900)
