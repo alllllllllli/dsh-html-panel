@@ -4,7 +4,7 @@
     "width": 1440,
     "height": 1000
   },
-  "generatedAt": "2026-11-27T10:01:45.780Z",
+  "generatedAt": "2026-11-27T12:21:31.762Z",
   "checks": [
     {
       "name": "页面标题是大管家",
@@ -42,9 +42,9 @@
       "detail": "actual=\"自动 · 最近根会话\" expected=\"自动 · 最近根会话\""
     },
     {
-      "name": "真实对话渲染 4 条消息",
+      "name": "真实对话渲染 5 条消息",
       "ok": true,
-      "detail": "actual=4 expected=4"
+      "detail": "actual=5 expected=5"
     },
     {
       "name": "主人消息 1 条",
@@ -52,9 +52,9 @@
       "detail": "actual=1 expected=1"
     },
     {
-      "name": "系统注入 1 条（灰条）",
+      "name": "系统注入 2 条（默认折叠的 ctx-row）",
       "ok": true,
-      "detail": "actual=1 expected=1"
+      "detail": "actual=2 expected=2"
     },
     {
       "name": "助手消息 2 条",
@@ -74,7 +74,7 @@
     {
       "name": "时间分隔出现",
       "ok": true,
-      "detail": "seps=2"
+      "detail": "seps=1"
     },
     {
       "name": "工具卡有工具名",
@@ -89,7 +89,7 @@
     {
       "name": "中栏不再有示例对话",
       "ok": true,
-      "detail": "11-21 15:51你15:51按 M0+M1 把中栏换成真实会话对话，右栏用真实状态；写通道先不开。系统注入 · context15:52系统注入上下文（f"
+      "detail": "11-21 15:51你15:51按 M0+M1 把中栏换成真实会话对话，右栏用真实状态；写通道先不开。系统注入context系统注入上下文（fixture）："
     },
     {
       "name": "会话选择器选项=自动+4 个本机会话",
@@ -104,7 +104,7 @@
     {
       "name": "composer 状态条显示消息/工具计数",
       "ok": true,
-      "detail": "needle=消息 4 · 工具 2"
+      "detail": "needle=消息 5 · 工具 2"
     },
     {
       "name": "对话顶部标只读",
@@ -437,9 +437,9 @@
       "detail": "actual=\"settings\" expected=\"settings\""
     },
     {
-      "name": "设置页插件版本 0.8.1",
+      "name": "设置页插件版本 0.9.0",
       "ok": true,
-      "detail": "actual=\"0.8.1\" expected=\"0.8.1\""
+      "detail": "actual=\"0.9.0\" expected=\"0.9.0\""
     },
     {
       "name": "设置页驾驶舱状态显示真实绑定",
@@ -862,6 +862,131 @@
       "detail": "actual=false expected=false"
     },
     {
+      "name": "系统注入用 details.ctx-row 渲染",
+      "ok": true,
+      "detail": "rows=1"
+    },
+    {
+      "name": "注入默认收起（0 个 open）",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "折叠态行高约 24px",
+      "ok": true,
+      "detail": "h=24"
+    },
+    {
+      "name": "折叠态摘要来自 host 字段",
+      "ok": true,
+      "detail": "needle=用户画像与偏好"
+    },
+    {
+      "name": "折叠态标签=记忆画像",
+      "ok": true,
+      "detail": "needle=记忆画像"
+    },
+    {
+      "name": "折叠态 meta 有行数/大小",
+      "ok": true,
+      "detail": "needle=行"
+    },
+    {
+      "name": "折叠 body 保留全文（未丢）",
+      "ok": true,
+      "detail": "needle=用户画像与偏好"
+    },
+    {
+      "name": "展开体高度受限（<=160px，内部滚动）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "点击后展开",
+      "ok": true,
+      "detail": "actual=1 expected=1"
+    },
+    {
+      "name": "展开体显示原文",
+      "ok": true,
+      "detail": "needle=背景资料"
+    },
+    {
+      "name": "再点收起",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "client 兜底摘要：raw 长注入也折叠",
+      "ok": true,
+      "detail": "rows=2"
+    },
+    {
+      "name": "client 兜底摘要取首个非空行",
+      "ok": true,
+      "detail": "[\"系统注入上下文（fixture）：AGENTS.md 规则摘要…\",\"用户画像与偏好\"]"
+    },
+    {
+      "name": "raw 长注入默认收起",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "SSE 徽标=实时",
+      "ok": true,
+      "detail": "actual=\"实时\" expected=\"实时\""
+    },
+    {
+      "name": "body.dataset.stream=live",
+      "ok": true,
+      "detail": "actual=\"live\" expected=\"live\""
+    },
+    {
+      "name": "live 气泡出现（durable 尾部）",
+      "ok": true,
+      "detail": "liveRows=1"
+    },
+    {
+      "name": "live 气泡有「正在生成」",
+      "ok": true,
+      "detail": "needle=正在生成"
+    },
+    {
+      "name": "live 文本增长（流式）",
+      "ok": true,
+      "detail": "{\"first\":\"正在生成…turn 5 · step 1流式\",\"now\":\"正在生成…turn 5 · step 1流式增量\"}"
+    },
+    {
+      "name": "durable 结算后 live 清空",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "durable 出现结算消息",
+      "ok": true,
+      "detail": "needle=流式增量（durable 结算）"
+    },
+    {
+      "name": "结算后徽标仍实时",
+      "ok": true,
+      "detail": "actual=\"实时\" expected=\"实时\""
+    },
+    {
+      "name": "SSE 断开后退回轮询",
+      "ok": true,
+      "detail": "badge=轮询"
+    },
+    {
+      "name": "可见/重连后恢复实时",
+      "ok": true,
+      "detail": "actual=\"实时\" expected=\"实时\""
+    },
+    {
+      "name": "SSE 第二次连接已建立",
+      "ok": true,
+      "detail": "connections=2"
+    },
+    {
       "name": "会话不存在时 pin 标签仍在（配置固定）",
       "ok": true,
       "detail": "actual=true expected=true"
@@ -944,7 +1069,7 @@
     {
       "name": "截图数量 ≥ 5",
       "ok": true,
-      "detail": "shots=24"
+      "detail": "shots=30"
     }
   ],
   "shots": [
@@ -970,6 +1095,12 @@
     "tools/shots/shot-butler08-status-expanded-1440.png",
     "tools/shots/shot-butler08-confirm-1440.png",
     "tools/shots/shot-butler08-narrow-900.png",
+    "tools/shots/shot-butler09-ctx-collapsed-1440.png",
+    "tools/shots/shot-butler09-ctx-expanded-1440.png",
+    "tools/shots/shot-butler09-stream-live-1440.png",
+    "tools/shots/shot-butler09-stream-settled-1440.png",
+    "tools/shots/shot-butler09-stream-poll-1440.png",
+    "tools/shots/shot-butler09-stream-reconnect-1440.png",
     "tools/shots/shot-butler08-rebuild-1440.png",
     "tools/shots/shot-butler08-create-unbound-1440.png"
   ],
@@ -988,7 +1119,9 @@
         "butler": "real",
         "dialog": "real",
         "write": "off",
-        "page": "butler"
+        "page": "butler",
+        "stream": "poll",
+        "streamTarget": "session-main"
       }
     },
     {
@@ -1003,7 +1136,8 @@
         "butler": "missing",
         "dialog": "missing",
         "write": "off",
-        "page": "butler"
+        "page": "butler",
+        "stream": "off"
       }
     },
     {
@@ -1018,7 +1152,8 @@
         "butler": "missing",
         "dialog": "missing",
         "write": "off",
-        "page": "butler"
+        "page": "butler",
+        "stream": "off"
       }
     },
     {
@@ -1033,7 +1168,8 @@
         "butler": "missing",
         "dialog": "missing",
         "write": "off",
-        "page": "butler"
+        "page": "butler",
+        "stream": "off"
       }
     },
     {
@@ -1048,7 +1184,8 @@
         "butler": "missing",
         "dialog": "missing",
         "write": "off",
-        "page": "butler"
+        "page": "butler",
+        "stream": "off"
       }
     },
     {
@@ -1063,7 +1200,43 @@
         "butler": "real",
         "dialog": "real",
         "write": "on",
-        "page": "butler"
+        "page": "butler",
+        "stream": "poll",
+        "streamTarget": "session-butler"
+      }
+    },
+    {
+      "name": "real-pinned-collapse",
+      "dataset": {
+        "statusbar": "collapsed",
+        "cluster": "real",
+        "board": "real",
+        "host": "real",
+        "tiers": "real",
+        "alerts": "missing",
+        "butler": "real",
+        "dialog": "real",
+        "write": "on",
+        "page": "butler",
+        "stream": "poll",
+        "streamTarget": "session-butler"
+      }
+    },
+    {
+      "name": "real-pinned-stream",
+      "dataset": {
+        "statusbar": "collapsed",
+        "cluster": "real",
+        "board": "real",
+        "host": "real",
+        "tiers": "real",
+        "alerts": "missing",
+        "butler": "real",
+        "dialog": "real",
+        "write": "on",
+        "page": "butler",
+        "stream": "live",
+        "streamTarget": "session-butler"
       }
     },
     {
@@ -1078,7 +1251,9 @@
         "butler": "real",
         "dialog": "real",
         "write": "off",
-        "page": "butler"
+        "page": "butler",
+        "stream": "poll",
+        "streamTarget": "session-butler"
       }
     },
     {
@@ -1093,11 +1268,12 @@
         "butler": "real",
         "dialog": "missing",
         "write": "off",
-        "page": "butler"
+        "page": "butler",
+        "stream": "off"
       }
     }
   ],
   "ok": true,
   "failed": 0,
-  "passed": 188
+  "passed": 213
 }

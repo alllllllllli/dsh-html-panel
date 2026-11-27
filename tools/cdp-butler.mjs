@@ -174,6 +174,21 @@ const BUTLER_REAL = {
  * 0.7.0 M1 fixture：真实 events() 归一化后的形状（主人/系统注入/助手思考/工具卡）。
  * 不是真实对话内容，是给页面/断言用的接口形状样本。
  */
+/** 0.9.0 fixture：超长系统注入（client 端兜底摘要用；故意不带 host summary 字段）。 */
+const LONG_INJECT_RAW = '<openviking-context source="profile">\n# 用户画像与偏好\n- 用户名 ky614\n- 主力机 DESKTOP-OR1HA06\n' + '背景资料。'.repeat(700) + '\n</openviking-context>'
+/** 0.9.0 fixture：host 已算好摘要字段的注入（模拟 0.9.0 host 的 normalizeDialogEvents）。 */
+const LONG_INJECT_ENRICHED = {
+  injected: true,
+  source: 'plugin:openviking-memory',
+  sourceLabel: '记忆画像',
+  form: 'instructions',
+  summary: '用户画像与偏好',
+  headline: '用户画像与偏好',
+  lines: LONG_INJECT_RAW.split('\n').length,
+  chars: Array.from(LONG_INJECT_RAW).length,
+  text: LONG_INJECT_RAW,
+}
+
 const DIALOG_REAL = {
   available: true,
   generatedAt: new Date(NOW).toISOString(),
@@ -187,7 +202,7 @@ const DIALOG_REAL = {
   hasMore: true,
   limit: 30,
   before: null,
-  counts: { messages: 4, events: 9, tools: 2 },
+  counts: { messages: 5, events: 10, tools: 2 },
   messages: [
     { seq: 9, role: 'user', time: new Date(NOW - 9 * 60000).toISOString(), text: '按 M0+M1 把中栏换成真实会话对话，右栏用真实状态；写通道先不开。' },
     { seq: 10, role: 'notice', time: new Date(NOW - 8 * 60000).toISOString(), text: '系统注入上下文（fixture）：AGENTS.md 规则摘要…', injected: true, source: 'context' },
@@ -195,7 +210,8 @@ const DIALOG_REAL = {
       { seq: 12, callId: 'call-1', name: 'read', args: '{"file_path":"big-butler-upgrade/butler-cockpit-feasibility.md"}', result: { summary: '224 行 · 真实 API 文件:行 与限制已核对', isError: false } },
       { seq: 14, callId: 'call-2', name: 'bash', args: 'node --test tools/butler.test.mjs', result: { summary: '25 tests · 25 pass · 0 fail', isError: false } }
     ] },
-    { seq: 16, role: 'assistant', time: new Date(NOW - 2 * 60000).toISOString(), text: 'M0/M1 已通过单测；中栏现在读的是真实 events() 归一化结果，写通道未开启。' }
+    { seq: 16, role: 'assistant', time: new Date(NOW - 2 * 60000).toISOString(), text: 'M0/M1 已通过单测；中栏现在读的是真实 events() 归一化结果，写通道未开启。' },
+    { seq: 15, role: 'notice', time: new Date(NOW - 3 * 60000).toISOString(), source: 'plugin:openviking-memory', form: 'instructions', injected: true, text: LONG_INJECT_RAW }
   ]
 }
 
@@ -252,17 +268,30 @@ const DIALOG_PINNED = {
   resolvedBy: 'config',
   state: { active: true, running: false, queue: 0, pendingInput: [], status: 'idle', statusText: '空闲', stateKnown: true },
   hasMore: false,
-  counts: { messages: 2, events: 2, tools: 0 },
+  counts: { messages: 3, events: 3, tools: 0 },
+  cursor: 3,
   messages: [
     { seq: 1, role: 'user', time: new Date(NOW - 60000).toISOString(), text: '连通性测试，请只回复 OK，不要调用工具、不要改任何文件。' },
     { seq: 2, role: 'assistant', time: new Date(NOW - 50000).toISOString(), text: 'OK' },
+    { seq: 3, role: 'notice', time: new Date(NOW - 40000).toISOString(), ...LONG_INJECT_ENRICHED },
   ],
+}
+
+/** 0.9.0 fixture：SSE end.committed 之后 durable 列表里出现结算消息。 */
+const DIALOG_PINNED_STREAMED = {
+  ...DIALOG_PINNED,
+  cursor: 900,
+  counts: { messages: 4, events: 4, tools: 0 },
+  messages: [
+    ...DIALOG_PINNED.messages,
+    { seq: 900, role: 'assistant', turn: 5, step: 1, time: new Date(NOW - 30000).toISOString(), text: '流式增量（durable 结算）' }
+  ]
 }
 
 /* ───────────────────────── fixture HTTP 服务 ───────────────────────── */
 async function startFixtureServer() {
-  const state = { scenario: 'real', sayRequests: [], sessionRequests: [] }
-  const isPinned = () => state.scenario === 'real-pinned' || state.scenario === 'real-pinned-missing' || state.scenario === 'real-unbound'
+  const state = { scenario: 'real', sayRequests: [], sessionRequests: [], streamed: false, sse: { connections: 0, closed: 0, res: null, timers: [] } }
+  const isPinned = () => state.scenario === 'real-pinned' || state.scenario === 'real-pinned-missing' || state.scenario === 'real-unbound' || state.scenario === 'real-pinned-stream'
   const server = createServer(async (req, res) => {
     const url = new URL(req.url, 'http://127.0.0.1')
     const pathname = url.pathname
@@ -373,14 +402,52 @@ async function startFixtureServer() {
     /* 0.7.0 M0/M1：只有 real 场景模拟「新版 Host 已加载」；其它场景 404 = 旧 Host（需重启 DSH），
        butler404 场景测「M0 未加载时右栏退回 tiers、中栏诚实提示」。 */
     if (pathname === ROUTE + '/api/butler/sessions') {
-      if (state.scenario === 'real-pinned') return sendJson(200, BUTLER_PINNED)
+      if (state.scenario === 'real-pinned' || state.scenario === 'real-pinned-stream') return sendJson(200, BUTLER_PINNED)
       if (state.scenario === 'real-pinned-missing') return sendJson(200, BUTLER_PINNED_MISSING)
       if (state.scenario === 'real-unbound') return sendJson(200, BUTLER_UNBOUND)
       if (state.scenario === 'real' || state.scenario === 'real-nodlg') return sendJson(200, BUTLER_REAL)
       if (state.scenario === 'mock') return sendJson(500, { error: 'fixture-down' })
       return sendJson(404, { ok: false, error: 'not-found' })
     }
+    /* 0.9.0 SSE fixture：real-pinned-stream 场景返回 text/event-stream 并按时推帧；其它场景 404（页面退轮询）。 */
+    if (pathname === ROUTE + '/api/butler/dialog/stream') {
+      if (state.scenario !== 'real-pinned-stream') return sendJson(404, { ok: false, error: 'not-found', reason: 'fixture：该场景不提供 SSE' })
+      state.sse.connections += 1
+      res.writeHead(200, {
+        'content-type': 'text/event-stream; charset=utf-8',
+        'cache-control': 'no-cache, no-store',
+        connection: 'keep-alive',
+        'x-accel-buffering': 'no'
+      })
+      res.write('retry: 3000\n\n')
+      res.write('event: hello\ndata: ' + JSON.stringify({ sessionId: 'session-butler', snapshot: { attempt: null }, at: NOW }) + '\n\n')
+      state.sse.res = res
+      const send = (event, data) => {
+        if (!res.writableEnded) res.write('event: ' + event + '\ndata: ' + JSON.stringify(data) + '\n\n')
+      }
+      const timers = []
+      if (state.sse.connections === 1) {
+        timers.push(setTimeout(() => send('start', { attemptId: 'att-cdp', revision: 1, turn: 5, step: 1, startedAt: NOW }), 300))
+        timers.push(setTimeout(() => send('assistant', { attemptId: 'att-cdp', revision: 2, turn: 5, step: 1, text: '流式', thinking: '', startedAt: NOW }), 1000))
+        timers.push(setTimeout(() => send('assistant', { attemptId: 'att-cdp', revision: 3, turn: 5, step: 1, text: '流式增量', thinking: '', startedAt: NOW }), 1900))
+        timers.push(setTimeout(() => {
+          state.streamed = true
+          send('end', { attemptId: 'att-cdp', revision: 4, turn: 5, step: 1, outcome: { kind: 'committed', seq: 900 } })
+          send('tick', { seq: 900, type: 'assistant/message' })
+        }, 2600))
+      }
+      state.sse.timers = timers
+      const cleanup = () => {
+        state.sse.closed += 1
+        state.sse.res = null
+        for (const timer of timers) clearTimeout(timer)
+      }
+      req.on('close', cleanup)
+      res.on('close', cleanup)
+      return
+    }
     if (pathname === ROUTE + '/api/butler/dialog') {
+      if (state.scenario === 'real-pinned-stream') return sendJson(200, state.streamed ? DIALOG_PINNED_STREAMED : DIALOG_PINNED)
       if (state.scenario === 'real-pinned' || state.scenario === 'real-pinned-missing') return sendJson(200, DIALOG_PINNED)
       if (state.scenario === 'real') {
         const before = url.searchParams.get('before')
@@ -406,6 +473,14 @@ async function startFixtureServer() {
     setScenario: name => { state.scenario = name },
     sayRequests: () => state.sayRequests.slice(),
     sessionRequests: () => state.sessionRequests.slice(),
+    sseStats: () => ({ connections: state.sse.connections, closed: state.sse.closed, open: state.sse.res !== null, streamed: state.streamed }),
+    dropSse: () => {
+      const target = state.sse.res
+      state.sse.res = null
+      if (target) {
+        try { target.end() } catch { /* fixture 关连接失败忽略 */ }
+      }
+    },
     close: () => new Promise(done => { server.close(done); server.closeAllConnections?.() })
   }
 }
@@ -543,6 +618,21 @@ const PAGE_STATE = `(() => {
       messages: qa('#dialogList .msg').length,
       users: qa('#dialogList .msg.user').length,
       notices: qa('#dialogList .msg.notice').length,
+      noticeRows: qa('#dialogList .ctx-row').length,
+      noticeOpen: qa('#dialogList .ctx-row[open]').length,
+      noticeSummary: txt('#dialogList .ctx-row .ctx-summary'),
+      noticeSummaries: qa('#dialogList .ctx-row .ctx-summary').map(el => el.textContent.trim()),
+      noticeLabel: txt('#dialogList .ctx-row .ctx-title'),
+      noticeMeta: txt('#dialogList .ctx-row .ctx-meta'),
+      noticeHeadHeight: (() => { const el = q('#dialogList .ctx-row .ctx-head'); return el ? Math.round(el.getBoundingClientRect().height) : 0; })(),
+      noticeBodyText: qa('#dialogList .ctx-row .ctx-body').map(el => el.textContent.trim()).join('\\n---\\n').slice(0, 400),
+      noticeBodyCount: qa('#dialogList .ctx-row .ctx-body').length,
+      liveRows: qa('#dialogList .live-row').length,
+      liveText: txt('#dialogList .live-row'),
+      liveAttempt: (() => { const el = q('#dialogList .live-row'); return el ? (el.getAttribute('data-live-attempt') || '') : ''; })(),
+      streamBadge: txt('#dlgStreamBadge'),
+      streamBadgeHidden: q('#dlgStreamBadge') ? q('#dlgStreamBadge').hidden : true,
+      streamKind: (document.body.dataset.stream || ''),
       bots: qa('#dialogList .msg.bot').length,
       toolCards: qa('#dialogList .tcard').length,
       thinks: qa('#dialogList .think').length,
@@ -829,9 +919,9 @@ async function main() {
     eq('中栏顶部标题=绑定会话标题', s.dialog.title, '主控会话')
     has('中栏顶部显示真实会话状态', s.dialog.stateText, '运行中')
     eq('绑定方式=自动最近根会话', s.dialog.bindMode, '自动 · 最近根会话')
-    eq('真实对话渲染 4 条消息', s.dialog.messages, 4)
+    eq('真实对话渲染 5 条消息', s.dialog.messages, 5)
     eq('主人消息 1 条', s.dialog.users, 1)
-    eq('系统注入 1 条（灰条）', s.dialog.notices, 1)
+    eq('系统注入 2 条（默认折叠的 ctx-row）', s.dialog.notices, 2)
     eq('助手消息 2 条', s.dialog.bots, 2)
     eq('工具卡 2 张（折叠）', s.dialog.toolCards, 2)
     eq('思考块 1 个（默认折叠）', s.dialog.thinks, 1)
@@ -841,7 +931,7 @@ async function main() {
     ck('中栏不再有示例对话', !s.dialog.text.includes('示例对话') && !s.dialog.text.includes('静态演示'), s.dialog.text.slice(0, 80))
     eq('会话选择器选项=自动+4 个本机会话', s.dialog.pickOptions, 5)
     eq('加载更早消息按钮可见（hasMore=true）', s.dialog.earlierHidden, false)
-    has('composer 状态条显示消息/工具计数', s.dialog.pill, '消息 4 · 工具 2')
+    has('composer 状态条显示消息/工具计数', s.dialog.pill, '消息 5 · 工具 2')
     eq('对话顶部标只读', s.dialog.readonlyTag, true)
     eq('输入框禁用（写通道不可用）', s.dialog.composerDisabled, true)
     eq('发送按钮禁用（写通道不可用）', s.dialog.sendDisabled, true)
@@ -957,7 +1047,7 @@ async function main() {
     await selectPage('settings')
     s = await state()
     eq('设置页可见', s.visiblePages.join(','), 'settings')
-    eq('设置页插件版本 0.8.1', s.settings.version, '0.8.1')
+    eq('设置页插件版本 0.9.0', s.settings.version, '0.9.0')
     has('设置页驾驶舱状态显示真实绑定', s.settings.butler, '绑定')
     has('设置页驾驶舱状态说明只读', s.settings.butler, '只读')
     has('设置页官方任务板数据源可见', s.settingsOfficial, '可用 · 2 任务 · 1 个团队')
@@ -1161,6 +1251,69 @@ async function main() {
     ck('900 窄屏无横向溢出（0.8.0 状态条）', s.overflow <= 1, 'overflow=' + s.overflow)
     eq('900 窄屏状态详情仍按收起', s.statusDetail, false)
     await shot('shot-butler08-narrow-900.png')
+    await setViewport(VIEWPORT.width, VIEWPORT.height)
+
+    /* ================= 场景 7c：0.9.0 注入默认折叠 + SSE 流式（交付截图） ================= */
+    const trace9 = label => process.stderr.write('[scenario9] ' + label + '\n')
+    trace9('goto real-pinned (collapse)')
+    s = await goto('real-pinned')
+    report.scenarios.push({ name: 'real-pinned-collapse', dataset: s.dataset })
+    ck('系统注入用 details.ctx-row 渲染', s.dialog.noticeRows >= 1, 'rows=' + s.dialog.noticeRows)
+    eq('注入默认收起（0 个 open）', s.dialog.noticeOpen, 0)
+    ck('折叠态行高约 24px', s.dialog.noticeHeadHeight >= 20 && s.dialog.noticeHeadHeight <= 30, 'h=' + s.dialog.noticeHeadHeight)
+    has('折叠态摘要来自 host 字段', s.dialog.noticeSummary, '用户画像与偏好')
+    has('折叠态标签=记忆画像', s.dialog.noticeLabel, '记忆画像')
+    has('折叠态 meta 有行数/大小', s.dialog.noticeMeta, '行')
+    has('折叠 body 保留全文（未丢）', s.dialog.noticeBodyText, '用户画像与偏好')
+    ck('展开体高度受限（<=160px，内部滚动）', await evaluate('(() => { const el = document.querySelector("#dialogList .ctx-row .ctx-body"); if (!el) return 0; return Math.round(el.getBoundingClientRect().height); })()') <= 160)
+    await shot('shot-butler09-ctx-collapsed-1440.png')
+    trace9('expand/collapse')
+    await click('#dialogList .ctx-row summary')
+    await sleep(150)
+    s = await state()
+    eq('点击后展开', s.dialog.noticeOpen, 1)
+    has('展开体显示原文', s.dialog.noticeBodyText, '背景资料')
+    await shot('shot-butler09-ctx-expanded-1440.png')
+    await click('#dialogList .ctx-row summary')
+    await sleep(120)
+    s = await state()
+    eq('再点收起', s.dialog.noticeOpen, 0)
+
+    trace9('client fallback summary')
+    s = await goto('real')
+    ck('client 兜底摘要：raw 长注入也折叠', s.dialog.noticeRows >= 2, 'rows=' + s.dialog.noticeRows)
+    ck('client 兜底摘要取首个非空行', (s.dialog.noticeSummaries || []).some(text => text.indexOf('用户画像与偏好') !== -1), JSON.stringify(s.dialog.noticeSummaries))
+    eq('raw 长注入默认收起', s.dialog.noticeOpen, 0)
+
+    trace9('goto real-pinned-stream')
+    s = await goto('real-pinned-stream')
+    for (let i = 0; i < 40; i += 1) { if (s.dialog.liveRows > 0) break; await sleep(100); s = await state() }
+    report.scenarios.push({ name: 'real-pinned-stream', dataset: s.dataset })
+    eq('SSE 徽标=实时', s.dialog.streamBadge, '实时')
+    eq('body.dataset.stream=live', s.dialog.streamKind, 'live')
+    ck('live 气泡出现（durable 尾部）', s.dialog.liveRows >= 1, 'liveRows=' + s.dialog.liveRows)
+    has('live 气泡有「正在生成」', s.dialog.liveText, '正在生成')
+    for (let i = 0; i < 40; i += 1) { if (/流式/.test(s.dialog.liveText)) break; await sleep(100); s = await state() }
+    const firstLive = s.dialog.liveText
+    for (let i = 0; i < 60; i += 1) { if (/流式增量/.test(s.dialog.liveText)) break; await sleep(100); s = await state() }
+    ck('live 文本增长（流式）', /流式增量/.test(s.dialog.liveText) && s.dialog.liveText.length > firstLive.length, JSON.stringify({ first: firstLive, now: s.dialog.liveText }))
+    await shot('shot-butler09-stream-live-1440.png')
+    for (let i = 0; i < 50; i += 1) { if (s.dialog.liveRows === 0 && /流式增量（durable 结算）/.test(s.dialog.text)) break; await sleep(100); s = await state() }
+    eq('durable 结算后 live 清空', s.dialog.liveRows, 0)
+    has('durable 出现结算消息', s.dialog.text, '流式增量（durable 结算）')
+    eq('结算后徽标仍实时', s.dialog.streamBadge, '实时')
+    await shot('shot-butler09-stream-settled-1440.png')
+
+    trace9('drop SSE → poll → reconnect')
+    fixture.dropSse()
+    for (let i = 0; i < 50; i += 1) { await sleep(100); s = await state(); if (s.dialog.streamBadge === '轮询' || s.dialog.streamBadge === '离线') break }
+    ck('SSE 断开后退回轮询', s.dialog.streamBadge === '轮询' || s.dialog.streamBadge === '离线', 'badge=' + s.dialog.streamBadge)
+    await shot('shot-butler09-stream-poll-1440.png')
+    await evaluate('(() => { Object.defineProperty(document, "hidden", { configurable: true, get: () => false }); Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "visible" }); document.dispatchEvent(new Event("visibilitychange")); return true; })()')
+    for (let i = 0; i < 50; i += 1) { await sleep(100); s = await state(); if (s.dialog.streamBadge === '实时') break }
+    eq('可见/重连后恢复实时', s.dialog.streamBadge, '实时')
+    ck('SSE 第二次连接已建立', fixture.sseStats().connections >= 2, 'connections=' + fixture.sseStats().connections)
+    await shot('shot-butler09-stream-reconnect-1440.png')
     await setViewport(VIEWPORT.width, VIEWPORT.height)
 
     /* ================= 场景 7b：专属会话不存在 → 原因 + 重建按钮（不静默回退） ================= */

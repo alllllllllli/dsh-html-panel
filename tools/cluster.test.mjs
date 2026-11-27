@@ -21,7 +21,7 @@ import assert from 'node:assert/strict'
 import { createServer } from 'node:http'
 import { test } from 'node:test'
 
-import { CLUSTER_FILE, ROUTE_PREFIX, SNAPSHOT_FILE, apply, inject } from '../lib/index.js'
+import { BUTLER_STREAM_FILE, CLUSTER_FILE, ROUTE_PREFIX, SNAPSHOT_FILE, apply, inject } from '../lib/index.js'
 import { buildCluster, sanitizeOrigin } from '../lib/cluster.js'
 
 const FIXED_NOW = 1_795_000_000_000
@@ -371,7 +371,7 @@ test('路由：静态文件路径不退化，编码遍历仍被挡住', async ()
 
 /* ─────────────────────────── D. 注册与声明 ─────────────────────────── */
 
-test('inject 同时声明 webServer 与 interconnect；注册 prefix + exact action/say/session handler', () => {
+test('inject 同时声明 webServer 与 interconnect；注册 prefix + exact action/say/session/stream handler', () => {
   assert.deepEqual(inject, ['webServer', 'interconnect'])
   const host = mount({ interconnect: stubInterconnect() })
   assert.equal(host.registration.kind, 'prefix')
@@ -383,10 +383,10 @@ test('inject 同时声明 webServer 与 interconnect；注册 prefix + exact act
   assert.equal(typeof actionRoute.handler, 'function')
   // 0.8.0：两条 M2 写路由也是 exact raw handler。
   const exactPaths = host.registrations.filter(route => route.kind === 'exact').map(route => route.path)
-  assert.deepEqual(exactPaths, ['/dsh-html-panel/api/action', '/dsh-html-panel/api/butler/say', '/dsh-html-panel/api/butler/session'])
+  assert.deepEqual(exactPaths, ['/dsh-html-panel/api/action', '/dsh-html-panel/api/butler/say', '/dsh-html-panel/api/butler/session', '/dsh-html-panel/' + BUTLER_STREAM_FILE])
   for (const route of host.registrations.filter(item => item.kind === 'exact')) {
     assert.equal(typeof route.handler, 'function')
   }
-  assert.equal(host.effects.length, 4)
+  assert.equal(host.effects.length, 6) // prefix + 4 exact + hub dispose effect
   for (const effect of host.effects) assert.match(effect, /dsh-html-panel/)
 })

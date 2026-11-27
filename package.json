@@ -1,6 +1,6 @@
 {
   "name": "dsh-html-panel",
-  "version": "0.8.1",
+  "version": "0.9.0",
   "private": true,
   "description": "大管家 (Butler Console): a DSH sidebar entry that opens a standalone HTML console page served by this plugin's own Host route and shown in an iframe. Three columns + five-page navigation (butler/tasks/cluster/memory/settings), a real-conversation middle column, and a right-hand T0→T1→T2→T3 dispatch hierarchy built from live sessions and real subagent lineage. 0.8.1 (M2 write channel + leadership preset + auto Agent Teams): the three-question banner collapses into one 36–44px status bar (auto-expanded only for high alerts); a dedicated pinned butler session (config.butler.sessionId) uses the new leadership preset butler-lead (tools.restrict whitelist: mesh/interconnect/read-only OpenViking + scoped team/subagent/schedule/todo tools; no shell, file, browser, MCP execution or other implementation tools); POST api/butler/say sends one message into that session only — gated by an injected page token (x-butler-write-token, never in JSON/logs), butler.allowWrite (default false), a one-session whitelist, 10/min rate limit and requestId dedupe; POST api/butler/session creates/rebuilds the session with the configured agentPreset (sessionController.create + rename 大管家 · 常驻) and writes the id back into cordis.patch.yml with a timestamped backup and targeted validation. The page asks for confirmation on every send. Preset definition requires a DSH restart to enter the registry. Earlier: 0.7.0 M0+M1 read-only cockpit (GET api/butler/sessions, GET api/butler/dialog), 0.6.0 TRAIL alerts (api/alerts), 0.5.0 official Agent Teams projection, 0.4.0 cockpit layout. Same-origin routes: api/cluster, api/board, api/host, api/tiers, api/alerts, api/butler/sessions, api/butler/dialog; write routes: POST api/action, POST api/butler/say, POST api/butler/session.",
   "type": "module",
@@ -34,7 +34,8 @@
     "cordis.patch.yml",
     "icon.svg",
     "README.md",
-    "lib/agent-preset-auto-team.js"
+    "lib/agent-preset-auto-team.js",
+    "lib/butler-stream.js"
   ],
   "dsh": {
     "manifestVersion": 1,

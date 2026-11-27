@@ -43,6 +43,37 @@
 > `team_task_list` 真实调用成功（返回空任务板），`pwsh`/`read` 不在函数表（没有产生任何 tool/call）；
 > 旧会话已归档。证据见报告 §13/§14。
 > 部署中间态的降级截图（`shot-butler-15-m0-404-1440.png`）仅作历史留档。
+>
+> **2026-11-27 0.9.0（注入折叠 + 流式显示，主人点名）**：中栏的 `plugin:openviking-memory` /
+> `system-reminder` 注入改成**原生 `<details class="ctx-row">` 默认收起**（24px 一行：标签 + source +
+> 摘要 + 行数/大小；展开体 141px 滚动、11/16 代码字体、20k 截断；host 给摘要字段，旧 Host 由页面
+> 客户端兜底算）；大管家回复走 **SSE 实时增量**（`GET api/butler/dialog/stream?sessionId=`，
+> `ctx.on('agent/assistant-stream',{global:true})` → 50ms 合批 → `text/event-stream`），durable 2 秒轮询
+> 仍是唯一事实源，SSE 断开/404/帧不连续自动退回轮询并每 30s 重连，绑定栏有「实时/轮询/离线」徽标。
+> 版本 0.9.0；测试 210/210、check-page 225/225、CDP 213/213。
+
+---
+
+## 0.9.0 改了什么（中栏：系统注入折叠 + 回复流式）
+
+> 依据：`big-butler-upgrade/streaming-collapse-research.md`（只读调研报告）。
+> 两个改动互不阻塞，全部**只读**：注入只是展示层折叠；SSE 只 GET、不带写 token、不写任何东西。
+
+| # | 变更 | 落点 |
+|---|---|---|
+| 1 | **注入折叠**：`normalizeDialogEvents` 的 notice 分支补 `source/sourceLabel/form/summary/lines/chars/headline`（纯函数摘要：去包装行 → 首个非空行 → 去 Markdown 前缀 → 压空白 → 截 80 码点；无首行用「N 行 · M 字符」），原文完整保留 | `lib/butler.js` |
+| 2 | **页面折叠行**：notice 改原生 `<details class="ctx-row">`，默认收起；折叠态 24px、展开体 `max-height:141px` 滚动 + `pre-wrap` + 11/16 代码字体、20k 截断标注；host 没给 summary 时客户端兜底算（不重启也能先折叠） | `public/index.html` |
+| 3 | **assistant-stream hub**：`ctx.on('agent/assistant-stream', …, {global:true})` 累积 token 增量 + `session/event` durable tick；按 `agent.session.id` 过滤（**子代理也能流**）；revision 连续/跳号 reset 不 throw、50ms 合批、64KB 背压、dispose 清理 | `lib/butler-stream.js`（新增） |
+| 4 | **SSE 路由**：exact `GET api/butler/dialog/stream?sessionId=`；只读 + Host/Origin fence（`sec-fetch-site` 拒绝）、`text/event-stream`、`retry: 3000`、hello 快照、15s `: ping`、每 session ≤2 / 全局 ≤8、`close` 清理、30min 空闲关闭 | `lib/index.js`、`lib/butler-stream.js` |
+| 5 | **页面流式**：EventSource 只绑当前绑定会话；live 气泡单独渲染在 durable 尾部（不进 `messages`）；`end.committed` 清 live + 静默拉 durable（300ms 重试一次）；tick 180ms 去抖；断线退轮询并每 30s 重连；页面隐藏关 ES；绑定栏 `#dlgStreamBadge` 实时/轮询/离线 | `public/index.html` |
+| 6 | **assistant turn/step**：durable 消息带 `turn/step`，页面据此确认 settlement | `lib/butler.js` |
+| 7 | **测试**：新增 `tools/butler-stream.test.mjs` 13 条（帧折叠/跳号/幂等/上限/dispose/tick/SSE 假 req-res）；`butler.test.mjs` 补摘要与 mapping；`check-page` 225 项；`cdp-butler` 加长注入与 SSE fixture（默认折叠→展开→live 增长→durable 替换→断线退轮询→重连） | `tools/` |
+
+> **部署状态（2026-11-27）**：代码+测试完成，**待主人拍板重启**。当前运行进程仍是 0.8.1 的 Host 代码，
+> 因此页面会显示「轮询」徽标、注入折叠仍靠客户端兜底；重启后 SSE 与 host 摘要字段才生效。
+> 重启后一键实跑清单见 `big-butler-upgrade/panel-0.9.0-streaming.md`。回滚：还原
+> `dsh-html-panel.bak-before-0.9.0-20261127`（源码）与
+> `~/.dsh/profiles/desktop/node_modules/dsh-html-panel.bak-before-0.9.0-20261127`（已装副本）。
 
 ---
 
@@ -61,8 +92,8 @@
 | 6 | **composer 启用 + 每次二次确认**：写通道可用时输入框/发送按钮启用（Enter 发送、Shift+Enter 换行）；点发送先弹自定义确认框（目标 + 原文 + 「会消耗模型额度、写入对话历史」警告，**没有「不再提醒」**）；确认后 POST say，回执写进「动作回执」；失败（401/403/404/405/409/429/5xx）逐条给可读原因；附件按钮保持禁用 | `public/index.html` |
 | 7 | **测试**：`tools/butler.test.mjs` 25→49 条（token / 开关 / 白名单 / 内容边界 / 幂等 / 限流 / 错误映射 / config 定点改写与备份 / ensure 建会话（带 agentPreset）/ 两条路由 / token 注入与不泄露 / 领导预设白名单与 `tools.restrict` / 静态红线）；`check-page` 191→212 项；`cdp-butler` 138→ 更多断言 + 0.8.0 交付截图（折叠 / 展开 / 确认框 / 900 / 重建 / 创建态） | `tools/` |
 
-版本：`0.7.0 → 0.8.0 → 0.8.1`。测试基线：单测 **190/190**（0.7.0 的 165 条一条没删，butler 50 = 原 25 + 新 25）、
-静态自检 **212/212**、`verify-copies` 双副本逐文件 sha256 **IDENTICAL**。
+版本：`0.7.0 → 0.8.0 → 0.8.1 → 0.9.0`。测试基线（0.9.0）：单测 **210/210**（13 个测试文件，0.8.1 的 192 条一条没删）、
+静态自检 **225/225**、CDP **213/213（30 张截图）**、`verify-copies` 双副本逐文件 sha256 **IDENTICAL**（112 文件）。
 
 ### 0.8.1 修了什么（2026-11-27，主人拍板「0.8.1 单做」）
 

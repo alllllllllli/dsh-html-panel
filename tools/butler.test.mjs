@@ -37,9 +37,10 @@ import { fileURLToPath } from 'node:url'
 
 import {
   BUTLER_DIALOG_DEFAULT_LIMIT, BUTLER_DIALOG_MAX_LIMIT,
-  MESSAGE_TEXT_MAX, TOOL_ARG_MAX, TOOL_RESULT_MAX,
+  MESSAGE_TEXT_MAX, NOTICE_SUMMARY_MAX, TOOL_ARG_MAX, TOOL_RESULT_MAX,
   buildButlerDialog, buildButlerSessions, createButlerReader, foldSessionState,
-  normalizeDialogEvents, readButlerConfig, resolveBinding,
+  injectionLabel, normalizeDialogEvents, readButlerConfig, resolveBinding, resolveStreamTarget,
+  summarizeInjection,
 } from '../lib/butler.js'
 import {
   BUTLER_LABEL_DEFAULT, SAY_CONTENT_MAX, SAY_RATE_LIMIT, SAY_RATE_WINDOW_MS,
@@ -556,6 +557,81 @@ test('M1：正文/思考超长截断；非文本块用占位符；未知事件�
     { type: 'event', event: { type: 'user/message', seq: 1, time: AT, data: { source: { kind: 'user' }, content: [{ type: 'image' }] } } },
   ])
   assert.equal(imageOnly.messages[0].text, '[图片]', '图片/文件用占位符，不塞二进制')
+})
+
+/* ─────────────────────── 0.9.0 A：系统注入折叠（host 字段） ─────────────────────── */
+
+test('0.9.0 A：summarizeInjection 去包装行 → 首行 → 去 Markdown → 压空白 → 截 80 码点', () => {
+  const text = '<openviking-context source="profile">\n# 用户画像与偏好\n\n- 用户名 ky614\n</openviking-context>'
+  const folded = summarizeInjection(text)
+  assert.equal(folded.summary, '用户画像与偏好')
+  assert.equal(folded.headline, '用户画像与偏好')
+  assert.equal(folded.lines, 5)
+  assert.equal(folded.chars, Array.from(text).length)
+
+  const long = summarizeInjection('x'.repeat(NOTICE_SUMMARY_MAX + 30))
+  assert.equal(Array.from(long.summary).length, NOTICE_SUMMARY_MAX, '摘要截到 80 码点')
+
+  const noHeadline = summarizeInjection('<openviking-context source="profile">\n\n</openviking-context>')
+  assert.match(noHeadline.summary, /^\d+ 行 · \d+ 字符$/, '没有可读首行用「N 行 · M 字符」兜底')
+  assert.equal(noHeadline.headline, '')
+
+  assert.deepEqual(summarizeInjection(undefined), { summary: '', headline: '', lines: 0, chars: 0 }, '空文本不编摘要')
+  assert.deepEqual(summarizeInjection('   \n  '), { summary: '', headline: '', lines: 0, chars: 6 })
+})
+
+test('0.9.0 A：injectionLabel 按 source/form 映射中文标签', () => {
+  assert.equal(injectionLabel('plugin:openviking-memory', 'instructions'), '记忆画像')
+  assert.equal(injectionLabel('plugin:openviking-memory', 'recall'), '记忆召回')
+  assert.equal(injectionLabel('plugin:openviking-memory', 'session-history'), '会话历史指针')
+  assert.equal(injectionLabel('plugin:something-else', ''), '插件注入')
+  assert.equal(injectionLabel('agent-instructions', 'instructions'), '指令文件')
+  assert.equal(injectionLabel('skill-invocation', ''), '技能注入')
+  assert.equal(injectionLabel('session-reference', ''), '跨会话召回')
+  assert.equal(injectionLabel('time-context', ''), '时间上下文')
+  assert.equal(injectionLabel('', ''), '系统注入')
+  assert.equal(injectionLabel('future-kind', ''), '系统注入', '未知 source 不抛')
+})
+
+test('0.9.0 A：normalizeDialogEvents 的 notice 带全字段且保留完整 text', () => {
+  const text = '<openviking-context source="profile">\n用户画像与偏好\n' + '长'.repeat(1000) + '\n</openviking-context>'
+  const out = normalizeDialogEvents([{
+    type: 'event',
+    event: {
+      type: 'user/message', seq: 1, time: AT,
+      data: { source: { kind: 'plugin:openviking-memory', form: 'instructions' }, content: [{ type: 'text', text }] },
+    },
+  }])
+  const notice = out.messages[0]
+  assert.equal(notice.role, 'notice')
+  assert.equal(notice.injected, true)
+  assert.equal(notice.source, 'plugin:openviking-memory')
+  assert.equal(notice.sourceLabel, '记忆画像')
+  assert.equal(notice.form, 'instructions')
+  assert.equal(notice.summary, '用户画像与偏好')
+  assert.equal(notice.headline, '用户画像与偏好')
+  assert.equal(notice.lines, 4)
+  assert.equal(notice.chars, Array.from(text).length)
+  assert.equal(notice.text, text, '折叠只影响展示，host 不丢原文')
+})
+
+test('0.9.0：assistant/message 带出合法 turn/step（缺省不带）', () => {
+  const out = normalizeDialogEvents([
+    { type: 'event', event: { type: 'assistant/message', seq: 1, time: AT, data: { turn: 2, step: 3, message: { content: [{ type: 'text', text: 'x' }] } } } },
+    { type: 'event', event: { type: 'assistant/message', seq: 2, time: AT, data: { message: { content: [{ type: 'text', text: 'y' }] } } } },
+  ])
+  assert.equal(out.messages[0].turn, 2)
+  assert.equal(out.messages[0].step, 3)
+  assert.equal(out.messages[1].turn, undefined)
+  assert.equal(out.messages[1].step, undefined)
+})
+
+test('0.9.0：SSE 目标解析——query 优先、否则 binding、都没有给 error', () => {
+  assert.deepEqual(resolveStreamTarget(null, 'session-a'), { sessionId: 'session-a' })
+  assert.deepEqual(resolveStreamTarget({ binding: { available: true, sessionId: 'bound' } }, ''), { sessionId: 'bound' })
+  assert.deepEqual(resolveStreamTarget({ binding: { available: true, sessionId: 'bound' } }, '  '), { sessionId: 'bound' })
+  assert.ok(resolveStreamTarget({ binding: { available: false } }, '').error)
+  assert.ok(resolveStreamTarget(null, '').error)
 })
 
 test('M1：绑定最近根会话，返回 state/messages/cursor/hasMore 且不留内部异常', async () => {
@@ -1370,7 +1446,7 @@ test('0.8.1 领导预设：apply 只传 deny（不传 allow），tools/change �
 
 test('0.8.1 领导预设：预设工厂/面板配置互相对齐（agentPreset 与 exports）', async () => {
   const pkg = JSON.parse(await readFile(resolve(ROOT, 'package.json'), 'utf8'))
-  assert.equal(pkg.version, '0.8.1')
+  assert.equal(pkg.version, '0.9.0')
   assert.equal(pkg.exports['./butler-preset'], './lib/agent-preset-auto-team.js')
   assert.ok(pkg.files.includes('lib/agent-preset-auto-team.js'), 'files 必须带 agent-preset-auto-team.js，否则安装副本缺文件')
   assert.equal(pkg.files.includes('lib/agent-preset.js'), false, '旧实现文件已退役')

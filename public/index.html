@@ -816,9 +816,35 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .load-earlier[hidden]{display:none}
 .dlg-sep{display:flex;align-items:center;gap:10px;margin:14px 0 8px;color:var(--label-caption);font-size:10.5px}
 .dlg-sep::before,.dlg-sep::after{content:"";height:1px;flex:1 1 auto;background:var(--border-l1)}
-.msg.notice{margin-top:10px}
-.msg.notice .body{color:var(--label-secondary);background:var(--bg-layer-2);border:1px solid var(--border-l1);border-radius:var(--radius-sm);padding:8px 10px;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}
-.msg.notice .who{color:var(--label-caption);font-weight:500}
+.msg.notice{margin-top:6px;max-width:100%}
+/* 0.9.0：系统注入默认折叠（原生 details，键盘/aria 由浏览器提供；照官方 DisclosureRow 几何） */
+.ctx-row{max-width:100%;border-radius:8px}
+.ctx-head{display:flex;align-items:center;gap:8px;height:24px;cursor:pointer;list-style:none;min-width:0;font-size:13px;color:var(--label-caption);border-radius:6px}
+.ctx-head:hover{background:var(--bg-layer-2)}
+.ctx-head:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ctx-head::-webkit-details-marker{display:none}
+.ctx-title{color:var(--label-tertiary);white-space:nowrap;flex:none}
+.ctx-sep{width:2px;height:2px;border-radius:1px;background:var(--label-caption);flex:none;margin:0 4px}
+.ctx-source,.ctx-summary{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--label-caption)}
+.ctx-source{flex:none;max-width:34%}
+.ctx-summary{flex:1 1 auto}
+.ctx-meta{flex:none;font-size:11px;color:var(--label-caption)}
+.ctx-chev{transition:transform .15s ease;flex:none}
+.ctx-row[open] .ctx-chev{transform:rotate(90deg)}
+.ctx-body{max-height:141px;overflow:auto;margin:4px 0 0 22px;padding:10px 12px;border-radius:8px;background:var(--bg-layer-2);color:var(--label-tertiary);font:400 11px/16px var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.ctx-trunc-note{display:block;margin-top:6px;color:var(--label-caption);font-style:italic}
+/* 0.9.0：流式 live 气泡（只在 durable 列表尾部，end/committed 后清掉） */
+.live-row{margin-top:10px}
+.live-head{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--label-caption);margin-bottom:4px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:livePulse 1.2s ease-in-out infinite}
+.live-cursor::after{content:"▌";margin-left:1px;color:var(--accent);animation:liveBlink 1s steps(2,start) infinite}
+@keyframes livePulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes liveBlink{to{visibility:hidden}}
+.stream-badge{display:inline-flex;align-items:center;gap:4px;padding:0 6px;border-radius:999px;border:1px solid var(--border-l1);font-size:9.5px;line-height:15px;color:var(--label-caption);white-space:nowrap;vertical-align:1px}
+.stream-badge[hidden]{display:none}
+.stream-badge.live{color:var(--green-soft);border-color:rgba(52,199,123,.4);background:rgba(52,199,123,.08)}
+.stream-badge.poll{color:var(--amber);border-color:rgba(244,178,86,.4)}
+.stream-badge.off{color:var(--label-caption)}
 .dlg-text{white-space:pre-wrap;overflow-wrap:anywhere}
 .dlg-tag{display:inline-block;margin-left:6px;padding:0 5px;border-radius:var(--radius-xs);border:1px solid rgba(244,178,86,.4);color:var(--amber);font-size:9.5px;line-height:15px;vertical-align:1px}
 .tools{margin-top:8px;display:flex;flex-direction:column;gap:6px}
@@ -941,7 +967,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     <div class="side-foot">
       <div class="sf-1"><i class="dot run" id="sfDot"></i><span id="sfText">本机在线</span><span class="sf-dev" id="sfDev">—</span></div>
       <div class="sf-sub" id="sfSub">链路数据载入中…</div>
-      <div class="sf-ver" id="sfVer">v0.8.1 · 驾驶舱（写通道 M2 · 领导预设）</div>
+      <div class="sf-ver" id="sfVer">v0.9.0 · 驾驶舱（写通道 M2 · 流式/折叠）</div>
     </div>
   </aside>
 
@@ -979,6 +1005,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           <span class="dlg-state"><i class="dot idle" id="dlgDot" aria-hidden="true"></i><span id="dlgStateText">载入中…</span></span>
           <span class="write-tag" id="dlgWriteTag" hidden>可发送</span>
           <span class="ro-tag" id="dlgRoTag" hidden>只读</span>
+          <span class="stream-badge" id="dlgStreamBadge" hidden title="实时：SSE 推送；轮询：SSE 不可用，已退回 2 秒轮询；离线：连接失败">轮询</span>
           <span class="bind-note" id="bindNote" hidden></span>
         </div>
         <div class="tabs-row" role="tablist" aria-label="视图">
@@ -1201,7 +1228,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         <section class="card" aria-labelledby="set-h">
           <div class="card-h"><span id="set-h">版本与路由</span></div>
           <ul class="kv-list">
-            <li><b>插件版本</b><span class="mono" id="setVersion">0.8.1</span></li>
+            <li><b>插件版本</b><span class="mono" id="setVersion">0.9.0</span></li>
             <li><b>页面路由</b><span class="mono">/dsh-html-panel/</span></li>
             <li><b>只读数据路由</b><span class="mono">api/cluster · api/board · api/host · api/tiers · api/alerts · api/butler/sessions · api/butler/dialog</span></li>
             <li><b>驾驶舱（只读）</b><span id="setButler">—</span></li>
@@ -1506,6 +1533,14 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   const DIALOG_POLL_MS = 2000;
   /** 0.7.0 M1：一次读多少条消息事件（官方 maxMessages，上限由宿主再收敛到 50）。 */
   const DIALOG_LIMIT = 30;
+  /* 0.9.0：SSE 实时流（主）；失败/断开退回上面的 2 秒轮询（唯一事实源）。 */
+  const STREAM_PATH = 'api/butler/dialog/stream';
+  const STREAM_RETRY_MS = 30000;        // 断线后重连间隔
+  const STREAM_FAIL_LIMIT = 2;          // 连续两次失败 → 退轮询
+  const STREAM_POLL_MS = 8000;          // 实时态下的 durable 兜底轮询间隔
+  const STREAM_TICK_DEBOUNCE_MS = 180;  // durable tick 去抖
+  const NOTICE_SUMMARY_MAX = 80;
+  const NOTICE_TEXT_MAX = 20000;        // 展开体截断（与官方 ContextBody 对齐）
   /** 板服务的五态 → 页面文案 / 配色类名（其余状态原样显示为「未知 · 原值」）。 */
   const TASK_STATES = {
     leased: { text: '租约中', cls: 'leased' },
@@ -1544,7 +1579,12 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     /* 0.7.0 M0：api/butler/sessions（右栏真实状态 + 会话选择器 + binding） */
     butler: { kind: 'loading', data: null, reason: '' },
     /* 0.7.0 M1：api/butler/dialog（中栏真实对话，按 seq 去重累积） */
-    dialog: { kind: 'loading', data: null, reason: '', messages: [], cursor: null, hasMore: false, target: '', oldestSeq: null, paging: false },
+    dialog: {
+      kind: 'loading', data: null, reason: '', messages: [], cursor: null, hasMore: false, target: '', oldestSeq: null, paging: false,
+      /* 0.9.0：SSE live 状态（live 只做展示，永不写进 messages；durable 才是事实源） */
+      live: null,
+      stream: { kind: 'off', fails: 0, lastPollAt: 0, es: null, retryTimer: null, tickTimer: null, pollTimer: null, endRetry: 0 }
+    },
     memory: { kind: 'idle' },
     /* 0.8.0：一行细状态条（默认收起；high 告警自动展开，用户可手动收起） */
     statusBar: { expanded: false, lastHighSig: '' },
@@ -1833,12 +1873,14 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   }
   async function loadDialog(options) {
     const opts = options || {};
+    const quiet = opts.quiet === true;
     const before = Number.isFinite(opts.before) && opts.before > 0 ? opts.before : null;
     try {
       const data = await fetchJson('api/butler/dialog?' + dialogQuery({ before: before }), 9000);
       if (!isDialogPayload(data)) throw new Error('结构不符');
       if (data.available === true) {
         const boundChanged = state.dialog.boundSessionId && state.dialog.boundSessionId !== data.sessionId;
+        if (boundChanged) closeDialogStream('bound-changed');
         // 换绑/首次加载：整页替换；同一会话轮询：按 seq 合并；翻旧页：prepend 合并。
         const messages = before !== null
           ? mergeDialogMessages(data.messages, true)
@@ -1854,10 +1896,15 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           boundSessionId: data.sessionId,
           oldestSeq: messages.length ? messages[0].seq : null,
           paging: false,
-          stickBottom: boundChanged ? true : state.dialog.stickBottom
+          stickBottom: boundChanged ? true : state.dialog.stickBottom,
+          live: state.dialog.live,
+          stream: state.dialog.stream
         };
         noteSuccess('dialog');
+        // 0.9.0：真实对话就绪后按当前绑定会话开/续 SSE（失败自动退轮询）。
+        ensureDialogStream();
       } else {
+        closeDialogStream('dialog-unavailable');
         state.dialog = {
           kind: 'unavailable',
           data: data,
@@ -1868,18 +1915,25 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           target: state.dialog.target,
           boundSessionId: '',
           oldestSeq: null,
-          paging: false
+          paging: false,
+          live: null,
+          stream: state.dialog.stream
         };
+        streamBadge('off');
       }
     } catch (error) {
       const reason = shortReason(error);
-      if (state.dialog.kind === 'real' || state.dialog.kind === 'unavailable') {
+      if (quiet) {
+        // 后台 tick/兜底拉取失败：保留现有画面，不把「实时」误标成失败。
+      } else if (state.dialog.kind === 'real' || state.dialog.kind === 'unavailable') {
         noteFailure('dialog', reason);
       } else {
-        state.dialog = {
+        state.dialog = Object.assign({}, state.dialog, {
           kind: 'missing', data: null, reason: reason, messages: [], cursor: null,
-          hasMore: false, target: state.dialog.target, boundSessionId: '', oldestSeq: null, paging: false
-        };
+          hasMore: false, target: state.dialog.target, boundSessionId: '', oldestSeq: null, paging: false,
+          live: null
+        });
+        streamBadge('off');
       }
     }
     renderDialog();
@@ -1894,6 +1948,218 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     state.dialog.paging = true;
     renderDialog();
     await loadDialog({ before: oldest });
+  }
+
+  /* ---------------- 0.9.0：SSE 实时流（SSE 主 + 2 秒轮询兜底） ----------------
+   * 约束：live 只做展示、永不写进 state.dialog.messages；durable 列表是唯一事实源。
+   * EventSource 只带 sessionId（绝不放写 token）；SSE 断开/404/帧不连续 → 徽标「轮询」
+   * 并退回现有轮询，每 30 秒重连；页面隐藏关 ES，可见重连。 */
+  function streamBadge(kind) {
+    const badge = $('#dlgStreamBadge');
+    state.dialog.stream.kind = kind;
+    document.body.dataset.stream = kind;
+    if (!badge) return;
+    const visible = state.page === 'butler' && state.dialog.kind === 'real';
+    badge.hidden = !visible;
+    badge.className = 'stream-badge ' + (kind === 'live' ? 'live' : (kind === 'off' ? 'off' : 'poll'));
+    badge.textContent = kind === 'live' ? '实时' : (kind === 'connecting' ? '连接中' : (kind === 'poll' ? '轮询' : '离线'));
+    badge.title = kind === 'live'
+      ? '实时：SSE 推送 assistant 增量；durable 仍以 2/8 秒轮询为准'
+      : (kind === 'connecting' ? '正在建立 SSE 连接…' : (kind === 'poll' ? 'SSE 不可用：已退回 2 秒轮询，每 30 秒尝试重连' : '实时流已关闭（页面隐藏/未绑定）'));
+  }
+  /** 只对「当前绑定会话」开流：手动选了别的会话（只读）不流。 */
+  function streamSessionId() {
+    if (state.page !== 'butler' || state.dialog.kind !== 'real') return '';
+    const binding = bindingOf();
+    const boundId = binding && binding.available === true && typeof binding.sessionId === 'string'
+      ? binding.sessionId
+      : (state.dialog.boundSessionId || '');
+    if (!boundId) return '';
+    if (state.dialog.target && state.dialog.target !== boundId) return '';
+    return boundId;
+  }
+  function closeDialogStream(reason) {
+    const s = state.dialog.stream;
+    document.body.dataset.streamError = 'closed:' + String(reason || '');
+    if (s.tickTimer) { clearTimeout(s.tickTimer); s.tickTimer = null; }
+    if (s.retryTimer) { clearTimeout(s.retryTimer); s.retryTimer = null; }
+    if (s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
+    if (s.es) {
+      try { s.es.onerror = null; s.es.close(); } catch (e) { /* 忽略 */ }
+      s.es = null;
+    }
+    s.target = '';
+    s.fails = 0;
+    state.dialog.live = null;
+    streamBadge('off');
+  }
+  function scheduleStreamRetry() {
+    const s = state.dialog.stream;
+    if (s.retryTimer) return;
+    s.retryTimer = setTimeout(function () {
+      s.retryTimer = null;
+      if (document.hidden) return;
+      ensureDialogStream();
+    }, STREAM_RETRY_MS);
+  }
+  function fallbackToPolling(reason) {
+    const s = state.dialog.stream;
+    document.body.dataset.streamError = String(reason || '');
+    if (s.es) {
+      try { s.es.onerror = null; s.es.close(); } catch (e) { /* 忽略 */ }
+      s.es = null;
+    }
+    if (s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
+    state.dialog.live = null;
+    streamBadge('poll');
+    renderDialog();
+    scheduleStreamRetry();
+  }
+  function applyLiveFrame(data) {
+    if (!data || typeof data !== 'object') return;
+    if (typeof data.attemptId !== 'string' || data.attemptId === '') return;
+    const previous = state.dialog.live;
+    if (previous && previous.attemptId === data.attemptId) {
+      // 同一 attempt：保留更长的文本（重连 hello 快照可能落后于本地已显示内容）
+      if (typeof data.text === 'string' && data.text.length < previous.text.length) return;
+    }
+    state.dialog.live = {
+      attemptId: data.attemptId,
+      revision: Number.isFinite(data.revision) ? data.revision : null,
+      turn: Number.isFinite(data.turn) ? data.turn : null,
+      step: Number.isFinite(data.step) ? data.step : null,
+      startedAt: Number.isFinite(data.startedAt) ? data.startedAt : Date.now(),
+      text: typeof data.text === 'string' ? data.text : '',
+      thinking: typeof data.thinking === 'string' ? data.thinking : ''
+    };
+    streamBadge('live');
+    renderDialog();
+  }
+  function scheduleTickPull() {
+    const s = state.dialog.stream;
+    if (s.tickTimer) clearTimeout(s.tickTimer);
+    s.tickTimer = setTimeout(function () {
+      s.tickTimer = null;
+      if (document.hidden) return;
+      loadDialog({ quiet: true });
+    }, STREAM_TICK_DEBOUNCE_MS);
+  }
+  function handleStreamEnd(data) {
+    state.dialog.live = null;
+    renderDialog();
+    // durable settlement 覆盖 transient：立刻拉一次；没看到对应 assistant 再 300ms 重试一次。
+    const outcome = data && data.outcome && typeof data.outcome === 'object' ? data.outcome : {};
+    const retry = function (attempt) {
+      loadDialog({ quiet: true }).then(function () {
+        const turn = Number.isFinite(data && data.turn) ? data.turn : null;
+        const step = Number.isFinite(data && data.step) ? data.step : null;
+        if (turn === null || attempt >= 2) return;
+        const found = (state.dialog.messages || []).some(function (message) {
+          return message && message.role === 'assistant' && message.turn === turn && (step === null || message.step === step);
+        });
+        if (!found) setTimeout(function () { retry(attempt + 1); }, 300);
+      });
+    };
+    retry(outcome.kind === 'committed' ? 0 : 1);
+  }
+  function connectDialogStream(sessionId) {
+    const s = state.dialog.stream;
+    document.body.dataset.streamTarget = sessionId;
+    if (typeof EventSource !== 'function') { fallbackToPolling('unsupported'); return; }
+    if (s.es) {
+      try { s.es.onerror = null; s.es.close(); } catch (e) { /* 忽略 */ }
+      s.es = null;
+    }
+    if (s.pollTimer) { clearTimeout(s.pollTimer); s.pollTimer = null; }
+    s.target = sessionId;
+    s.endRetry = 0;
+    streamBadge('connecting');
+    let es;
+    try {
+      es = new EventSource(STREAM_PATH + '?sessionId=' + encodeURIComponent(sessionId));
+    } catch (e) {
+      fallbackToPolling(e);
+      return;
+    }
+    s.es = es;
+    es.addEventListener('open', function () {
+      if (s.es !== es) return;
+      s.fails = 0;
+    });
+    es.addEventListener('hello', function (event) {
+      if (s.es !== es) return;
+      s.fails = 0;
+      let payload = null;
+      try { payload = JSON.parse(event.data); } catch (e) { payload = null; }
+      streamBadge('live');
+      if (payload && payload.snapshot && payload.snapshot.attempt) applyLiveFrame(payload.snapshot.attempt);
+      // 实时态下 durable 兜底拉取：8 秒一次（end/tick 会触发即时拉取）。
+      if (s.pollTimer) clearTimeout(s.pollTimer);
+      s.pollTimer = setTimeout(function () {
+        s.pollTimer = null;
+        if (s.kind === 'live' && !document.hidden) loadDialog({ quiet: true });
+      }, STREAM_POLL_MS);
+    });
+    es.addEventListener('start', function (event) {
+      if (s.es !== es) return;
+      let payload = null;
+      try { payload = JSON.parse(event.data); } catch (e) { payload = null; }
+      applyLiveFrame({
+        attemptId: payload && payload.attemptId,
+        revision: payload && payload.revision,
+        turn: payload && payload.turn,
+        step: payload && payload.step,
+        startedAt: payload && payload.startedAt,
+        text: '',
+        thinking: ''
+      });
+    });
+    es.addEventListener('assistant', function (event) {
+      if (s.es !== es) return;
+      let payload = null;
+      try { payload = JSON.parse(event.data); } catch (e) { payload = null; }
+      applyLiveFrame(payload);
+    });
+    es.addEventListener('reset', function () {
+      if (s.es !== es) return;
+      state.dialog.live = null;
+      renderDialog();
+      scheduleTickPull();
+    });
+    es.addEventListener('end', function (event) {
+      if (s.es !== es) return;
+      let payload = null;
+      try { payload = JSON.parse(event.data); } catch (e) { payload = null; }
+      handleStreamEnd(payload);
+    });
+    es.addEventListener('tick', function () {
+      if (s.es !== es) return;
+      scheduleTickPull();
+    });
+    es.onerror = function () {
+      if (s.es !== es) return;
+      s.fails += 1;
+      try { es.close(); } catch (e) { /* 忽略 */ }
+      s.es = null;
+      if (s.fails >= STREAM_FAIL_LIMIT) fallbackToPolling('es-error');
+      else {
+        streamBadge('poll');
+        scheduleStreamRetry();
+      }
+    };
+  }
+  function ensureDialogStream() {
+    // 不按 document.hidden 早退：隐藏状态由 visibilitychange 负责关流；首次加载即使隐藏也先连上，
+    // 页面可见后再由事件补一次 durable（无头测试环境 hidden 恒为 true 时也能验证流式）。
+    const sessionId = streamSessionId();
+    const s = state.dialog.stream;
+    if (!sessionId) {
+      document.body.dataset.streamError = 'no-session';
+      if (s.kind !== 'off') closeDialogStream('no-session');
+      return;
+    }
+    if (s.es && s.target === sessionId && (s.kind === 'live' || s.kind === 'connecting')) return;
+    connectDialogStream(sessionId);
   }
 
   /* =====================================================================
@@ -2037,7 +2303,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (pillHost) pillHost.textContent = host.pill;
 
     const setVersion = $('#setVersion');
-    if (setVersion) setVersion.textContent = '0.8.1';
+    if (setVersion) setVersion.textContent = '0.9.0';
     const setButler = $('#setButler');
     if (setButler) {
       const butler = state.butler;
@@ -4067,6 +4333,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       if (binding && binding.available === false && binding.reason) mode.title = binding.reason;
       else mode.removeAttribute('title');
     }
+    // 0.9.0：实时/轮询/离线徽标跟随当前 dialog + stream 状态（页面隐藏时由 streamBadge 统一处理可见性）。
+    streamBadge(state.dialog.stream.kind);
   }
 
   function fmtClock(value) {
@@ -4102,6 +4370,70 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     return '<div class="tools">' + tools.map(toolCardHtml).join('') + '</div>';
   }
 
+  /* ---------- 0.9.0：系统注入折叠（host 给了字段就用，没给就客户端兜底） ---------- */
+  function clientInjectionLabel(source, form) {
+    const kind = typeof source === 'string' ? source : '';
+    if (kind === 'agent-instructions') return '指令文件';
+    if (kind === 'skill-invocation') return '技能注入';
+    if (kind === 'session-reference') return '跨会话召回';
+    if (kind === 'time-context') return '时间上下文';
+    if (kind.indexOf('plugin:') === 0) {
+      if (kind.indexOf('openviking-memory') !== -1) {
+        if (form === 'recall') return '记忆召回';
+        if (form === 'session-history') return '会话历史指针';
+        if (form === 'instructions') return '记忆画像';
+        return '记忆注入';
+      }
+      return '插件注入';
+    }
+    return '系统注入';
+  }
+  function sliceCodePoints(value, max) {
+    const points = Array.from(String(value));
+    return points.length > max ? points.slice(0, max).join('') : String(value);
+  }
+  function clientInjectionSummary(text) {
+    const source = typeof text === 'string' ? text : '';
+    const chars = Array.from(source).length;
+    const lines = source.split(/\r?\n/).length;
+    const meaningful = source.split(/\r?\n/).filter(function (line) {
+      return !/^\s*<\/?(?:openviking-context|system-reminder|available-memories|user-profile)\b[^>]*>\s*$/i.test(line);
+    });
+    let headline = '';
+    for (let i = 0; i < meaningful.length; i += 1) {
+      const trimmed = meaningful[i].trim();
+      if (trimmed === '') continue;
+      const plain = trimmed.replace(/^[#>*\-+]\s*/, '').replace(/\s+/g, ' ').trim();
+      if (plain !== '') { headline = plain; break; }
+    }
+    return {
+      headline: headline,
+      lines: lines,
+      chars: chars,
+      summary: headline !== '' ? sliceCodePoints(headline, NOTICE_SUMMARY_MAX) : lines + ' 行 · ' + chars + ' 字符'
+    };
+  }
+  /** host 字段优先；缺字段（旧 Host / 测试 fixture）就客户端兜底，保证不重启也能先折叠。 */
+  function noticeView(row) {
+    const source = typeof row.source === 'string' ? row.source : '';
+    const form = typeof row.form === 'string' ? row.form : '';
+    const fallback = clientInjectionSummary(row.text);
+    return {
+      label: typeof row.sourceLabel === 'string' && row.sourceLabel !== '' ? row.sourceLabel : clientInjectionLabel(source, form),
+      source: source !== '' ? source : 'injected',
+      form: form,
+      summary: typeof row.summary === 'string' && row.summary !== '' ? row.summary : fallback.summary,
+      lines: Number.isFinite(row.lines) ? row.lines : fallback.lines,
+      chars: Number.isFinite(row.chars) ? row.chars : fallback.chars
+    };
+  }
+  function fmtBytes(value) {
+    const n = Number.isFinite(value) ? Math.max(0, value) : 0;
+    if (n < 1024) return n + ' 字符';
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+    return (n / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
   /** 一条真实消息 → DSH 风格 HTML；所有外部文本过 esc()。 */
   function dialogMessageHtml(message) {
     const row = message && typeof message === 'object' ? message : {};
@@ -4112,9 +4444,22 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         esc(time) + '</span></div><div class="body dlg-text">' + esc(text) + '</div></article>';
     }
     if (row.role === 'notice') {
-      return '<article class="msg notice"><div class="msg-meta"><span class="who">系统注入 · ' +
-        esc(row.source || 'injected') + '</span><span class="t">' + esc(time) + '</span></div>' +
-        '<div class="body dlg-text">' + esc(text) + '</div></article>';
+      const view = noticeView(row);
+      const truncated = text.length > NOTICE_TEXT_MAX;
+      const shown = truncated ? text.slice(0, NOTICE_TEXT_MAX) : text;
+      const meta = [view.lines + ' 行', fmtBytes(view.chars)].filter(Boolean).join(' · ');
+      return '<article class="msg notice"><details class="ctx-row" data-source="' + esc(view.source) + '"' +
+        (view.form !== '' ? ' data-form="' + esc(view.form) + '"' : '') + '>' +
+        '<summary class="ctx-head" title="' + esc((fmtClock(row.time) || '') + ' · ' + view.summary) + '">' +
+        '<svg class="i ctx-chev" aria-hidden="true"><use href="#i-chev"></use></svg>' +
+        '<span class="ctx-title">' + esc(view.label) + '</span>' +
+        '<span class="ctx-sep" aria-hidden="true"></span>' +
+        '<span class="ctx-source">' + esc(view.source) + '</span>' +
+        '<span class="ctx-summary">' + esc(view.summary) + '</span>' +
+        '<span class="ctx-meta">' + esc(meta) + '</span></summary>' +
+        '<div class="ctx-body">' + esc(shown) +
+        (truncated ? '<span class="ctx-trunc-note">… 已截断，共 ' + view.chars + ' 字符</span>' : '') +
+        '</div></details></article>';
     }
     if (row.role === 'tool') {
       return '<article class="msg bot">' + toolsHtml(row.tools) + '</article>';
@@ -4133,6 +4478,31 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       return html;
     }
     return '';
+  }
+
+  /** 0.9.0：流式 live 气泡（只做展示；end.committed 后由 durable 接替）。 */
+  function liveBubbleHtml() {
+    const live = state.dialog.live;
+    if (!live) return '';
+    const text = typeof live.text === 'string' ? live.text : '';
+    const thinking = typeof live.thinking === 'string' ? live.thinking : '';
+    const stepText = live.turn !== null && live.turn !== undefined
+      ? 'turn ' + live.turn + (live.step !== null && live.step !== undefined ? ' · step ' + live.step : '')
+      : '';
+    let html = '<article class="msg bot live-row" data-live-attempt="' + esc(live.attemptId || '') + '">' +
+      '<div class="live-head"><i class="live-dot" aria-hidden="true"></i><span>正在生成…</span>' +
+      (stepText !== '' ? '<span class="t">' + esc(stepText) + '</span>' : '') + '</div>';
+    if (thinking !== '') {
+      html += '<details class="think"><summary><svg class="i" aria-hidden="true"><use href="#i-brain"></use></svg>' +
+        '<span>思考（流式）</span></summary><div class="think-body dlg-text">' + esc(thinking) + '</div></details>';
+    }
+    if (text !== '') {
+      html += '<div class="md"><p class="dlg-text live-cursor">' + esc(text) + '</p></div>';
+    } else if (thinking === '') {
+      html += '<div class="md"><p class="muted live-cursor">（等待首个 token…）</p></div>';
+    }
+    html += '</article>';
+    return html;
   }
 
   function renderDialog() {
@@ -4161,7 +4531,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         : '这段窗口里没有可显示的消息（历史可能更早，或会话刚开始）。';
     }
 
-    if (emptyText !== '') {
+    if (emptyText !== '' && !dialog.live) {
       empty.hidden = false;
       empty.textContent = emptyText;
       list.innerHTML = '';
@@ -4185,12 +4555,13 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         if (Number.isFinite(ms)) previousMs = ms;
         html += dialogMessageHtml(message);
       });
+      html += liveBubbleHtml();
       list.innerHTML = html;
     }
 
     // 真实对话：默认贴底（最新消息可见）；用户往上翻时保留位置，不抢滚动。
     const thread = $('#thread');
-    if (thread && emptyText === '' && state.dialog.stickBottom !== false) {
+    if (thread && (emptyText === '' || dialog.live) && state.dialog.stickBottom !== false) {
       thread.scrollTop = thread.scrollHeight;
     }
 
@@ -4639,7 +5010,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (document.hidden) return;
     loadTiers();
   }, TIERS_POLL_MS);
-  /* 0.7.0：右栏真实状态（M0）10 秒；中栏真实对话（M1）2 秒，只在「大管家」页且已有可用数据时轮询。 */
+  /* 0.7.0：右栏真实状态（M0）10 秒；中栏真实对话（M1）2 秒，只在「大管家」页且已有可用数据时轮询。
+   * 0.9.0：SSE 实时态下 durable 兜底降到 8 秒（end/tick 仍会立即触发），SSE 不可用时保持 2 秒。 */
   setInterval(function () {
     if (document.hidden) return;
     loadButler();
@@ -4648,8 +5020,23 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (document.hidden) return;
     if (state.page !== 'butler') return;
     if (state.dialog.kind !== 'real') return;
-    loadDialog();
+    const stream = state.dialog.stream;
+    const interval = stream.kind === 'live' ? STREAM_POLL_MS : DIALOG_POLL_MS;
+    const now = Date.now();
+    if (now - (stream.lastPollAt || 0) < interval) return;
+    stream.lastPollAt = now;
+    loadDialog({ quiet: true });
   }, DIALOG_POLL_MS);
+  /* 0.9.0：页面隐藏关 SSE（省连接/CPU），可见时重连 + 静默补一次 durable。 */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      closeDialogStream('hidden');
+      return;
+    }
+    if (state.page === 'butler' && state.dialog.kind === 'real') {
+      loadDialog({ quiet: true }).then(function () { ensureDialogStream(); });
+    }
+  });
 })();
 </script>
 </body>

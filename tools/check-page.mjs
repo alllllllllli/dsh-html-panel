@@ -276,8 +276,8 @@ check('设备/链路列表接真实字段', /function renderClusterList\(/.test(
 /* ---------- 13. 记忆 / 设置页 ---------- */
 check('记忆页真探测入口', /id="memoryProbe"/.test(html) && /fireAction\('notes'\)/.test(html))
 check('记忆状态文案来自真实回执', /state\.memory = \{ kind: 'ok'/.test(html) && /state\.memory = \{ kind: 'fail'/.test(html))
-check('设置页版本是 0.8.1', /id="setVersion">0\.8\.1</.test(html) && /setVersion\.textContent = '0\.8\.1'/.test(html))
-check('页脚版本是 0.8.1', /v0\.8\.1 · 驾驶舱（写通道 M2 · 领导预设）/.test(html))
+check('设置页版本是 0.9.0', /id="setVersion">0\.9\.0</.test(html) && /setVersion\.textContent = '0\.9\.0'/.test(html))
+check('页脚版本是 0.9.0', /v0\.9\.0 · 驾驶舱（写通道 M2 · 流式\/折叠）/.test(html))
 check('设置页列出七条只读路由', /api\/cluster · api\/board · api\/host · api\/tiers · api\/alerts · api\/butler\/sessions · api\/butler\/dialog/.test(html))
 check('设置页列出写通道路由（say/session）', /POST api\/butler\/say/.test(html) && /POST api\/butler\/session/.test(html))
 check('设置页数据源接真实字段', /id="setBoard"/.test(html) && /id="setTiersSource"/.test(html) && /id="setHost"/.test(html) && /id="setButler"/.test(html))
@@ -374,7 +374,7 @@ const requiredIds = ['toast', 'chipStale', 'chipStaleText', 'statDevices', 'stat
   'setVersion', 'setBoard', 'setOfficial', 'setCluster', 'setHost', 'setTiersSource', 'setButler', 'setPinned', 'setWrite', 'disabledReason', 'sendBtn', 'prompt', 'drawerCount', 'hhDesc', 'tierHint', 'tierSourceHint',
   'statusBar', 'statusToggle', 'statusSummary', 'statusDot', 'statusChips', 'statusDetail',
   'bindPinned', 'bindNote', 'rebuildBtn', 'dlgWriteTag', 'composerRoTag',
-  'confirmMask', 'confirmTitle', 'confirmTarget', 'confirmPreview', 'confirmSend', 'confirmCancel',
+  'confirmMask', 'confirmTitle', 'confirmTarget', 'confirmPreview', 'confirmSend', 'confirmCancel', 'dlgStreamBadge',
   'tqNeeds', 'tqNeedsN', 'tqNeedsList', 'tqHealth', 'tqHealthN', 'tqHealthList', 'tqHistory', 'tqHistoryN', 'tqHistoryList',
   'officialCard', 'officialList', 'officialEmpty', 'officialHint', 'officialCount', 'officialLegend', 'setAlerts']
 const markupOnly = stripRawText(html)
@@ -387,6 +387,21 @@ check('XSS 防护：动态文本过 esc()', /function esc\(/.test(html) && /esc\
 check('导航切换函数与五页联动', /function setPage\(/.test(html) && /PAGES = \['butler', 'tasks', 'cluster', 'memory', 'settings'\]/.test(html))
 check('刷新按钮真刷新四条路由', /id="refreshBtn"/.test(html) && /function refreshAll\(/.test(html))
 check('渲染状态写进 body.dataset（无头自检用）', /body\.dataset\[kind\]/.test(html))
+
+/* ---------- 13.9 0.9.0：系统注入默认折叠 + 流式 SSE（调研报告 §5-A2/A3/B3/B6） ---------- */
+check('注入折叠用原生 details.ctx-row（默认收起）', /<details class="ctx-row"/.test(html) && /class="ctx-head"/.test(html) && /class="ctx-body"/.test(html))
+check('折叠态 24px 一行 + 展开体 141px 滚动 + 11/16 代码字体 + pre-wrap', /\.ctx-head\{[^}]*height:24px/.test(html) && /\.ctx-body\{[^}]*max-height:141px/.test(html) && /\.ctx-body\{[^}]*font:400 11px\/16px var\(--mono\)/.test(html) && /\.ctx-body\{[^}]*white-space:pre-wrap/.test(html))
+check('折叠行四段：标签 + source + 摘要 + 行数/大小', /class="ctx-title"/.test(html) && /class="ctx-source"/.test(html) && /class="ctx-summary"/.test(html) && /class="ctx-meta"/.test(html))
+check('不再整段直出系统注入（旧 .msg.notice .body 已移除）', !/\.msg\.notice \.body\{/.test(html) && /noticeView\(row\)/.test(html))
+check('客户端兜底摘要（host 没给 summary 也能折叠）', /function clientInjectionSummary\(/.test(html) && /function noticeView\(/.test(html) && /row\.sourceLabel/.test(html))
+check('展开体 20k 截断并标注', /NOTICE_TEXT_MAX = 20000/.test(html) && /已截断，共 ' \+ view\.chars/.test(html))
+check('SSE 只绑绑定会话：EventSource + api/butler/dialog/stream（URL 不带 token）', /new EventSource\(STREAM_PATH \+ '\?sessionId=' \+ encodeURIComponent\(sessionId\)\)/.test(html) && /STREAM_PATH = 'api\/butler\/dialog\/stream'/.test(html) && !/EventSource\([^)]*token/.test(html))
+check('live 气泡单独渲染且不写进 durable messages', /function liveBubbleHtml\(/.test(html) && /live-cursor/.test(html) && /html \+= liveBubbleHtml\(\)/.test(html) && !/state\.dialog\.messages\.push\([^)]*live/.test(html))
+check('实时/轮询/离线徽标 + body.dataset.stream', /id="dlgStreamBadge"/.test(html) && /function streamBadge\(kind\)/.test(html) && /'实时' : /.test(html) && /'轮询' : /.test(html) && /'离线'/.test(html) && /document\.body\.dataset\.stream = kind/.test(html))
+check('断线退轮询 + 30s 重连 + tick 去抖 + 页面隐藏关 ES', /STREAM_RETRY_MS = 30000/.test(html) && /function fallbackToPolling\(/.test(html) && /STREAM_TICK_DEBOUNCE_MS = 180/.test(html) && /visibilitychange/.test(html) && /closeDialogStream\('hidden'\)/.test(html))
+check('end.committed 后清 live 并静默拉 durable（300ms 重试一次）', /function handleStreamEnd\(/.test(html) && /loadDialog\(\{ quiet: true \}\)/.test(html) && /setTimeout\(function \(\) \{ retry\(attempt \+ 1\); \}, 300\)/.test(html))
+check('实时态 durable 兜底 8 秒、轮询态保持 2 秒', /STREAM_POLL_MS = 8000/.test(html) && /stream\.kind === 'live' \? STREAM_POLL_MS : DIALOG_POLL_MS/.test(html))
+check('SSE 帧处理齐全（hello/start/assistant/reset/end/tick）', ['hello', 'start', 'assistant', 'reset', 'end', 'tick'].every(name => new RegExp("addEventListener\\('" + name + "'").test(html)))
 
 /* ---------- 汇总 ---------- */
 const failed = checks.filter(c => !c.ok)
