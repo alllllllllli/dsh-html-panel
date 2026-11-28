@@ -212,14 +212,14 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 /* ---------- 中栏：对话区（对齐 DSH ConversationRoot / InputBar） ---------- */
 .chat{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;background:var(--bg-base);position:relative}
 
-/* header：min-height 76px，padding 10px 20px 0，标题行 30px，tab 行 25px */
-.chat-head{flex:0 0 auto;padding:10px 20px 0;border-bottom:1px solid var(--border-l3);min-width:0}
-.head-main{display:flex;align-items:center;min-height:30px;gap:10px;min-width:0}
+/* header：0.9.5 收薄（原 76px → 三段压到 ~62px） */
+.chat-head{flex:0 0 auto;padding:7px 16px 0;border-bottom:1px solid var(--border-l3);min-width:0}
+.head-main{display:flex;align-items:center;min-height:24px;gap:10px;min-width:0}
 .sess-title{
   font-size:16px;line-height:24px;font-weight:600;letter-spacing:.01em;color:var(--label-primary);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0;
 }
-.head-stats{display:flex;align-items:center;gap:14px;min-width:0;overflow:hidden;margin-left:4px}
+.head-stats{display:flex;align-items:center;gap:12px;min-width:0;overflow:hidden;margin-left:2px}
 .stat{display:inline-flex;align-items:center;gap:6px;font-size:13px;line-height:20px;color:var(--label-tertiary);white-space:nowrap}
 .stat .i{width:14px;height:14px;color:var(--label-caption)}
 .stat .dot{width:6px;height:6px}
@@ -230,13 +230,13 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 }
 .icon-btn:hover{background:var(--hover);color:var(--label-primary)}
 .icon-btn .i{width:16px;height:16px}
-.tabs-row{display:flex;align-items:flex-start;gap:32px;margin-top:6px;min-height:25px;padding-left:8px;min-width:0}
+.tabs-row{display:flex;align-items:center;gap:24px;margin-top:2px;min-height:22px;padding-left:2px;min-width:0}
 .tab{
-  position:relative;min-height:31px;margin:-8px -10px 0;padding:8px 10px;
+  position:relative;min-height:26px;margin:-4px -8px 0;padding:4px 8px;
   font-size:13px;line-height:16px;font-weight:500;color:var(--label-tertiary);cursor:pointer;
 }
 .tab:hover{color:var(--label-secondary)}
-.tab::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;border-radius:2px;background:transparent}
+.tab::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;border-radius:2px;background:transparent}
 .tab.active{color:var(--accent)}
 .tab.active::after{background:var(--accent)}
 .tab-more{width:22px;min-width:22px;height:22px;min-height:22px;margin-top:-3px;padding:0;display:grid;place-items:center;color:var(--label-secondary);font-size:15px;line-height:1}
@@ -322,10 +322,10 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .usage .ut{font-family:var(--mono);font-size:11.5px;color:var(--label-caption)}
 
 /* composer：DSH InputBar —— 28px 圆角卡片、input-major 底、soft elevation */
-.composer{flex:0 0 auto;padding:0 16px 4px}
+.composer{flex:0 0 auto;padding:0 16px 2px}
 .composer-card{
   max-width:calc(var(--chat-w) + 32px);width:100%;margin:0 auto;box-sizing:border-box;
-  display:flex;flex-direction:column;gap:12px;padding-top:16px;
+  display:flex;flex-direction:column;gap:8px;padding-top:10px;
   background:var(--input-major);border-radius:var(--radius-panel);box-shadow:var(--elevation-soft);
 }
 .composer-input{
@@ -334,7 +334,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   font-family:var(--font);font-size:14px;line-height:24px;padding:6px 8px 2px 14px;
 }
 .composer-input::placeholder{color:var(--label-caption)}
-.composer-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 10px 8px;min-width:0}
+.composer-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 10px 6px;min-width:0}
 .cb-l,.cb-r{display:flex;align-items:center;gap:12px;min-width:0}
 .cb-r{margin-left:auto}
 .add{
@@ -403,8 +403,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .send:hover{background:var(--accent-strong)}
 .send .i{width:17px;height:17px;stroke-width:2}
 .composer-stats{
-  max-width:calc(var(--chat-w) + 32px);width:100%;margin:6px auto 0;
-  display:flex;align-items:center;gap:2px;min-height:22px;
+  max-width:calc(var(--chat-w) + 32px);width:100%;margin:3px auto 0;
+  display:flex;align-items:center;gap:2px;min-height:20px;
   font-size:12px;line-height:20px;color:var(--label-tertiary);white-space:nowrap;overflow:hidden;
 }
 .pill{display:inline-flex;align-items:center;gap:6px;height:20px;padding:0 8px;border-radius:var(--radius-sm);font-variant-numeric:tabular-nums}
@@ -414,16 +414,16 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 
 /* ---------- 右栏：派活层级（T0–T3，设备只作标签） ---------- */
 .hier{
-  flex:0 0 384px;width:384px;min-width:0;display:flex;flex-direction:column;min-height:0;
+  flex:0 0 360px;width:360px;min-width:0;display:flex;flex-direction:column;min-height:0;
   background:var(--sidebar-fill);border-left:1px solid var(--border-l3);position:relative;z-index:20;
 }
-.hier-head{flex:0 0 auto;padding:14px 14px 10px;border-bottom:1px solid var(--border-l1);display:flex;flex-direction:column;gap:8px}
+.hier-head{flex:0 0 auto;padding:10px 12px 8px;border-bottom:1px solid var(--border-l1);display:flex;flex-direction:column;gap:6px}
 .hh-row{display:flex;align-items:center;gap:7px;min-width:0}
 .hh-title{font-size:13.5px;line-height:20px;font-weight:600;letter-spacing:.01em;color:var(--label-primary)}
 .hh-info{width:14px;height:14px;color:var(--label-caption)}
 .hier-close{display:none;margin-left:auto}
-.hh-desc{font-size:12px;line-height:18px;color:var(--label-tertiary);margin-top:-3px}
-.hh-chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-top:1px}
+.hh-desc{font-size:11.5px;line-height:16px;color:var(--label-caption);margin-top:-2px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hh-chips{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding-top:1px}
 .cnt{
   display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 7px;
   border:1px solid var(--border-l1);border-radius:var(--radius-xs);background:var(--bg-layer-1);
@@ -496,12 +496,12 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 
 /* 树连线（层级缩进 + 泳道） */
 .node>.kids{
-  margin-left:11px;padding-left:16px;padding-top:6px;padding-bottom:2px;
+  margin-left:9px;padding-left:12px;padding-top:5px;padding-bottom:2px;
   border-left:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;gap:6px;
 }
-.node>.kids>.node::before{content:"";position:absolute;left:-17px;top:11px;width:17px;height:1px;background:rgba(255,255,255,.1)}
+.node>.kids>.node::before{content:"";position:absolute;left:-13px;top:11px;width:13px;height:1px;background:rgba(255,255,255,.1)}
 .node>.kids>.node:last-child::after{
-  content:"";position:absolute;left:-17px;top:12px;bottom:-8px;width:2px;background:var(--sidebar-fill);
+  content:"";position:absolute;left:-13px;top:12px;bottom:-8px;width:2px;background:var(--sidebar-fill);
 }
 .node.collapsed>.kids{display:none}
 .empty{
@@ -518,12 +518,14 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .node.sel>.head>.card{border-color:var(--accent);box-shadow:0 0 0 1px rgba(122,170,255,.22)}
 .node>.head,.node.path>.head>.card{transition:opacity .14s ease,border-color .12s,background .12s,box-shadow .12s}
 
-.hier-foot{flex:0 0 auto;padding:9px 12px 11px;border-top:1px solid var(--border-l1);display:flex;flex-direction:column;gap:5px}
-.legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11px;line-height:16px;color:var(--label-tertiary)}
-.legend .lg{display:inline-flex;align-items:center;gap:4px}
+.hier-foot{flex:0 0 auto;padding:6px 12px 7px;border-top:1px solid var(--border-l1);display:flex;flex-direction:column;gap:3px}
+.legend{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:10px;line-height:14px;color:var(--label-tertiary)}
+.legend .lg{display:inline-flex;align-items:center;gap:3px}
 .legend .dot{width:5px;height:5px}
-.hint{font-size:11px;line-height:16px;color:var(--label-caption)}
+/* 0.9.5：底部提示各占一行、超长省略（完整原因进 title，信息不丢，不常驻占位） */
+.hint{font-size:10px;line-height:14px;color:var(--label-caption);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help}
 .hint b{color:var(--label-tertiary);font-weight:500}
+.hint-src{color:var(--label-dimmed)}
 
 /* ---------- tooltip / 抽屉遮罩 ---------- */
 .tip{
@@ -550,8 +552,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     position:fixed;top:0;right:0;bottom:0;width:min(384px,92vw);
     transform:translateX(103%);transition:transform .24s cubic-bezier(.4,0,.2,1);
     box-shadow:var(--elevation-panel);border-left:1px solid var(--border-l3);
-  }
-  body.drawer .hier{transform:none}
+  }  body.drawer .hier{transform:none}
   .hier-close{display:inline-grid}
   .drawer-btn{display:inline-flex}
   .mask{display:block}
@@ -614,8 +615,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .stale-banner[hidden]{display:none}
 .stale-banner span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* ---------- 大管家页：报告 / 回执 / 快捷动作 / 轨迹占位 ---------- */
-.demo-badge{
+/* ---------- 大管家页：报告 / 回执 / 快捷动作 / 轨迹占位 ---------- */.demo-badge{
   display:inline-flex;align-items:center;gap:6px;align-self:flex-start;
   margin:0;padding:3px 9px;border-radius:999px;
   border:1px dashed rgba(122,170,255,.45);background:rgba(122,170,255,.07);
@@ -641,9 +641,14 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   flex:0 0 auto;margin:0 16px 2px;border:1px solid var(--border-l1);border-radius:var(--radius-md);
   background:var(--sidebar-fill);max-height:118px;display:flex;flex-direction:column;min-width:0;
 }
+/* 0.9.5：0 条回执时只留一行细标题（清空仍在，只是没有空态占位与盒子）。 */
+.receipts[data-count="0"]{border-color:transparent;background:transparent;margin-bottom:0}
+.receipts[data-count="0"] .receipts-head{padding:0 2px;min-height:20px;line-height:20px;font-size:11px}
+.receipts[data-count="0"] .receipt-list{display:none}
+.receipts[data-count="0"] #clearReceipt{height:20px;padding:0 8px;font-size:11px}
 .receipts-head{display:flex;align-items:center;gap:8px;padding:6px 12px 4px;font-size:12px;line-height:18px;color:var(--label-tertiary)}
 .receipt-list{list-style:none;margin:0;padding:0 10px 8px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
-.receipt-list .placeholder{font-size:11.5px;line-height:17px;color:var(--label-caption);padding:2px 2px 4px}
+.receipt-list:empty{display:none}
 .receipt-list li{display:flex;align-items:baseline;gap:8px;font-size:12px;line-height:18px;min-width:0;flex-wrap:wrap}
 .receipt-list .t{font-family:var(--mono);font-size:10.5px;color:var(--label-caption);flex:0 0 auto}
 .receipt-list .r-body{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;min-width:0}
@@ -672,7 +677,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   margin:0;padding:10px 12px;overflow:auto;font-family:var(--mono);font-size:11.5px;line-height:18px;
   color:var(--label-secondary);white-space:pre-wrap;overflow-wrap:anywhere;
 }
-.report-foot{margin:0;padding:0 12px 8px;font-size:10.5px;line-height:16px;color:var(--label-caption)}
+.report-foot{margin:0;padding:0 12px 6px;font-size:10px;line-height:14px;color:var(--label-caption)}
 
 .composer-quick{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 14px;min-width:0}
 .cq-label{font-size:11px;line-height:17px;color:var(--label-caption);white-space:nowrap;flex:0 0 auto}
@@ -883,7 +888,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .mode-tag{display:inline-block;margin-left:6px;padding:0 5px;border-radius:var(--radius-xs);border:1px solid var(--border-l1);background:var(--bg-layer-2);color:var(--label-caption);font-size:9.5px;line-height:14px;vertical-align:1px;white-space:nowrap}
 
 /* ---------- 0.7.0 驾驶舱：绑定条 / 真实对话 / 工具卡 / 只读标注 ---------- */
-.bind-bar{flex:0 0 auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 16px;border-bottom:1px solid var(--border-l1);min-width:0}
+.bind-bar{flex:0 0 auto;display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:5px 16px;border-bottom:1px solid var(--border-l1);min-width:0}
 .bind-lab{font-size:11.5px;color:var(--label-caption);white-space:nowrap}
 .session-pick{max-width:min(430px,52vw);height:26px;border-radius:var(--radius-xs);border:1px solid var(--border-l1);background:var(--bg-layer-2);color:var(--label-primary);font-family:var(--font);font-size:11.5px;padding:0 6px;outline:none}
 .session-pick:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
@@ -893,7 +898,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .pin-tag[hidden]{display:none}
 .write-tag{display:inline-flex;align-items:center;gap:4px;padding:0 6px;border-radius:999px;border:1px solid rgba(52,199,123,.4);background:rgba(52,199,123,.1);color:var(--green-soft);font-size:10px;line-height:17px;white-space:nowrap}
 .write-tag[hidden]{display:none}
-.bind-note{flex:1 1 100%;min-width:0;font-size:10.5px;line-height:16px;color:var(--label-tertiary);overflow-wrap:anywhere}
+.bind-note{flex:1 1 100%;min-width:0;font-size:10.5px;line-height:16px;color:var(--label-tertiary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help}
 .bind-note[hidden]{display:none}
 .bind-note.bad{color:var(--red)}
 .rebuild-btn{height:22px;padding:0 8px;border-radius:var(--radius-xs);border:1px solid rgba(122,170,255,.5);background:rgba(122,170,255,.1);color:var(--accent);font-family:var(--font);font-size:10.5px;cursor:pointer;white-space:nowrap}
@@ -965,12 +970,14 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 .trow{display:flex;gap:8px;font-size:11px;line-height:17px;min-width:0}
 .tk{flex:0 0 auto;color:var(--label-caption)}
 .tv{min-width:0;overflow-wrap:anywhere;color:var(--label-secondary);white-space:pre-wrap}
-.composer-ro{display:flex;align-items:center;gap:6px;padding:0 14px 2px;font-size:10.5px;color:var(--label-caption)}
-.composer-ro .ro-tag{margin-left:0}
+/* 0.9.5：写通道只读标记移进 composer-row，只留一行（长说明进 title） */
+.composer-ro{display:inline-flex;align-items:center;gap:6px;min-width:0;font-size:10.5px;color:var(--label-caption)}
+.composer-ro #composerRo{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:min(30vw,260px);cursor:help}
 @media (max-width:980px){
-  .bind-bar{padding:6px 12px}
+  .bind-bar{padding:4px 12px}
   .session-pick{max-width:56vw}
   .bind-mode{display:none}
+  .composer-ro #composerRo{display:none}
 }
 
 /* ---------- toast ---------- */
@@ -1070,7 +1077,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     <div class="side-foot">
       <div class="sf-1"><i class="dot run" id="sfDot"></i><span id="sfText">本机在线</span><span class="sf-dev" id="sfDev">—</span></div>
       <div class="sf-sub" id="sfSub">链路数据载入中…</div>
-      <div class="sf-ver" id="sfVer">v0.9.4 · 驾驶舱（写通道 M2 · 模型/档位 · 自诊断）</div>
+      <div class="sf-ver" id="sfVer" title="驾驶舱 · 写通道 M2 · 模型/档位 · 自诊断">v0.9.7 · 驾驶舱</div>
     </div>
   </aside>
 
@@ -1157,7 +1164,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
             <p class="dialog-empty" id="dialogEmpty">正在读取真实会话对话…</p>
           </div>
           <div id="traceTrajectory" hidden>
-            <p class="demo-badge" id="trajBadge"><svg class="i" aria-hidden="true"><use href="#i-info"></use></svg>轨迹视图 · M2 未接入（当前只提供真实对话；工具调用已折叠在对话内，不伪造轨迹）</p>
+            <p class="demo-badge" id="trajBadge" title="当前只提供真实对话；工具调用已折叠在对话内，不伪造轨迹"><svg class="i" aria-hidden="true"><use href="#i-info"></use></svg>轨迹视图 · M2 未接入（不伪造轨迹）</p>
           </div>
         </div>
       </div>
@@ -1170,19 +1177,17 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           <button class="icon-btn" type="button" id="closeReport" aria-label="关闭报告"><svg class="i"><use href="#i-x"></use></svg></button>
         </div>
         <pre class="report-pre" id="reportContent"></pre>
-        <p class="report-foot">来自宿主动作路由 api/action · 只读 · 超过 64 KB 只显示前 64 KB</p>
+        <p class="report-foot" title="来自宿主动作路由 api/action · 只读 · 超过 64 KB 只显示前 64 KB">来自宿主动作路由 · 只读</p>
       </section>
 
-      <div class="receipts" aria-label="动作回执">
+      <div class="receipts" id="receipts" data-count="0" aria-label="动作回执">
         <div class="receipts-head">
-          <span>动作回执</span>
-          <span class="muted" id="receiptHint">四态：成功 / 失败 / 暂不支持 / 进行中</span>
+          <span class="rh-label">动作回执</span>
+          <span class="muted rh-hint" id="receiptHint" title="四态：成功 / 失败 / 暂不支持 / 进行中">四态</span>
           <span class="grow"></span>
           <button class="muted-btn" type="button" id="clearReceipt" disabled>清空</button>
         </div>
-        <ul class="receipt-list" id="receiptList" aria-live="polite">
-          <li class="placeholder">还没有动作。点下面的按钮，真实结果（成功 / 失败 / 暂不支持）会记在这里。</li>
-        </ul>
+        <ul class="receipt-list" id="receiptList" aria-live="polite"></ul>
       </div>
 
       <div class="composer">
@@ -1196,6 +1201,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
             <div class="cb-l">
               <button class="add" type="button" id="attachBtn" title="本轮仅文本：不支持附件上传" aria-label="添加附件（本轮仅文本，不支持）" aria-disabled="true" disabled><svg class="i"><use href="#i-plus"></use></svg></button>
               <span class="perm-ro" id="permBadge" title="权限由桌面端决定（本面板只读）"><svg class="i"><use href="#i-info"></use></svg><span id="permBadgeText">权限由桌面端决定</span></span>
+              <span class="composer-ro"><span class="ro-tag" id="composerRoTag">只读</span><span id="composerRo" title="写通道加载中">写通道加载中…</span></span>
             </div>
             <div class="cb-r">
               <button class="model" type="button" id="modelChip" title="模型载入中…" aria-haspopup="listbox" aria-expanded="false" aria-label="切换大管家会话模型" disabled><span class="model-name">模型载入中…</span><svg class="i chev" aria-hidden="true"><use href="#i-chevd"></use></svg></button>
@@ -1204,15 +1210,14 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           </div>
           <div class="model-menu" id="modelMenu" role="listbox" aria-label="选择模型" hidden></div>
         </div>
-        <div class="composer-ro"><span class="ro-tag" id="composerRoTag">只读</span><span id="composerRo">写通道加载中：M2 只对配置里的专属大管家会话开放；发送前每次都会二次确认。</span></div>
         <div class="composer-stats">
-          <span class="pill"><svg class="i"><use href="#i-chat"></use></svg><span id="pillDialog">对话载入中…</span></span>
+          <span class="pill"><span id="pillDialog">对话载入中…</span></span>
           <span class="pill-sep"></span>
-          <span class="pill"><svg class="i"><use href="#i-branch"></use></svg><span id="pillTiers">层级载入中…</span></span>
+          <span class="pill"><span id="pillTiers">层级载入中…</span></span>
           <span class="pill-sep"></span>
-          <span class="pill"><svg class="i"><use href="#i-db"></use></svg><span id="pillBoard">板载入中…</span></span>
+          <span class="pill"><span id="pillBoard">板载入中…</span></span>
           <span class="pill-sep"></span>
-          <span class="pill"><svg class="i"><use href="#i-gauge"></use></svg><span id="pillHost">本机载入中…</span></span>
+          <span class="pill"><span id="pillHost">本机载入中…</span></span>
         </div>
       </div>
     </section>
@@ -1244,10 +1249,10 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           <div class="card-h"><span id="official-h">官方任务板（只读）</span><span class="count" id="officialCount"></span><span class="grow"></span><span class="muted" id="officialHint">载入中…</span></div>
           <ul class="item-list" id="officialList"></ul>
           <p class="empty-hint" id="officialEmpty" hidden>载入中…</p>
-          <p class="store-hint" id="officialLegend">报告五态：进行中 / 可接手 / 受阻 / 失败 / 已撤销（队员报告口径）；状态点照官方 TeamBoard 映射，任务字段对齐官方 TeamTaskView。</p>
+          <p class="store-hint sr-only" id="officialLegend">报告五态：进行中 / 可接手 / 受阻 / 失败 / 已撤销（队员报告口径）；状态点照官方 TeamBoard 映射，任务字段对齐官方 TeamTaskView。</p>
         </section>
         <section class="card" aria-labelledby="todo-h">
-          <div class="card-h"><span id="todo-h">待办</span><span class="count" id="todoCount">0 项</span><span class="grow"></span><span class="muted">勾选自动存本机</span></div>
+          <div class="card-h"><span id="todo-h">待办</span><span class="count" id="todoCount">0 项</span><span class="grow"></span><span class="muted" title="待办保存在 localStorage，刷新页面不丢">本机</span></div>
           <form class="todo-form" id="todoForm">
             <label class="sr-only" for="todoInput">添加待办</label>
             <input id="todoInput" type="text" maxlength="80" placeholder="添加待办，Enter 保存…" autocomplete="off">
@@ -1286,7 +1291,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           <span class="lg"><span class="sw" aria-hidden="true"></span>在线</span>
           <span class="lg"><span class="sw offline" aria-hidden="true"></span>离线</span>
           <span class="lg"><span class="sw unknown" aria-hidden="true"></span>未知 / 待接入</span>
-          <span class="muted">悬停或按 Tab 聚焦节点：title 只显示实例、origin 与链路等本页真能拿到的字段。</span>
+          <span class="muted sr-only">悬停或按 Tab 聚焦节点：title 只显示实例、origin 与链路等本页真能拿到的字段。</span>
         </div>
         <p class="topo-others" id="topoOthers" hidden></p>
         <section class="card" aria-labelledby="dev-h">
@@ -1306,9 +1311,9 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       </header>
       <div class="page-body">
         <section class="card" aria-labelledby="mem-h">
-          <div class="card-h"><span id="mem-h">OpenViking 状态</span><span class="grow"></span><button class="btn primary" type="button" id="memoryProbe">探测并打开 Studio</button></div>
+          <div class="card-h"><span id="mem-h">OpenViking 状态</span><span class="grow"></span><button class="btn primary" type="button" id="memoryProbe" title="走宿主动作路由 api/action 真探测 OpenViking，可达才打开 Studio（只读入口）">探测并打开 Studio</button></div>
           <p class="memory-state" id="memoryState">未探测：点「探测并打开 Studio」会走宿主动作路由 api/action 真探测 OpenViking，可达才打开新标签页。</p>
-          <p class="muted">探测失败会如实给出原因（超时 / 拒绝 / 未配置）；页面不持有任何地址或凭据，也不直接读写记忆库。</p>
+          <p class="muted sr-only">探测失败会如实给出原因（超时 / 拒绝 / 未配置）；页面不持有任何地址或凭据，也不直接读写记忆库。</p>
         </section>
         <section class="card" aria-labelledby="mem2-h">
           <div class="card-h"><span id="mem2-h">接入方式</span></div>
@@ -1326,13 +1331,13 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     <section class="page" id="page-settings" data-page="settings" aria-label="设置" hidden>
       <header class="page-head">
         <h2 class="page-title">设置</h2>
-        <span class="page-desc">只读信息 · 本页不提供重启 / 接管</span>
+        <span class="page-desc" title="只读信息 · 本页不提供重启 / 接管">只读信息</span>
       </header>
       <div class="page-body">
         <section class="card" aria-labelledby="set-h">
           <div class="card-h"><span id="set-h">版本与路由</span></div>
           <ul class="kv-list">
-            <li><b>插件版本</b><span class="mono" id="setVersion">0.9.4</span></li>
+            <li><b>插件版本</b><span class="mono" id="setVersion">0.9.7</span></li>
             <li><b>页面路由</b><span class="mono">/dsh-html-panel/</span></li>
             <li><b>只读数据路由</b><span class="mono">api/cluster · api/board · api/host · api/tiers · api/alerts · api/butler/sessions · api/butler/dialog</span></li>
             <li><b>驾驶舱（只读）</b><span id="setButler">—</span></li>
@@ -1354,9 +1359,9 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         </section>
         <section class="card" aria-labelledby="set3-h">
           <div class="card-h"><span id="set3-h">回滚与红线</span></div>
-          <p class="muted">回滚：把 <span class="mono">node_modules/dsh-html-panel</span> 换回 <span class="mono">dsh-html-panel.bak-before-0.8.0-20261121</span> 后重启 DSH；配置回滚用 <span class="mono">cordis.patch.yml.bak-before-panel-butler-20261121</span>。页面 <span class="mono">public/index.html</span> 的改动刷新即生效；<span class="mono">lib/</span> 改动（0.8.0 新增 <span class="mono">POST api/butler/say</span> 与 <span class="mono">POST api/butler/session</span> 写路由及页面 token 注入、0.7.0 两条只读路由、0.6.0 的 api/alerts、0.5.0 的 official 段）需重启 DSH 后才生效。</p>
+          <p class="muted sr-only" id="rollbackNote">回滚：把 <span class="mono">node_modules/dsh-html-panel</span> 换回 <span class="mono">dsh-html-panel.bak-before-0.8.0-20261121</span> 后重启 DSH；配置回滚用 <span class="mono">cordis.patch.yml.bak-before-panel-butler-20261121</span>。页面 <span class="mono">public/index.html</span> 的改动刷新即生效；<span class="mono">lib/</span> 改动（0.8.0 新增 <span class="mono">POST api/butler/say</span> 与 <span class="mono">POST api/butler/session</span> 写路由及页面 token 注入、0.7.0 两条只读路由、0.6.0 的 api/alerts、0.5.0 的 official 段）需重启 DSH 后才生效。</p>
           <p class="muted" id="disabledReason">红线：不由面板重启 DSH —— 面板不提供重启、结束或接管 DSH 进程的能力，按钮永久禁用。</p>
-          <button class="btn" type="button" disabled aria-describedby="disabledReason">重启 DSH（永久禁用）</button>
+          <button class="btn" type="button" disabled aria-describedby="disabledReason" title="回滚：把 node_modules/dsh-html-panel 换回 dsh-html-panel.bak-before-0.8.0-20261121 后重启 DSH；页面 public/index.html 的改动刷新即生效；lib/ 改动需重启 DSH 后才生效。">重启 DSH（永久禁用）</button>
         </section>
       </div>
     </section>
@@ -1364,14 +1369,14 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 
   <!-- 右栏：派活层级（T0–T3，设备只作标签，不按设备分组） -->
     <aside class="hier" id="hier" aria-label="派活层级">
-    <div class="hier-head">
+    <div class="hier-head" id="hierHead">
       <div class="hh-row">
         <span class="hh-title">派活层级</span>
         <button class="degraded" id="tierDegraded" type="button" hidden>降级</button>
         <svg class="i hh-info" aria-hidden="true"><use href="#i-info"></use></svg>
         <button class="icon-btn hier-close" id="hierClose" type="button" aria-label="收起派活层级"><svg class="i"><use href="#i-x"></use></svg></button>
       </div>
-      <div class="hh-desc" id="hhDesc">按层级组织 · 状态来自 sessionController · 跨机只读</div>
+      <div class="hh-desc" id="hhDesc" title="按层级组织 · 状态来自 sessionController · 跨机只读">按层级组织 · 状态来自 sessionController · 跨机只读</div>
       <div class="hh-chips">
         <span class="cnt c0"><span class="ck">T0</span><b id="cntT0">–</b></span>
         <span class="cnt"><span class="ck">T1</span><b id="cntT1">–</b></span>
@@ -1392,7 +1397,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         <span class="lg"><span class="ro-tag">只读</span>跨机</span>
       </div>
       <div class="hint" id="tierHint">点击节点高亮 <b>T0→…</b> 上级路径 · T2/T3 可折叠</div>
-      <div class="hint" id="tierSourceHint">数据：本机会话状态 + 子代理血缘 · 跨机只读</div>
+      <div class="hint hint-src" id="tierSourceHint"></div>
     </div>
   </aside>
 </div>
@@ -2444,7 +2449,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (pillHost) pillHost.textContent = host.pill;
 
     const setVersion = $('#setVersion');
-    if (setVersion) setVersion.textContent = '0.9.4';
+    if (setVersion) setVersion.textContent = '0.9.7';
     const setButler = $('#setButler');
     if (setButler) {
       const butler = state.butler;
@@ -3010,14 +3015,12 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   /** 回执列表：全部用 DOM 构建 + textContent，动态 URL 只进 href（不拼 HTML）。 */
   function renderReceipts() {
     const list = $('#receiptList');
+    const box = $('#receipts');
     if (!list) return;
+    // 空态不占位：整块回执条在 0 条回执时收起（只留标题行由 CSS 折叠），有回执才展开。
+    if (box) box.setAttribute('data-count', String(receipts.length));
     list.innerHTML = '';
-    if (!receipts.length) {
-      const placeholder = document.createElement('li');
-      placeholder.className = 'placeholder';
-      placeholder.textContent = '还没有动作。点下面的按钮，真实结果（成功 / 失败 / 暂不支持）会记在这里。';
-      list.appendChild(placeholder);
-    } else {
+    if (receipts.length) {
       receipts.forEach(function (receipt) {
         const li = document.createElement('li');
         const time = document.createElement('span');
@@ -3459,6 +3462,63 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       return;
     }
     const currentKey = modelRouteKey(state.model.current);
+
+    // 0.9.4：当前模型的「思考档位」段（官方 reasoning.efforts；空数组=不支持）
+    // 0.9.6：档位提到菜单**最上方**。原来放在 27 个模型条目之后，真实面板里菜单只有
+    //        340px 高、内部滚动，档位被推到滚动区之外（实测 y≈1675，视口才 780），
+    //        主人点开只看到模型名，结论必然是「选不了思考档位」。档位是高频操作、
+    //        换模型是低频操作，顺序反了。现在档位常驻可见，模型列表在下面滚动。
+    const current = state.model.current;
+    if (current) {
+      const effortHeading = document.createElement('div');
+      effortHeading.className = 'model-group-name';
+      effortHeading.textContent = '思考档位 · ' + modelDisplayName(current);
+      menu.appendChild(effortHeading);
+      const efforts = effortsOfCurrent();
+      if (efforts.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'model-effort-empty';
+        empty.textContent = '该模型不支持思考档位';
+        menu.appendChild(empty);
+      } else {
+        const shown = effectiveEffortOf(current);
+        const list = document.createElement('div');
+        list.className = 'model-effort-list';
+        list.setAttribute('role', 'group');
+        list.setAttribute('aria-label', '思考档位');
+        efforts.forEach(function (effort) {
+          if (!effort || typeof effort.id !== 'string' || effort.id === '') return;
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'model-effort-item';
+          btn.setAttribute('role', 'option');
+          btn.setAttribute('data-effort', effort.id);
+          const selected = effort.id === shown;
+          btn.setAttribute('aria-selected', selected ? 'true' : 'false');
+          if (selected) btn.classList.add('is-selected');
+          const name = document.createElement('span');
+          name.className = 'model-effort-name';
+          name.textContent = String(effort.name || effort.id);
+          btn.appendChild(name);
+          if (typeof effort.description === 'string' && effort.description !== '') {
+            const desc = document.createElement('span');
+            desc.className = 'model-effort-desc';
+            desc.textContent = effort.description;
+            btn.appendChild(desc);
+          }
+          const check = document.createElement('span');
+          check.className = 'model-check';
+          check.textContent = selected ? '✓' : '';
+          btn.appendChild(check);
+          list.appendChild(btn);
+        });
+        menu.appendChild(list);
+      }
+      const effortSep = document.createElement('div');
+      effortSep.className = 'model-menu-sep';
+      menu.appendChild(effortSep);
+    }
+
     catalog.groups.forEach(function (group) {
       if (!group || !Array.isArray(group.models) || group.models.length === 0) return;
       const heading = document.createElement('div');
@@ -3510,58 +3570,6 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         menu.appendChild(item);
       });
     });
-
-    // 0.9.4：当前模型的「思考档位」段（官方 reasoning.efforts；空数组=不支持）
-    const current = state.model.current;
-    if (current) {
-      const sep = document.createElement('div');
-      sep.className = 'model-menu-sep';
-      menu.appendChild(sep);
-      const heading = document.createElement('div');
-      heading.className = 'model-group-name';
-      heading.textContent = '思考档位 · ' + modelDisplayName(current);
-      menu.appendChild(heading);
-      const efforts = effortsOfCurrent();
-      if (efforts.length === 0) {
-        const empty = document.createElement('p');
-        empty.className = 'model-effort-empty';
-        empty.textContent = '该模型不支持思考档位';
-        menu.appendChild(empty);
-        return;
-      }
-      const shown = effectiveEffortOf(current);
-      const list = document.createElement('div');
-      list.className = 'model-effort-list';
-      list.setAttribute('role', 'group');
-      list.setAttribute('aria-label', '思考档位');
-      efforts.forEach(function (effort) {
-        if (!effort || typeof effort.id !== 'string' || effort.id === '') return;
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'model-effort-item';
-        btn.setAttribute('role', 'option');
-        btn.setAttribute('data-effort', effort.id);
-        const selected = effort.id === shown;
-        btn.setAttribute('aria-selected', selected ? 'true' : 'false');
-        if (selected) btn.classList.add('is-selected');
-        const name = document.createElement('span');
-        name.className = 'model-effort-name';
-        name.textContent = String(effort.name || effort.id);
-        btn.appendChild(name);
-        if (typeof effort.description === 'string' && effort.description !== '') {
-          const desc = document.createElement('span');
-          desc.className = 'model-effort-desc';
-          desc.textContent = effort.description;
-          btn.appendChild(desc);
-        }
-        const check = document.createElement('span');
-        check.className = 'model-check';
-        check.textContent = selected ? '✓' : '';
-        btn.appendChild(check);
-        list.appendChild(btn);
-      });
-      menu.appendChild(list);
-    }
   }
 
   function openModelMenu() {
@@ -3572,8 +3580,12 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     menu.hidden = false;
     state.model.open = true;
     chip.setAttribute('aria-expanded', 'true');
-    const first = menu.querySelector('.model-item');
-    if (first) first.focus();
+    // 0.9.6：优先聚焦当前档位；原来聚焦第一个模型条目会把滚动区拉下去，把档位顶出视野
+    const preferred = menu.querySelector('.model-effort-item[aria-selected="true"]')
+      || menu.querySelector('.model-effort-item')
+      || menu.querySelector('.model-item');
+    if (preferred) preferred.focus();
+    menu.scrollTop = 0; /* 0.9.6：档位段必须第一眼可见 */
   }
 
   function closeModelMenu() {
@@ -3628,39 +3640,21 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     return result;
   }
 
-  /** 切换模型前二次确认（复用 #confirmMask；kind=model 让确认按钮走 select-model）。 */
-  function openModelConfirm(provider, model, effort) {
+  /** 0.9.7：模型 / 思考档位一次点击直接生效（主人要求去掉二次确认弹窗）。 */
+  function applyModelSelection(provider, model, effort) {
     const write = writeChannelState();
     if (write.available !== true) { toast('写通道不可用：' + write.reason); return; }
     const selection = { provider: String(provider || ''), model: String(model || '') };
-    if (effort !== '') selection.reasoningEffort = String(effort);
-    state.confirm = { kind: 'model', selection: selection };
-    const title = $('#confirmTitle');
-    const target = $('#confirmTarget');
-    const preview = $('#confirmPreview');
-    const ok = $('#confirmSend');
-    const effortLabel = selection.reasoningEffort === undefined ? '' : String(selection.reasoningEffort);
-    if (effortLabel !== '') {
-      if (title) title.textContent = '确认切换大管家会话的思考档位？';
-      if (target) target.textContent = '目标：' + modelDisplayName(selection) + ' · 思考档位 ' + effortLabel + '（' + selection.provider + ' / ' + selection.model + '）';
-      if (preview) preview.textContent = '把思考档位改成 ' + effortLabel + '，会重新写入当前绑定大管家会话的模型选择；从下一轮回复起生效，不会改其他会话，也不会改桌面端的全局默认。';
-    } else {
-      if (title) title.textContent = '确认切换大管家会话模型？';
-      if (target) target.textContent = '目标：' + modelDisplayName(selection) + '（' + selection.provider + ' / ' + selection.model + '）';
-      if (preview) preview.textContent = '只切当前绑定的专属大管家会话；新模型从下一轮回复开始生效，不会改其他会话，也不会改桌面端的全局默认。';
-    }
-    if (ok) { ok.textContent = '确认切换'; ok.disabled = false; }
-    const mask = $('#confirmMask');
-    if (mask) { mask.hidden = false; if (ok) ok.focus(); }
+    const trimmed = typeof effort === 'string' ? effort.trim() : '';
+    if (trimmed !== '') selection.reasoningEffort = trimmed;
+    void sendSelectModel(selection);
   }
 
   /** 真正切换模型：POST api/butler/select-model（写 token + 绑定会话 + requestId 幂等）。 */
-  async function sendSelectModel() {
-    closeSayConfirm();
+  async function sendSelectModel(selection) {
     const write = writeChannelState();
     if (write.available !== true) { toast('写通道不可用：' + write.reason); return; }
-    const selection = state.confirm && state.confirm.kind === 'model' ? state.confirm.selection : null;
-    if (!selection) { toast('没有待切换的模型'); return; }
+    if (!selection || typeof selection !== 'object') { toast('没有待切换的模型'); return; }
     if (INJECTED_WRITE === null || typeof INJECTED_WRITE.token !== 'string' || INJECTED_WRITE.token === '') {
       toast('页面没有拿到写通道 token（需重启 DSH 后重新加载页面）');
       return;
@@ -3697,7 +3691,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       state.model.currentSource = 'selected';
       renderComposerModel();
       renderModelMenu();
-      toast('已切换模型：' + modelDisplayName(selected));
+      toast('已切换：' + modelDisplayName(selected) + (selected.reasoningEffort ? ' · 档位 ' + selected.reasoningEffort : ''));
       loadModelCatalog();
       loadDialog();
     } else {
@@ -3725,7 +3719,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           if (!current) return;
           const effort = effortItem.getAttribute('data-effort') || '';
           closeModelMenu();
-          openModelConfirm(current.provider, current.model, effort);
+          applyModelSelection(current.provider, current.model, effort);
           return;
         }
         const item = event.target.closest ? event.target.closest('.model-item') : null;
@@ -3735,7 +3729,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         const model = item.getAttribute('data-model') || '';
         const effort = item.getAttribute('data-effort') || '';
         closeModelMenu();
-        openModelConfirm(provider, model, effort);
+        applyModelSelection(provider, model, effort);
       });
     }
     document.addEventListener('click', function (event) {
@@ -3762,10 +3756,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     const cancel = $('#confirmCancel');
     if (cancel) cancel.addEventListener('click', closeSayConfirm);
     const ok = $('#confirmSend');
-    if (ok) ok.addEventListener('click', function () {
-      if (state.confirm && state.confirm.kind === 'model') void sendSelectModel();
-      else void sendButlerSay();
-    });
+    if (ok) ok.addEventListener('click', function () { void sendButlerSay(); });
     const mask = $('#confirmMask');
     if (mask) mask.addEventListener('click', function (event) { if (event.target === mask) closeSayConfirm(); });
     const rebuild = $('#rebuildBtn');
@@ -4636,9 +4627,13 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         ? '按层级组织 · 状态来自 sessionController · 数据有缺口'
         : '按层级组织 · 状态来自 sessionController · 跨机只读');
     const hint = $('#tierHint');
-    if (hint) hint.textContent = view.degraded
-      ? '数据缺口：' + view.degraded.slice(0, 130)
-      : '点击节点高亮 T0→… 上级路径 · T2/T3 可折叠 · 远端只读';
+    if (hint) {
+      // 0.9.5：底部提示各占一行、超长省略；完整原因进 title（不缩写信息，只压缩常驻占位）。
+      hint.textContent = view.degraded
+        ? '数据缺口：' + view.degraded.slice(0, 130)
+        : '点击节点高亮 T0→… 上级路径 · T2/T3 可折叠 · 远端只读';
+      hint.title = view.degraded ? '数据缺口：' + String(view.degraded) : '';
+    }
     const sourceHint = $('#tierSourceHint');
     if (sourceHint) {
       if (view.kind === 'butler' && view.source) {
@@ -4652,6 +4647,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       } else {
         sourceHint.textContent = '数据：本机会话状态 + 子代理血缘 · 跨机只读';
       }
+      sourceHint.title = sourceHint.textContent;
     }
     const drawerCount = $('#drawerCount');
     if (drawerCount) drawerCount.textContent = counts ? 'T1×' + counts[1] : 'T1×—';
@@ -4794,7 +4790,10 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (prompt) {
       prompt.disabled = write.available !== true;
       prompt.placeholder = write.available === true
-        ? '发给「' + label + '」：点发送或 Enter，发送前会二次确认（Shift+Enter 换行）'
+        ? '发给「' + label + '」：Enter 发送，Shift+Enter 换行（发送前二次确认）'
+        : '写通道不可用：' + write.reason;
+      prompt.title = write.available === true
+        ? '只发给配置里的专属大管家会话；每次发送都会二次确认（会真跑模型、写对话历史）；附件本批不支持。'
         : '写通道不可用：' + write.reason;
       prompt.setAttribute('aria-label', write.available === true ? '输入消息（M2 只对专属会话）' : '输入消息（写通道不可用）');
     }
@@ -4806,9 +4805,11 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     }
     if (roTag) roTag.textContent = write.available === true ? '写入' : '只读';
     if (ro) {
-      ro.textContent = write.available === true
+      // 长说明不再常驻占一行：短标签留在行内，全文进 title（信息不丢，只是不占位）。
+      ro.textContent = write.available === true ? '写通道已开' : String(write.reason || '');
+      ro.title = write.available === true
         ? '写通道已开：只发给配置里的专属大管家会话；每次发送都会二次确认（会真跑模型、写对话历史）。附件本批不支持。'
-        : write.reason;
+        : String(write.reason || '写通道不可用');
     }
     setDatasetFlag('write', write.available === true ? 'on' : 'off');
     if (typeof renderComposerModel === 'function' && state.model) renderComposerModel();
@@ -4886,9 +4887,13 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         note.className = 'bind-note bad';
         note.textContent = '大管家会话不存在：' + String(binding.reason || '会话清单没有给出原因');
       } else if (!configPinned && state.butler.kind === 'real') {
-        note.hidden = false;
+        // 0.9.5：自动绑定这条不再常驻占一行 —— 绑定方式已由 #bindMode / 写通道原因说明，
+        // 全文进绑定条的 title（信息不丢，只是不占垂直位）。真异常（会话不存在/未创建）仍常驻。
+        note.hidden = true;
         note.className = 'bind-note';
         note.textContent = '当前是自动绑定：写通道只对配置里的专属大管家会话生效；切回专属会话或先创建专属会话。';
+        const bar = $('#page-butler') && document.querySelector('.bind-bar');
+        if (bar) bar.title = '当前是自动绑定：写通道只对配置里的专属大管家会话生效；切回专属会话或先创建专属会话。';
       } else {
         note.hidden = true;
         note.textContent = '';
@@ -5493,9 +5498,11 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   function updateStoreHint() {
     const hint = $('#storeHint');
     if (!hint) return;
+    // 0.9.5：正常态不常驻占一行（键名进 title）；只有存储不可用这种真异常才显示。
     if (storageOk) {
-      hint.className = 'store-hint';
+      hint.className = 'store-hint sr-only';
       hint.textContent = '待办保存在 localStorage（' + STORE_KEY + '），刷新页面不丢。';
+      hint.title = hint.textContent;
     } else {
       hint.className = 'store-hint bad';
       hint.textContent = 'localStorage 不可用，本次改动只保存在内存里（刷新会丢）。';

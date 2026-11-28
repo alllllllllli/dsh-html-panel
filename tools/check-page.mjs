@@ -276,8 +276,9 @@ check('设备/链路列表接真实字段', /function renderClusterList\(/.test(
 /* ---------- 13. 记忆 / 设置页 ---------- */
 check('记忆页真探测入口', /id="memoryProbe"/.test(html) && /fireAction\('notes'\)/.test(html))
 check('记忆状态文案来自真实回执', /state\.memory = \{ kind: 'ok'/.test(html) && /state\.memory = \{ kind: 'fail'/.test(html))
-check('设置页版本是 0.9.4', /id="setVersion">0\.9\.4</.test(html) && /setVersion\.textContent = '0\.9\.4'/.test(html))
-check('页脚版本是 0.9.4', /v0\.9\.4 · 驾驶舱（写通道 M2 · 模型\/档位 · 自诊断）/.test(html))
+check('设置页版本是 0.9.7', /id="setVersion">0\.9\.7</.test(html) && /setVersion\.textContent = '0\.9\.7'/.test(html))
+/* 0.9.5：页脚版本行精简为「v0.9.x · 驾驶舱」，副标全文移到 title（信息不丢，只是不常驻占位）。 */
+check('页脚版本是 0.9.7', /v0\.9\.7 · 驾驶舱</.test(html) && /title="驾驶舱 · 写通道 M2 · 模型\/档位 · 自诊断"/.test(html))
 check('设置页列出七条只读路由', /api\/cluster · api\/board · api\/host · api\/tiers · api\/alerts · api\/butler\/sessions · api\/butler\/dialog/.test(html))
 check('设置页列出写通道路由（say/session）', /POST api\/butler\/say/.test(html) && /POST api\/butler\/session/.test(html))
 check('设置页数据源接真实字段', /id="setBoard"/.test(html) && /id="setTiersSource"/.test(html) && /id="setHost"/.test(html) && /id="setButler"/.test(html))
@@ -415,7 +416,7 @@ check('临时自检已移除（避免生产页多一块调试面板）', !html.i
 /* ---------- 13.11 0.9.2：composer 接官方模型（真实 chip/菜单/确认/权限只读） ---------- */
 check('模型 chip 是真按钮（不是占位 span）', /id="modelChip"/.test(html) && /<button class="model" type="button" id="modelChip"/.test(html) && !/样式占位/.test(html) && !/DeepSeek V4\.1 Flash <b>Max<\/b>/.test(html))
 check('模型菜单是 listbox（官方 catalog 分组 + 选中态 + Esc 关闭）', /id="modelMenu"[^>]*role="listbox"/.test(html) && /model-item/.test(html) && /aria-selected/.test(html) && /closeModelMenu\(\)/.test(html) && /event\.key === 'Escape'/.test(html))
-check('模型切换走官方 selectModel + 写 token + 绑定会话 + 二次确认', /api\/butler\/select-model/.test(html) && /x-butler-write-token/.test(html) && /openModelConfirm\(/.test(html) && /state\.confirm\.kind === 'model'/.test(html) && /reasoningEffort/.test(html))
+check('模型切换走官方 selectModel + 写 token + 绑定会话 + 一次点击直接生效（0.9.7 去掉二次确认）', /api\/butler\/select-model/.test(html) && /x-butler-write-token/.test(html) && /applyModelSelection\(/.test(html) && /async function sendSelectModel\(selection\)/.test(html) && /reasoningEffort/.test(html) && !/openModelConfirm/.test(html))
 check('模型目录读官方 modelCatalog/投影（不写死模型）', /api\/butler\/model-catalog/.test(html) && /currentSource/.test(html) && /projections/.test(html) && /modelDisplayName\(/.test(html))
 check('权限徽标只读（无假下拉/假按钮；官方无切已有会话权限的远程方法）', /id="permBadge"[^>]*class="perm-ro"|class="perm-ro"[^>]*id="permBadge"/.test(html) && /权限由桌面端决定/.test(html) && !/权限设置（视觉占位）/.test(html) && !/id="permBadge"[^>]*<button/.test(html))
 check('附件按钮明确禁用（本轮仅文本，无 hover 假象）', /id="attachBtn"/.test(html) && /本轮仅文本/.test(html) && /aria-disabled="true"/.test(html) && /\.add:disabled\{/.test(html) && /\.add:disabled:hover/.test(html))
@@ -430,7 +431,11 @@ check('会话选择器切会话：先关流再给全新 stream（本次触发点
 check('思考档位控件存在：当前模型 efforts 段 + 选项 + 选中态', /function effortsOfCurrent\(/.test(html) && /model-effort-item/.test(html) && /data-effort/.test(html) && /aria-selected/.test(html) && /思考档位 · /.test(html))
 check('空 efforts 模型明确禁用（该模型不支持思考档位，不给假选项）', /model-effort-empty/.test(html) && /该模型不支持思考档位/.test(html) && /modelEfforts\.length === 0/.test(html))
 check('chip 显示当前有效档位（显式 effort 优先，其次官方 defaultEffort）', /function effectiveEffortOf\(/.test(html) && /shownEffort/.test(html) && /reasoning\.defaultEffort/.test(html))
-check('选档位走同一条写通道 + 二次确认（换档=重写模型选择）', /model-effort-item/.test(html) && /openModelConfirm\(current\.provider, current\.model, effort\)/.test(html) && /把思考档位改成 /.test(html) && /state\.confirm\.kind === 'model'/.test(html))
+check('选档位走同一条写通道 + 一次点击直接生效（0.9.7 去掉二次确认，换档=重写模型选择）', /model-effort-item/.test(html) && /applyModelSelection\(current\.provider, current\.model, effort\)/.test(html) && /function applyModelSelection\(/.test(html) && !/把思考档位改成 /.test(html))
+/* 0.9.6：档位段在菜单最上方（原来排在 27 个模型之后，被挤出滚动区，等于选不到）。 */
+check('0.9.6 档位段排在模型列表之前（打开菜单第一眼可见）', html.indexOf("'思考档位 · '") > -1 && html.indexOf("'思考档位 · '") < html.indexOf('catalog.groups.forEach'))
+/* 0.9.7：正文确认弹窗只服务于「发消息」，不再有模型/档位确认分支。 */
+check('0.9.7 去掉模型/档位二次确认（确认框只剩发消息一条路径）', !/openModelConfirm/.test(html) && !/kind: 'model'/.test(html) && /id="confirmMask"/.test(html) && /function openSayConfirm\(/.test(html))
 
 /* ---------- 汇总 ---------- */
 const failed = checks.filter(c => !c.ok)

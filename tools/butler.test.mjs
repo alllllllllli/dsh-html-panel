@@ -1474,7 +1474,7 @@ test('0.8.1 领导预设：apply 只传 deny（不传 allow），tools/change �
 
 test('0.8.1 领导预设：预设工厂/面板配置互相对齐（agentPreset 与 exports）', async () => {
   const pkg = JSON.parse(await readFile(resolve(ROOT, 'package.json'), 'utf8'))
-  assert.equal(pkg.version, '0.9.4')
+  assert.equal(pkg.version, '0.9.7')
   assert.equal(pkg.exports['./butler-preset'], './lib/agent-preset-auto-team.js')
   assert.ok(pkg.files.includes('lib/agent-preset-auto-team.js'), 'files 必须带 agent-preset-auto-team.js，否则安装副本缺文件')
   assert.equal(pkg.files.includes('lib/agent-preset.js'), false, '旧实现文件已退役')

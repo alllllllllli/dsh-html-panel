@@ -4,7 +4,7 @@
     "width": 1440,
     "height": 1000
   },
-  "generatedAt": "2026-11-27T18:07:04.625Z",
+  "generatedAt": "2026-11-28T02:06:29.506Z",
   "checks": [
     {
       "name": "页面标题是大管家",
@@ -437,9 +437,9 @@
       "detail": "actual=\"settings\" expected=\"settings\""
     },
     {
-      "name": "设置页插件版本 0.9.4",
+      "name": "设置页插件版本 0.9.7",
       "ok": true,
-      "detail": "actual=\"0.9.4\" expected=\"0.9.4\""
+      "detail": "actual=\"0.9.7\" expected=\"0.9.7\""
     },
     {
       "name": "设置页驾驶舱状态显示真实绑定",
@@ -902,22 +902,12 @@
       "detail": "actual=true expected=true"
     },
     {
-      "name": "选模型后先弹二次确认（未直接发）",
+      "name": "0.9.7 选模型直接生效：不弹二次确认",
       "ok": true,
-      "detail": "actual=true expected=true"
+      "detail": "actual=false expected=false"
     },
     {
-      "name": "确认框标题为切换模型",
-      "ok": true,
-      "detail": "needle=V4.1 Pro"
-    },
-    {
-      "name": "确认前不发 select-model 请求",
-      "ok": true,
-      "detail": "actual=0 expected=0"
-    },
-    {
-      "name": "确认后真的 POST 一次 select-model",
+      "name": "0.9.7 点一下就直接 POST 一次 select-model",
       "ok": true,
       "detail": "actual=1 expected=1"
     },
@@ -957,14 +947,9 @@
       "detail": "actual=3 expected=3"
     },
     {
-      "name": "选档位也先弹二次确认",
+      "name": "0.9.7 选档位直接生效：不弹二次确认",
       "ok": true,
-      "detail": "actual=true expected=true"
-    },
-    {
-      "name": "确认框写明思考档位",
-      "ok": true,
-      "detail": "needle=思考档位 low"
+      "detail": "actual=false expected=false"
     },
     {
       "name": "选档位真的 POST 一次 select-model",
@@ -1259,7 +1244,7 @@
     {
       "name": "截图数量 ≥ 5",
       "ok": true,
-      "detail": "shots=37"
+      "detail": "shots=36"
     }
   ],
   "shots": [
@@ -1285,7 +1270,6 @@
     "tools/shots/shot-butler08-status-expanded-1440.png",
     "tools/shots/shot-butler08-confirm-1440.png",
     "tools/shots/shot-butler092-model-menu-1440.png",
-    "tools/shots/shot-butler092-model-confirm-1440.png",
     "tools/shots/shot-butler092-model-switched-1440.png",
     "tools/shots/shot-butler094-effort-empty-1440.png",
     "tools/shots/shot-butler094-effort-menu-1440.png",
@@ -1472,5 +1456,5 @@
   ],
   "ok": true,
   "failed": 0,
-  "passed": 251
+  "passed": 248
 }
