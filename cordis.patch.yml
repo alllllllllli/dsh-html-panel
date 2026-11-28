@@ -9,6 +9,101 @@
 #     panel that iframes the page.
 #
 # The loader reads this patch at boot, so a change here takes effect on reload.
+#
+# 1.0.0: `config.irohLink` below is the **device-link carrier layer** moved in
+# from `dsh-team-mesh` (dumbpipe binary vendored at `lib/iroh-link/vendor/iroh/`).
+# dsh-interconnect is untouched: it still dials `http://127.0.0.1:<localPort>`;
+# this layer just owns those local ports and the tunnel behind them (iroh 主 /
+# ssh 回退 / frp 配置型). Shipped as the plugin's default so cross-device
+# communication is the butler's own capability, not another plugin's.
+# A profile patch (`- id: dsh-html-panel`) may override or extend this block —
+# when migrating, make sure **only one** plugin row has `irohLink.enabled: true`
+# (two carriers fighting over the same front ports only cause 10048 retries).
 - insert:
     - id: dsh-html-panel
       name: 'dsh-html-panel'
+      config:
+        irohLink:
+          enabled: true
+          transport: iroh
+          fallbackTransport: ssh
+          probeIntervalMs: 5000
+          probeTimeoutMs: 3000
+          restartBaseMs: 1000
+          restartMaxMs: 15000
+          identityFile: C:\Users\<you>\.dsh\iroh-link\identity.hex
+          peers:
+            mcloud:
+              localPort: 13086
+              transport: iroh
+              fallbackTransport: ssh
+              ticketCommand:
+                - C:\WINDOWS\System32\OpenSSH\ssh.exe
+                - -i
+                - C:\Users\<you>\.ssh\id_ed25519_demo
+                - -o
+                - BatchMode=yes
+                - -o
+                - StrictHostKeyChecking=no
+                - -o
+                - UserKnownHostsFile=NUL
+                - -o
+                - ConnectTimeout=10
+                - Administrator@172.24.112.11
+                - type C:\Users\<you>\.dsh\iroh-link\ticket.txt
+              sshCommand:
+                - C:\WINDOWS\System32\OpenSSH\ssh.exe
+                - -i
+                - C:\Users\<you>\.ssh\id_ed25519_demo
+                - -o
+                - BatchMode=yes
+                - -o
+                - StrictHostKeyChecking=no
+                - -o
+                - UserKnownHostsFile=NUL
+                - -N
+                - -L
+                - "127.0.0.1:{port}:127.0.0.1:53329"
+                - Administrator@172.24.112.11
+            server:
+              localPort: 13080
+              transport: ssh
+              sshCommand:
+                - C:\WINDOWS\System32\OpenSSH\ssh.exe
+                - -i
+                - C:\Users\<you>\.ssh\id_ed25519_demo
+                - -o
+                - BatchMode=yes
+                - -o
+                - StrictHostKeyChecking=no
+                - -o
+                - UserKnownHostsFile=NUL
+                - -o
+                - ServerAliveInterval=15
+                - -o
+                - ServerAliveCountMax=3
+                - -N
+                - -L
+                - "127.0.0.1:{port}:127.0.0.1:64355"
+                - admin@172.24.112.14
+            cloud:
+              localPort: 13085
+              transport: ssh
+              sshCommand:
+                - C:\WINDOWS\System32\OpenSSH\ssh.exe
+                - -i
+                - C:\Users\<you>\.ssh\id_ed25519_demo
+                - -o
+                - BatchMode=yes
+                - -o
+                - StrictHostKeyChecking=no
+                - -o
+                - UserKnownHostsFile=NUL
+                - -o
+                - ServerAliveInterval=15
+                - -o
+                - ServerAliveCountMax=3
+                - -N
+                - -L
+                - "127.0.0.1:{port}:127.0.0.1:4632"
+                - Administrator@172.24.112.15

@@ -1165,7 +1165,7 @@ async function main() {
     await selectPage('settings')
     s = await state()
     eq('设置页可见', s.visiblePages.join(','), 'settings')
-    eq('设置页插件版本 0.9.8', s.settings.version, '0.9.8')
+    eq('设置页插件版本 1.1.0', s.settings.version, '1.1.0')
     has('设置页驾驶舱状态显示真实绑定', s.settings.butler, '绑定')
     has('设置页驾驶舱状态说明只读', s.settings.butler, '只读')
     has('设置页官方任务板数据源可见', s.settingsOfficial, '可用 · 2 任务 · 1 个团队')

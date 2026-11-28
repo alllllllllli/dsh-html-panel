@@ -846,6 +846,9 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 
 /* ---------- 0.8.0：一行细状态条（替代 0.5.0 三问条的主位） ---------- */
 .status-bar{flex:0 0 auto;display:flex;flex-direction:column;min-width:0;margin:0;padding:0 16px;border-bottom:1px solid var(--border-l1);background:var(--bg-base)}
+.sb-row{display:flex;align-items:center;gap:6px;min-width:0}
+.sb-row .sb-main{flex:1 1 auto;width:auto}
+.sb-row .digest-btn{flex:0 0 auto}
 .sb-main{display:flex;align-items:center;gap:8px;width:100%;min-height:40px;max-height:44px;padding:0 2px;border:0;background:transparent;color:var(--label-secondary);font-family:var(--font);font-size:12px;line-height:18px;text-align:left;cursor:pointer;min-width:0}
 .sb-main:hover .sb-summary{color:var(--label-primary)}
 .sb-main:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:var(--radius-xs)}
@@ -1044,6 +1047,43 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 @media (prefers-reduced-motion:reduce){
   .toast{transition:none}
 }
+
+/* ---------- 永续常驻（0.9.9 页面侧）：未读徽标 / 常驻时长 / 今日归档 / 上下文预算 / 恢复说明 ---------- */
+.nav-badge.unread{
+  color:var(--accent);background:rgba(122,170,255,.16);border-color:rgba(122,170,255,.5);
+  font-weight:600;font-variant-numeric:tabular-nums;
+}
+.nav-badge.unread[hidden]{display:none}
+.cont-tag{
+  display:inline-flex;align-items:center;gap:4px;padding:0 6px;border-radius:var(--radius-xs);
+  border:1px solid var(--border-l1);background:var(--bg-layer-2);color:var(--label-tertiary);
+  font-family:var(--mono);font-size:10px;line-height:16px;white-space:nowrap;cursor:help;
+}
+.digest-btn{
+  height:22px;padding:0 8px;border-radius:var(--radius-xs);border:1px solid var(--border-l1);
+  background:var(--bg-layer-2);color:var(--label-secondary);font-family:var(--font);font-size:10.5px;
+  cursor:pointer;white-space:nowrap;
+}
+.digest-btn:hover{color:var(--label-primary);border-color:var(--border-l2)}
+.digest-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.restore-note{
+  flex:0 0 auto;margin:0;padding:3px 16px 4px;border-bottom:1px solid var(--border-l1);
+  font-size:10.5px;line-height:16px;color:var(--amber);background:rgba(245,158,11,.06);
+  cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.restore-note[hidden]{display:none}
+.pill[data-tone="warn"]{color:var(--amber)}
+.pill[data-tone="warn"] #pillContext{color:var(--amber)}
+.pill[data-tone="muted"]{color:var(--label-caption)}
+.digest{max-height:min(46vh,420px)}
+.digest-body{padding:4px 12px 2px;overflow:auto;min-height:36px;max-height:calc(min(46vh,420px) - 66px)}
+.digest-counts{margin:4px 0 6px;font-size:12px;line-height:18px;color:var(--label-secondary);font-variant-numeric:tabular-nums}
+.digest-empty{margin:8px 0;font-size:11.5px;line-height:18px;color:var(--label-tertiary)}
+.digest-list{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.digest-list li{display:grid;grid-template-columns:52px minmax(0,1fr) 52px;gap:8px;align-items:baseline;padding:3px 0;border-top:1px solid var(--border-l1);font-size:11.5px;line-height:17px}
+.dg-kind{color:var(--label-caption);font-size:10.5px}
+.dg-text{color:var(--label-secondary);overflow-wrap:anywhere}
+.dg-at{color:var(--label-caption);font-family:var(--mono);font-size:10px;text-align:right;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1090,6 +1130,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         <svg class="i"><use href="#i-bell"></use></svg>
         <span class="nav-label">大管家</span>
         <span class="nav-badge" id="navButlerCount">T0</span>
+        <span class="nav-badge unread" id="navUnread" hidden>0</span>
       </button>
       <button class="nav-item" type="button" data-page="tasks">
         <svg class="i"><use href="#i-list"></use></svg>
@@ -1113,7 +1154,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     <div class="side-foot">
       <div class="sf-1"><i class="dot run" id="sfDot"></i><span id="sfText">本机在线</span><span class="sf-dev" id="sfDev">—</span></div>
       <div class="sf-sub" id="sfSub">链路数据载入中…</div>
-      <div class="sf-ver" id="sfVer" title="驾驶舱 · 写通道 M2 · 模型/档位 · 自诊断">v0.9.8 · 驾驶舱</div>
+      <div class="sf-ver" id="sfVer" title="驾驶舱 · 写通道 M2 · 模型/档位 · 自诊断">v1.1.0 · 驾驶舱</div>
     </div>
   </aside>
 
@@ -1147,6 +1188,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           <span class="bind-mode" id="bindMode">绑定解析中…</span>
           <span class="pin-tag" id="bindPinned" hidden>大管家 · 常驻</span>
           <span class="grow"></span>
+          <span class="cont-tag" id="contUptime" title="常驻运行时长来自 api/butler/continuity">常驻 —</span>
+          <span class="cont-tag" id="contRebuild" title="最近重建次数来自 api/butler/continuity">重建 —</span>
           <button class="rebuild-btn" type="button" id="rebuildBtn" hidden>重建专属会话</button>
           <span class="dlg-state"><i class="dot idle" id="dlgDot" aria-hidden="true"></i><span id="dlgStateText">载入中…</span></span>
           <span class="write-tag" id="dlgWriteTag" hidden>可发送</span>
@@ -1154,6 +1197,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           <span class="stream-badge" id="dlgStreamBadge" hidden title="实时：SSE 推送；轮询：SSE 不可用，已退回 2 秒轮询；离线：连接失败">轮询</span>
           <span class="bind-note" id="bindNote" hidden></span>
         </div>
+        <!-- 恢复层：上次的目标已失效时在这里说明原因（不静默吞掉） -->
+        <div class="restore-note" id="restoreNote" hidden role="status" aria-live="polite" title="点击关闭"></div>
         <div class="tabs-row" role="tablist" aria-label="视图">
           <button class="tab active" type="button" role="tab" data-tab="dialogue" aria-selected="true" id="tab-dialogue">对话</button>
           <button class="tab" type="button" role="tab" data-tab="trajectory" aria-selected="false" id="tab-trajectory">轨迹</button>
@@ -1167,12 +1212,15 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
 
       <!-- 0.8.0：一行细状态条（默认一行摘要；有 high 告警自动展开；展开后才是原三问内容） -->
       <div class="status-bar" id="statusBar" data-expanded="false" aria-label="状态条：是否需要我 / 系统是否健康 / 这件事的历史">
+        <div class="sb-row">
         <button class="sb-main" type="button" id="statusToggle" aria-expanded="false" aria-controls="statusDetail" title="展开 / 收起：是否需要我 · 系统是否健康 · 这件事的历史">
           <i class="dot idle" id="statusDot" aria-hidden="true"></i>
           <span class="sb-summary" id="statusSummary">状态载入中…</span>
           <span class="sb-chips" id="statusChips"></span>
           <svg class="i sb-chev" aria-hidden="true"><use href="#i-chevd"></use></svg>
         </button>
+        <button class="digest-btn" type="button" id="digestBtn" title="今日归档（api/butler/digest?days=1）· 只读浮层">今日归档</button>
+        </div>
         <div class="status-detail" id="statusDetail" hidden>
           <section class="tq-block" id="tqNeeds" aria-labelledby="tqNeedsH" hidden>
             <h2 class="tq-h" id="tqNeedsH">是否需要我<span class="tq-n" id="tqNeedsN">0</span></h2>
@@ -1222,6 +1270,18 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         <p class="report-foot" title="来自宿主动作路由 api/action · 只读 · 超过 64 KB 只显示前 64 KB">来自宿主动作路由 · 只读</p>
       </section>
 
+      <!-- 永续常驻：今日归档只读浮层（api/butler/digest?days=1） -->
+      <section class="report digest" id="digestPanel" hidden aria-labelledby="digestTitle">
+        <div class="report-head">
+          <span class="report-title" id="digestTitle">今日归档</span>
+          <span class="report-meta mono" id="digestMeta"></span>
+          <span class="grow"></span>
+          <button class="icon-btn" type="button" id="closeDigest" aria-label="关闭今日归档"><svg class="i"><use href="#i-x"></use></svg></button>
+        </div>
+        <div class="digest-body" id="digestBody"></div>
+        <p class="report-foot" title="来自 api/butler/digest?days=1 · 只读 · 没有数据时说明「暂无归档」">来自 api/butler/digest?days=1 · 只读</p>
+      </section>
+
       <div class="receipts" id="receipts" data-count="0" aria-label="动作回执">
         <div class="receipts-head">
           <span class="rh-label">动作回执</span>
@@ -1253,6 +1313,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
           <div class="model-menu" id="modelMenu" role="listbox" aria-label="选择模型" hidden></div>
         </div>
         <div class="composer-stats">
+          <span class="pill" id="pillContextWrap" title="上下文预算来自 api/butler/context"><span id="pillContext">上下文 —</span></span>
+          <span class="pill-sep"></span>
           <span class="pill"><span id="pillDialog">对话载入中…</span></span>
           <span class="pill-sep"></span>
           <span class="pill"><span id="pillTiers">层级载入中…</span></span>
@@ -1379,9 +1441,9 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         <section class="card" aria-labelledby="set-h">
           <div class="card-h"><span id="set-h">版本与路由</span></div>
           <ul class="kv-list">
-            <li><b>插件版本</b><span class="mono" id="setVersion">0.9.8</span></li>
+            <li><b>插件版本</b><span class="mono" id="setVersion">1.1.0</span></li>
             <li><b>页面路由</b><span class="mono">/dsh-html-panel/</span></li>
-            <li><b>只读数据路由</b><span class="mono">api/cluster · api/board · api/host · api/tiers · api/alerts · api/butler/sessions · api/butler/dialog</span></li>
+            <li><b>只读数据路由</b><span class="mono">api/cluster · api/board · api/host · api/tiers · api/alerts · api/butler/sessions · api/butler/dialog · api/butler/continuity · api/butler/context · api/butler/digest</span></li>
             <li><b>驾驶舱（只读）</b><span id="setButler">—</span></li>
             <li><b>专属会话</b><span id="setPinned">—</span></li>
             <li><b>写动作路由</b><span class="mono">POST api/action（白名单动作 id）· POST api/butler/say（M2 只发专属会话）· POST api/butler/session（创建/重建专属会话）</span></li>
@@ -1592,6 +1654,295 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   }
 
   /* =====================================================================
+   * 永续常驻 · 面板状态恢复层（纯函数部分；DOM 适配见后面的 RESTORE_DOM）
+   *
+   * 只放**不碰 DOM、不碰网络**的序列化 / 校验 / 回退 / 展示口径函数：
+   *   - localStorage 键统一前缀 dshhp:（见 RESTORE_KEYS）；
+   *   - 恢复目标失效（页 / 页签 / 会话不在清单）→ 回退默认值并给出人话原因，不静默吞；
+   *   - 未读计数 = 「上次看到的对话游标（最大事件 seq）」与最新对话窗口的差；
+   *   - continuity / context / digest 三条路由的展示口径与降级文案。
+   * 测试用：tools/state-restore.test.mjs 会抽取 __DSHHP_STATE_BEGIN__..
+   * __DSHHP_STATE_END__ 之间的代码在 node 里执行，因此这一段**不得**引用
+   * window/document/state/$ 等页面全局（最后只在 window 上挂一个只读入口）。
+   * ===================================================================== */
+  /* __DSHHP_STATE_BEGIN__ */
+  const RESTORE_PREFIX = 'dshhp:';
+  /** 恢复层用到的全部 storage 键（前缀统一，键名固定，测试按这些断言）。 */
+  const RESTORE_KEYS = {
+    page: RESTORE_PREFIX + 'page',
+    tab: RESTORE_PREFIX + 'tab',
+    session: RESTORE_PREFIX + 'session',
+    statusBar: RESTORE_PREFIX + 'statusBar',
+    cursors: RESTORE_PREFIX + 'cursors',
+    scroll: RESTORE_PREFIX + 'scroll'
+  };
+  const RESTORE_PAGES = ['butler', 'tasks', 'cluster', 'memory', 'settings'];
+  const RESTORE_TABS = ['dialogue', 'trajectory'];
+  const RESTORE_REASON_MAX = 120;
+
+  function restoreClip(text, max) {
+    const value = String(text === null || text === undefined ? '' : text);
+    const limit = Number.isFinite(max) && max > 0 ? max : RESTORE_REASON_MAX;
+    return value.length > limit ? value.slice(0, limit) + '…' : value;
+  }
+  /** 上次停留的页 → { value, reason }；没有记录就用默认，记录失效则回退 + 原因。 */
+  function restoreParsePage(raw) {
+    const value = typeof raw === 'string' ? raw.trim() : '';
+    if (value === '') return { value: 'butler', reason: '' };
+    if (RESTORE_PAGES.indexOf(value) !== -1) return { value: value, reason: '' };
+    return { value: 'butler', reason: '上次停留的页面「' + restoreClip(value, 24) + '」已不存在 → 已回退「大管家」' };
+  }
+  function restoreParseTab(raw) {
+    const value = typeof raw === 'string' ? raw.trim() : '';
+    if (value === '') return { value: 'dialogue', reason: '' };
+    if (RESTORE_TABS.indexOf(value) !== -1) return { value: value, reason: '' };
+    return { value: 'dialogue', reason: '上次的页签「' + restoreClip(value, 24) + '」已不存在 → 已回退「对话」' };
+  }
+  function restoreParseStatusBar(raw) {
+    if (raw === '1') return { value: true, reason: '' };
+    if (raw === '0') return { value: false, reason: '' };
+    if (raw === null || raw === undefined || raw === '') return { value: false, reason: '' };
+    return { value: false, reason: '状态条展开态记录无效（' + restoreClip(raw, 24) + '）→ 已回退收起' };
+  }
+  /** 游标表 { sessionId: 最大事件 seq }：坏值整条丢弃，不猜（宁可不显示未读）。 */
+  function restoreParseCursors(raw) {
+    const out = {};
+    if (!raw) return out;
+    let parsed;
+    try { parsed = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (error) { return out; }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return out;
+    Object.keys(parsed).forEach(function (sessionId) {
+      const value = parsed[sessionId];
+      if (sessionId !== '' && typeof value === 'number' && Number.isFinite(value) && value > 0) {
+        out[sessionId] = Math.floor(value);
+      }
+    });
+    return out;
+  }
+  /** 每个会话各自的滚动位置 { sessionId: scrollTop }。 */
+  function restoreParseScroll(raw) {
+    const out = {};
+    if (!raw) return out;
+    let parsed;
+    try { parsed = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch (error) { return out; }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return out;
+    Object.keys(parsed).forEach(function (sessionId) {
+      const value = parsed[sessionId];
+      if (sessionId !== '' && typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+        out[sessionId] = Math.floor(value);
+      }
+    });
+    return out;
+  }
+  /**
+   * 会话恢复：记录里的 sessionId 必须仍在会话清单里才恢复。
+   * knownIds 不是数组（清单不可用 / 还没加载）→ 先按记录尝试，pending=true，等清单回来再校验。
+   */
+  function restoreResolveSession(rawId, knownIds) {
+    const id = typeof rawId === 'string' ? rawId.trim() : '';
+    if (id === '') return { value: '', reason: '', pending: false };
+    if (!Array.isArray(knownIds)) return { value: id, reason: '', pending: true };
+    if (knownIds.indexOf(id) !== -1) return { value: id, reason: '', pending: false };
+    return { value: '', reason: '上次查看的会话已不在会话清单里（' + restoreClip(id, 36) + '）→ 已回退自动绑定', pending: false };
+  }
+  /**
+   * 未读：对话窗口里 seq 大于「上次看到的游标」的消息条数。
+   * 游标未知 / 消息结构不符 → known=false，页面不显示任何假数字。
+   * 窗口整个都是新的（count >= windowSize）→ capped=true，徽标显示「N+」。
+   */
+  function restoreUnread(messages, cursor, windowSize) {
+    if (!Array.isArray(messages) || !Number.isFinite(cursor) || cursor <= 0) {
+      return { count: 0, capped: false, known: false };
+    }
+    const seqs = [];
+    messages.forEach(function (message) {
+      if (message && typeof message === 'object' && Number.isFinite(message.seq)) seqs.push(message.seq);
+    });
+    if (seqs.length === 0) return { count: 0, capped: false, known: true };
+    const count = seqs.filter(function (seq) { return seq > cursor; }).length;
+    const limit = Number.isFinite(windowSize) && windowSize > 0 ? windowSize : seqs.length;
+    return { count: count, capped: count > 0 && count >= limit, known: true };
+  }
+  /** 未读徽标文案：不显示 0，也不显示猜出来的值。 */
+  function restoreUnreadBadge(view) {
+    if (!view || view.known !== true || !Number.isFinite(view.count) || view.count <= 0) {
+      return { text: '', hidden: true, count: 0 };
+    }
+    return { text: view.capped ? view.count + '+' : String(view.count), hidden: false, count: view.count };
+  }
+  /** 对话响应 → 新的「已看到」游标（data.cursor 与窗口内最大 message.seq 取大者）。 */
+  function restoreNextCursor(data) {
+    if (!data || typeof data !== 'object') return null;
+    let cursor = Number.isFinite(data.cursor) && data.cursor > 0 ? data.cursor : null;
+    const messages = Array.isArray(data.messages) ? data.messages : [];
+    messages.forEach(function (message) {
+      if (message && Number.isFinite(message.seq) && (cursor === null || message.seq > cursor)) cursor = message.seq;
+    });
+    return cursor;
+  }
+  /** 毫秒时长 → 人话（不到 1 分钟 / N 分钟 / N 小时 M 分 / N 天 M 小时）。 */
+  function restoreUptime(ms, firstBoundAt, now) {
+    let value = Number(ms);
+    if (!Number.isFinite(value) || value < 0) {
+      const start = typeof firstBoundAt === 'string' ? Date.parse(firstBoundAt) : NaN;
+      const stamp = Number.isFinite(Number(now)) ? Number(now) : Date.now();
+      value = Number.isFinite(start) ? stamp - start : NaN;
+    }
+    if (!Number.isFinite(value) || value < 0) return '';
+    if (value < 60000) return '不到 1 分钟';
+    const minutes = Math.floor(value / 60000);
+    if (minutes < 60) return minutes + ' 分钟';
+    const hours = Math.floor(minutes / 60);
+    const restMinutes = minutes % 60;
+    if (hours < 24) return hours + ' 小时' + (restMinutes > 0 ? ' ' + restMinutes + ' 分' : '');
+    const days = Math.floor(hours / 24);
+    const restHours = hours % 24;
+    return days + ' 天' + (restHours > 0 ? ' ' + restHours + ' 小时' : '');
+  }
+  /** api/butler/continuity → 绑定条上的「常驻 X · 重建 N 次」；不可用显示「未知」。 */
+  function continuityView(payload, now) {
+    const unavailable = function (reason) {
+      const suffix = reason ? '：' + restoreClip(reason, 80) : '';
+      return {
+        ok: false, uptimeText: '常驻 未知', rebuildText: '重建 未知', sessionId: '', titleText: '',
+        title: 'api/butler/continuity 不可用' + suffix + '（常驻时长 / 重建次数未知）'
+      };
+    };
+    if (!payload || typeof payload !== 'object' || payload.ok === false || payload.available !== true) {
+      return unavailable(payload && typeof payload.reason === 'string' ? payload.reason : '');
+    }
+    const uptime = restoreUptime(payload.uptimeMs, payload.firstBoundAt, now);
+    const rebuild = Number(payload.rebuildCount);
+    return {
+      ok: true,
+      sessionId: typeof payload.sessionId === 'string' ? payload.sessionId : '',
+      titleText: typeof payload.title === 'string' ? payload.title : '',
+      uptimeText: uptime === '' ? '常驻 未知' : '常驻 ' + uptime,
+      rebuildText: Number.isFinite(rebuild) && rebuild >= 0 ? '重建 ' + Math.floor(rebuild) + ' 次' : '重建 未知',
+      title: 'api/butler/continuity' + (typeof payload.source === 'string' && payload.source !== '' ? ' · ' + payload.source : '')
+    };
+  }
+  /**
+   * api/butler/context → 上下文 pill。
+   * 口径：用 used/limit 算百分比（percent 字段只做参考）；>80% 警示；
+   * 100%（预算已满）或不可用 → 降级文案「未知」，不显示一个会被当成可用的假数字。
+   */
+  function contextPillView(payload) {
+    const unknown = function (title, tone) {
+      return { ok: false, text: '上下文 未知', tone: tone || 'muted', percent: null, title: title };
+    };
+    if (!payload || typeof payload !== 'object' || payload.ok !== true) {
+      const reason = payload && typeof payload.reason === 'string' ? '：' + restoreClip(payload.reason, 80) : '';
+      return unknown('api/butler/context 不可用' + reason + '（上下文预算未知）');
+    }
+    const used = Number(payload.used);
+    const limit = Number(payload.limit);
+    if (!Number.isFinite(used) || !Number.isFinite(limit) || limit <= 0 || used < 0) {
+      return unknown('api/butler/context 字段无效（used/limit 不是有效数字）→ 上下文预算未知');
+    }
+    const percent = Math.max(0, Math.round((used / limit) * 100));
+    if (percent >= 100) {
+      return {
+        ok: true, text: '上下文 未知', tone: 'warn', percent: percent,
+        title: '上下文预算已满（' + used + '/' + limit + '，' + percent + '%）：按降级口径显示未知，等压缩后恢复'
+      };
+    }
+    return {
+      ok: true,
+      text: '上下文 ' + percent + '%',
+      tone: percent > 80 ? 'warn' : '',
+      percent: percent,
+      title: '上下文预算 ' + used + '/' + limit + '（' + percent + '%）' + (percent > 80 ? ' · 已超过 80%，注意压缩' : '')
+    };
+  }
+  const DIGEST_KIND_LABEL = {
+    done: '完成', 'task.done': '完成',
+    dispatched: '派发', dispatch: '派发', 'task.dispatched': '派发',
+    alert: '告警', alerts: '告警', 'alert.raised': '告警',
+    event: '事件', 'board-event': '事件',
+    blocked: '受阻'
+  };
+  /**
+   * digest item.kind → 中文文案。宿主给的是板事件 kind（如 task.done / task.dispatched）、
+   * 'dispatch'（层级）或 'alert'（告警）；认不出时保留原值截断，不硬造分类。
+   */
+  function digestKindLabel(kind) {
+    const key = String(kind === null || kind === undefined ? '' : kind).trim().toLowerCase();
+    if (key === '') return '事件';
+    if (DIGEST_KIND_LABEL[key]) return DIGEST_KIND_LABEL[key];
+    if (key.endsWith('.done')) return '完成';
+    if (key.endsWith('.dispatched') || key.endsWith('.dispatch')) return '派发';
+    if (key.endsWith('.alert') || key.endsWith('.alerts')) return '告警';
+    return restoreClip(key, 12);
+  }
+  /**
+   * api/butler/digest?days=N → 只读浮层口径（counts + 前几条 items；空 = 暂无归档）。
+   * 宿主契约：counts 某项数据源不可用 = null（页面显示「—」），**不是 0**；闭口不估算。
+   */
+  function digestView(payload) {
+    if (!payload || typeof payload !== 'object' || payload.ok !== true) {
+      return { ok: false, empty: true, reason: '', date: '', source: '', coverage: '', degraded: [], counts: null, countsText: '', items: [] };
+    }
+    const rawCounts = payload.counts && typeof payload.counts === 'object' ? payload.counts : {};
+    const countOf = function (key) {
+      const value = Number(rawCounts[key]);
+      return rawCounts[key] !== null && rawCounts[key] !== undefined && Number.isFinite(value) && value >= 0
+        ? Math.floor(value)
+        : null;
+    };
+    const counts = { done: countOf('done'), dispatched: countOf('dispatched'), alerts: countOf('alerts') };
+    const shownCount = function (value) { return value === null ? '—' : String(value); };
+    const degraded = payload.degraded && Array.isArray(payload.degraded.reasons)
+      ? payload.degraded.reasons.filter(function (reason) { return typeof reason === 'string' && reason !== ''; }).slice(0, 3)
+      : [];
+    const items = (Array.isArray(payload.items) ? payload.items : [])
+      .filter(function (item) { return item && typeof item === 'object' && typeof item.text === 'string'; })
+      .slice(0, 6)
+      .map(function (item) {
+        return {
+          kind: digestKindLabel(item.kind),
+          text: restoreClip(item.text, 160),
+          at: typeof item.at === 'string' ? item.at : (Number.isFinite(item.at) ? new Date(item.at).toISOString() : '')
+        };
+      });
+    return {
+      ok: true,
+      empty: items.length === 0,
+      reason: '',
+      date: typeof payload.date === 'string' ? payload.date : '',
+      source: typeof payload.source === 'string' ? payload.source : '',
+      coverage: typeof payload.coverage === 'string' ? payload.coverage : '',
+      degraded: degraded,
+      counts: counts,
+      countsText: '完成 ' + shownCount(counts.done) + ' · 派发 ' + shownCount(counts.dispatched) + ' · 告警 ' + shownCount(counts.alerts),
+      items: items
+    };
+  }
+  /** 纯函数入口：初始化时挂到 window，测试与新 DOM（官方会话视图）都复用同一套口径。 */
+  const RESTORE_PURE = {
+    PREFIX: RESTORE_PREFIX,
+    KEYS: RESTORE_KEYS,
+    PAGES: RESTORE_PAGES,
+    TABS: RESTORE_TABS,
+    parsePage: restoreParsePage,
+    parseTab: restoreParseTab,
+    parseStatusBar: restoreParseStatusBar,
+    parseCursors: restoreParseCursors,
+    parseScroll: restoreParseScroll,
+    resolveSession: restoreResolveSession,
+    unread: restoreUnread,
+    unreadBadge: restoreUnreadBadge,
+    nextCursor: restoreNextCursor,
+    uptime: restoreUptime,
+    continuityView: continuityView,
+    contextPillView: contextPillView,
+    digestView: digestView,
+    digestKindLabel: digestKindLabel,
+  };
+  if (typeof window !== 'undefined') window.__dshhpState = RESTORE_PURE;
+  /* __DSHHP_STATE_END__ */
+
+  /* =====================================================================
    * MOCK —— 只在**首次加载失败**时使用的兜底数据。
    * 用兜底数据渲染的模块会在徽标/提示里明确标「mock 兜底 · 原因」，绝不冒充真实数据。
    * ===================================================================== */
@@ -1741,6 +2092,12 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     statusBar: { expanded: false, lastHighSig: '' },
     /* 0.8.0 M2：写通道状态（只对配置里的专属会话可用；每次发送二次确认） */
     write: { available: false, reason: '写通道加载中…', sessionId: '', sending: false },
+    /* 永续常驻：continuity / context / digest 三条新路由（未加载时一律「未知」，不冒充数据） */
+    continuity: { kind: 'loading', data: null, reason: '' },
+    context: { kind: 'loading', data: null, reason: '' },
+    digest: { kind: 'idle', data: null, reason: '' },
+    /* 永续常驻：恢复层运行态（游标 / 滚动位置 / 本次已套用的会话），storage 见 RESTORE_KEYS */
+    restore: { cursors: {}, scroll: {}, appliedFor: '' },
     staleReasons: {},
     staleAt: 0,
     page: 'butler',
@@ -1777,6 +2134,152 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     return next;
   }
 
+  /* =====================================================================
+   * 永续常驻 · 恢复层（DOM 适配部分）
+   *
+   * 只依赖「id 约定 + RESTORE_KEYS 存储结构」：中栏以后整体换成官方会话视图时，
+   * 只改 RESTORE_DOM 里这几个取值/应用函数即可；存储格式与回退规则（纯函数部分）不动。
+   * ===================================================================== */
+  const RESTORE_STORE = {
+    get: function (key) {
+      try { return window.localStorage.getItem(key); } catch (error) { return null; }
+    },
+    set: function (key, value) {
+      try { window.localStorage.setItem(key, String(value)); return true; } catch (error) { return false; }
+    }
+  };
+  function restoreRead(key) { return RESTORE_STORE.get(key); }
+  function restoreWrite(key, value) { return RESTORE_STORE.set(key, value); }
+
+  /** 恢复目标失效 / 存储不可用等提示：常驻一行说明原因（多处原因累积显示），点击关闭。 */
+  const restoreNoteParts = [];
+  function showRestoreNote(text) {
+    const note = $('#restoreNote');
+    if (!note || !text) return;
+    if (restoreNoteParts.indexOf(text) === -1) restoreNoteParts.push(text);
+    note.hidden = false;
+    note.textContent = '恢复提示：' + restoreNoteParts.join('；');
+  }
+  function hideRestoreNote() {
+    restoreNoteParts.length = 0;
+    const note = $('#restoreNote');
+    if (!note) return;
+    note.hidden = true;
+    note.textContent = '';
+  }
+
+  /** 恢复层对 DOM / 会话数据源的唯一依赖面（中栏换成官方会话视图时只改这里）。 */
+  const RESTORE_DOM = {
+    thread: function () { return $('#thread'); },
+    /** 当前对话的会话键：绑定的专属会话优先，其次手动选择；都没有就空串（不记）。 */
+    sessionId: function () {
+      const dialog = state.dialog || {};
+      if (typeof dialog.boundSessionId === 'string' && dialog.boundSessionId !== '') return dialog.boundSessionId;
+      return dialog.target || '';
+    },
+    dialogKind: function () { return state.dialog && state.dialog.kind ? state.dialog.kind : 'loading'; },
+    messages: function () {
+      return state.dialog && Array.isArray(state.dialog.messages) ? state.dialog.messages : [];
+    },
+    dialogData: function () { return state.dialog && state.dialog.data ? state.dialog.data : null; },
+    sessionOptions: function () {
+      const pick = $('#sessionPick');
+      if (!pick) return null;
+      const options = pick.options ? Array.prototype.slice.call(pick.options) : [];
+      return options.map(function (option) { return option.value; }).filter(function (value) { return value !== ''; });
+    },
+    currentTab: function () {
+      const tab = document.querySelector('.tabs-row [data-tab][aria-selected="true"]');
+      return tab ? tab.getAttribute('data-tab') : 'dialogue';
+    }
+  };
+
+  let restorePendingSession = '';
+  let scrollSaveTimer = null;
+
+  function cursorOf(sessionId) {
+    if (!state.restore || !state.restore.cursors || !sessionId) return null;
+    const value = state.restore.cursors[sessionId];
+    return Number.isFinite(value) ? value : null;
+  }
+  function saveCursor(sessionId, cursor) {
+    if (!sessionId || !Number.isFinite(cursor) || cursor <= 0 || !state.restore) return;
+    state.restore.cursors[sessionId] = Math.floor(cursor);
+    restoreWrite(RESTORE_KEYS.cursors, JSON.stringify(state.restore.cursors));
+  }
+  /** 立刻把当前会话的滚动位置写进 storage（切会话 / pagehide 时调用）。 */
+  function saveScrollNow() {
+    const sessionId = RESTORE_DOM.sessionId();
+    const thread = RESTORE_DOM.thread();
+    if (!sessionId || !thread || !state.restore) return;
+    state.restore.scroll[sessionId] = Math.max(0, Math.round(thread.scrollTop));
+    restoreWrite(RESTORE_KEYS.scroll, JSON.stringify(state.restore.scroll));
+  }
+  function scheduleScrollSave() {
+    if (scrollSaveTimer) return;
+    scrollSaveTimer = setTimeout(function () { scrollSaveTimer = null; saveScrollNow(); }, 250);
+  }
+  /** 首屏 / 切会话后按该会话存的位置恢复滚动；每个会话只套用一次，不跟用户抢滚动。 */
+  function applyPendingScroll() {
+    if (!state.restore) return;
+    const sessionId = RESTORE_DOM.sessionId();
+    if (!sessionId || state.restore.appliedFor === sessionId) return;
+    if (RESTORE_DOM.dialogKind() !== 'real' || RESTORE_DOM.messages().length === 0) return;
+    state.restore.appliedFor = sessionId;
+    const stored = state.restore.scroll ? state.restore.scroll[sessionId] : null;
+    if (!Number.isFinite(stored)) return;
+    const thread = RESTORE_DOM.thread();
+    if (!thread) return;
+    state.dialog.stickBottom = false;
+    thread.scrollTop = stored;
+  }
+  /** 未读徽标：nav「大管家」上显示「上次看到之后新增 N 条」；数据源缺失就隐藏（不显示假值）。 */
+  function updateUnreadBadge() {
+    const badge = $('#navUnread');
+    if (!badge) return;
+    const sessionId = RESTORE_DOM.sessionId();
+    const cursor = sessionId ? cursorOf(sessionId) : null;
+    if (RESTORE_DOM.dialogKind() !== 'real' || !sessionId || cursor === null) {
+      badge.hidden = true;
+      badge.textContent = '';
+      badge.removeAttribute('data-count');
+      badge.removeAttribute('title');
+      return;
+    }
+    const view = RESTORE_PURE.unread(RESTORE_DOM.messages(), cursor, DIALOG_LIMIT);
+    const shown = RESTORE_PURE.unreadBadge(view);
+    badge.hidden = shown.hidden;
+    badge.textContent = shown.text;
+    if (shown.hidden) {
+      badge.removeAttribute('data-count');
+      badge.removeAttribute('title');
+      return;
+    }
+    badge.setAttribute('data-count', String(shown.count));
+    badge.title = '自上次查看后 ' + shown.count + ' 条新消息' + (view.capped ? '（窗口上限，实际可能更多）' : '') +
+      ' · 切到「大管家」或滚到底后清零';
+  }
+  /** 用户明确切到大管家页 / 滚到底 → 记下最新游标（未读清零）。 */
+  function markDialogSeen() {
+    if (RESTORE_DOM.dialogKind() !== 'real' || RESTORE_DOM.messages().length === 0) return;
+    const sessionId = RESTORE_DOM.sessionId();
+    const cursor = RESTORE_PURE.nextCursor(RESTORE_DOM.dialogData());
+    if (!sessionId || cursor === null) return;
+    saveCursor(sessionId, cursor);
+    updateUnreadBadge();
+  }
+  /** 滚到底 → 记游标（未读清零）；不在大管家页 / 不在对话 tab 时不动。 */
+  function maybeMarkSeen() {
+    if (state.page !== 'butler') return;
+    if (RESTORE_DOM.dialogKind() !== 'real' || RESTORE_DOM.messages().length === 0) return;
+    if (RESTORE_DOM.currentTab() !== 'dialogue') return;
+    const thread = RESTORE_DOM.thread();
+    if (!thread) return;
+    const atBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 80;
+    if (!atBottom) return;
+    markDialogSeen();
+  }
+
   /* ---------------- toast ---------------- */
   let toastTimer = null;
   function toast(msg) {
@@ -1807,11 +2310,51 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     });
     hideTip();
     markState(); // 0.6.0：切页后也把当前页同步到 body.dataset（无头自检/调试用）
+    // 永续常驻：记住当前页（刷新 / 重开回到同一页）；回到大管家时按需清零未读。
+    restoreWrite(RESTORE_KEYS.page, name);
+    if (name === 'butler') maybeMarkSeen();
+    updateUnreadBadge();
   }
   function initNav() {
     Array.prototype.forEach.call(document.querySelectorAll('.nav-item[data-page]'), function (btn) {
-      btn.addEventListener('click', function () { setPage(btn.getAttribute('data-page')); });
+      btn.addEventListener('click', function () {
+        const name = btn.getAttribute('data-page');
+        setPage(name);
+        // 「切到该页后清零」：明确点进大管家 = 已在看，未读直接归零（滚到底由 maybeMarkSeen 处理）。
+        if (name === 'butler') markDialogSeen();
+      });
     });
+    const note = $('#restoreNote');
+    if (note) note.addEventListener('click', hideRestoreNote);
+  }
+
+  /**
+   * 初始化恢复：页 / 页签 / 状态条展开态 / 手动会话 / 滚动位置 / 对话游标。
+   * 恢复目标失效 → 纯函数给原因，这里回退默认并 showRestoreNote() 说明（不静默吞）。
+   */
+  function restorePanelState() {
+    const reasons = [];
+    const page = RESTORE_PURE.parsePage(restoreRead(RESTORE_KEYS.page));
+    if (page.reason) reasons.push(page.reason);
+    const tab = RESTORE_PURE.parseTab(restoreRead(RESTORE_KEYS.tab));
+    if (tab.reason) reasons.push(tab.reason);
+    const bar = RESTORE_PURE.parseStatusBar(restoreRead(RESTORE_KEYS.statusBar));
+    if (bar.reason) reasons.push(bar.reason);
+    state.restore = {
+      cursors: RESTORE_PURE.parseCursors(restoreRead(RESTORE_KEYS.cursors)),
+      scroll: RESTORE_PURE.parseScroll(restoreRead(RESTORE_KEYS.scroll)),
+      appliedFor: ''
+    };
+    setPage(page.value);
+    try { selectDialogueTab(tab.value); } catch (error) { reasons.push('页签恢复失败：' + shortReason(error)); }
+    try { setStatusBarExpanded(bar.value); } catch (error) { reasons.push('状态条恢复失败：' + shortReason(error)); }
+    // 会话：先按记录设目标（等会话清单回来再校验），空字符串 = 自动绑定。
+    const session = RESTORE_PURE.resolveSession(restoreRead(RESTORE_KEYS.session), null);
+    restorePendingSession = session.pending ? session.value : '';
+    if (session.value !== '') state.dialog.target = session.value;
+    if (reasons.length) showRestoreNote(reasons.join('；'));
+    updateUnreadBadge();
+    markState();
   }
 
   /* =====================================================================
@@ -2001,6 +2544,167 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     markState();
   }
 
+  /* ---------------- 永续常驻：continuity / context / digest（新路由，404 时降级「未知」） ---------------- */
+  async function loadContinuity() {
+    try {
+      const data = await fetchJson('api/butler/continuity', 5000);
+      if (!data || typeof data !== 'object') throw new Error('结构不符');
+      state.continuity = { kind: 'real', data: data, reason: '' };
+    } catch (error) {
+      state.continuity = { kind: 'missing', data: null, reason: shortReason(error) };
+    }
+    renderContinuity();
+  }
+  /** 绑定条上的「常驻 X 小时 · 重建 N 次」；路由 404 / unavailable → 「未知」并写明原因（不刷屏报错）。 */
+  function renderContinuity() {
+    const view = RESTORE_PURE.continuityView(state.continuity.kind === 'real' ? state.continuity.data : null);
+    const uptime = $('#contUptime');
+    const rebuild = $('#contRebuild');
+    const detail = state.continuity.kind === 'real'
+      ? view.title
+      : view.title + '：' + shortReason(state.continuity.reason || '原因未给出');
+    if (uptime) {
+      uptime.textContent = view.uptimeText;
+      uptime.title = detail;
+      uptime.hidden = false;
+    }
+    if (rebuild) {
+      rebuild.textContent = view.rebuildText;
+      rebuild.title = detail;
+      rebuild.hidden = false;
+    }
+    setDatasetFlag('continuity', state.continuity.kind);
+  }
+
+  async function loadContext() {
+    try {
+      const data = await fetchJson('api/butler/context', 5000);
+      if (!data || typeof data !== 'object') throw new Error('结构不符');
+      state.context = { kind: 'real', data: data, reason: '' };
+    } catch (error) {
+      state.context = { kind: 'missing', data: null, reason: shortReason(error) };
+    }
+    renderContext();
+  }
+  /** composer 底部「上下文」pill：used/limit 百分比；>80% 警示，100% / 不可用 → 「未知」。 */
+  function renderContext() {
+    const wrap = $('#pillContextWrap');
+    const pill = $('#pillContext');
+    const view = RESTORE_PURE.contextPillView(state.context.kind === 'real' ? state.context.data : null);
+    if (pill) pill.textContent = view.text;
+    if (wrap) {
+      wrap.setAttribute('data-tone', view.tone || '');
+      wrap.title = state.context.kind === 'real'
+        ? view.title
+        : view.title + '：' + shortReason(state.context.reason || '原因未给出');
+    }
+    setDatasetFlag('context', view.ok ? 'ok' : 'unknown');
+  }
+
+  function digestAtText(at) {
+    if (typeof at === 'string' && at !== '') {
+      return fmtClock(at) || at.slice(0, 16);
+    }
+    if (Number.isFinite(at)) return fmtMs(at) || '—';
+    return '—';
+  }
+  async function loadDigest() {
+    const body = $('#digestBody');
+    if (body) body.textContent = '正在读取今日归档…';
+    try {
+      const data = await fetchJson('api/butler/digest?days=1', 7000);
+      if (!data || typeof data !== 'object') throw new Error('结构不符');
+      state.digest = { kind: 'real', data: data, reason: '' };
+    } catch (error) {
+      state.digest = { kind: 'missing', data: null, reason: shortReason(error) };
+    }
+    renderDigest();
+  }
+  /** 今日归档只读浮层：counts + 前几条 items；没数据就明说「暂无归档」（不编内容）。 */
+  function renderDigest() {
+    const body = $('#digestBody');
+    const meta = $('#digestMeta');
+    if (!body) return;
+    body.innerHTML = '';
+    const digest = state.digest;
+    if (digest.kind !== 'real') {
+      const reason = digest.reason || '原因未给出';
+      if (meta) meta.textContent = 'api/butler/digest · 不可用';
+      const empty = document.createElement('p');
+      empty.className = 'digest-empty';
+      empty.textContent = /404/.test(reason)
+        ? '暂无归档：api/butler/digest 路由尚未加载（HTTP 404）—— 面板其余功能不受影响，Host 半生效后再看。'
+        : '暂无归档：' + reason;
+      body.appendChild(empty);
+      return;
+    }
+    const view = RESTORE_PURE.digestView(digest.data);
+    if (view.ok !== true) {
+      // 路由在、宿主如实降级（HTTP 200 + ok:false + reason）：写原因，不编「0 条」。
+      if (meta) meta.textContent = 'api/butler/digest · 不可用';
+      const empty = document.createElement('p');
+      empty.className = 'digest-empty';
+      const reason = digest.data && typeof digest.data.reason === 'string' ? digest.data.reason : '';
+      empty.textContent = '暂无归档：' + (reason || '宿主未给出原因');
+      body.appendChild(empty);
+      return;
+    }
+    if (meta) {
+      const parts = [];
+      if (view.date) parts.push(view.date);
+      if (view.source) parts.push('来源 ' + view.source);
+      if (view.coverage === 'partial') parts.push('覆盖不完整');
+      meta.textContent = parts.length ? parts.join(' · ') : 'api/butler/digest · 只读';
+    }
+    const counts = document.createElement('p');
+    counts.className = 'digest-counts';
+    counts.textContent = view.countsText;
+    body.appendChild(counts);
+    // 宿主 counts 某项为 null 表示该数据源不可用（显示「—」，不当作 0）；有降级原因就写清楚。
+    if (view.degraded.length > 0) {
+      const gap = document.createElement('p');
+      gap.className = 'digest-empty';
+      gap.textContent = '数据缺口：' + view.degraded.join('；');
+      body.appendChild(gap);
+    }
+    if (view.empty) {
+      const empty = document.createElement('p');
+      empty.className = 'digest-empty';
+      empty.textContent = '暂无归档：今天还没有可归档的条目。';
+      body.appendChild(empty);
+      return;
+    }
+    const list = document.createElement('ul');
+    list.className = 'digest-list';
+    view.items.forEach(function (item) {
+      const row = document.createElement('li');
+      const kind = document.createElement('span');
+      kind.className = 'dg-kind';
+      kind.textContent = item.kind;
+      const text = document.createElement('span');
+      text.className = 'dg-text';
+      text.textContent = item.text;
+      const at = document.createElement('span');
+      at.className = 'dg-at';
+      at.textContent = digestAtText(item.at);
+      row.appendChild(kind);
+      row.appendChild(text);
+      row.appendChild(at);
+      list.appendChild(row);
+    });
+    body.appendChild(list);
+  }
+  function openDigest() {
+    const panel = $('#digestPanel');
+    if (!panel) return;
+    panel.hidden = false;
+    loadDigest();
+  }
+  function closeDigest() {
+    const panel = $('#digestPanel');
+    if (panel) panel.hidden = true;
+  }
+
   /* ---------------- 0.7.0 M0：可管理对象清单 api/butler/sessions ---------------- */
   function isButlerPayload(data) {
     return !!data && typeof data === 'object' &&
@@ -2026,6 +2730,26 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     renderDialogHeader();
     renderChrome();
     markState();
+    validateRestoredSession();
+  }
+
+  /**
+   * 会话清单回来后校验「上次查看的会话」：不在清单里 → 回退自动绑定 + 页面说明原因。
+   * 清单不可用时不校验（保留记录，等下一轮），避免把「没取到」误判成「已失效」。
+   */
+  function validateRestoredSession() {
+    if (!restorePendingSession) return;
+    if (state.butler.kind !== 'real') return;
+    const options = RESTORE_DOM.sessionOptions();
+    if (!Array.isArray(options)) return;
+    const resolved = RESTORE_PURE.resolveSession(restorePendingSession, options);
+    restorePendingSession = '';
+    if (!resolved.reason) return;
+    state.dialog = resetDialogState({ target: '', boundSessionId: '', stream: null });
+    restoreWrite(RESTORE_KEYS.session, '');
+    renderSessionPicker();
+    showRestoreNote(resolved.reason);
+    loadDialog();
   }
 
   /* ---------------- 0.7.0 M1：真实对话只读流 api/butler/dialog ---------------- */
@@ -2491,7 +3215,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (pillHost) pillHost.textContent = host.pill;
 
     const setVersion = $('#setVersion');
-    if (setVersion) setVersion.textContent = '0.9.8';
+    if (setVersion) setVersion.textContent = '1.1.0';
     const setButler = $('#setButler');
     if (setButler) {
       const butler = state.butler;
@@ -2902,7 +3626,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     return parts.join(' · ')
   }
 
-  /** 展开 / 收起细状态条（不持久化；刷新后按「有 high 自动展开」重算）。 */
+  /** 展开 / 收起细状态条（永久常驻：展开态写进 storage，重开恢复）。 */
   function setStatusBarExpanded(open) {
     state.statusBar.expanded = open === true
     const detail = $('#statusDetail')
@@ -2912,6 +3636,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     const toggle = $('#statusToggle')
     if (toggle) toggle.setAttribute('aria-expanded', state.statusBar.expanded ? 'true' : 'false')
     setDatasetFlag('statusbar', state.statusBar.expanded ? 'expanded' : 'collapsed')
+    restoreWrite(RESTORE_KEYS.statusBar, state.statusBar.expanded ? '1' : '0')
   }
 
   /** 渲染细状态条：摘要 + dot + chips；有 high 时默认展开。 */
@@ -3921,6 +4646,11 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     // 0.8.0：底部输入框/发送按钮的绑定在 initWriteChannel()（只发专属会话 + 二次确认）。
     const memoryProbe = $('#memoryProbe');
     if (memoryProbe) memoryProbe.addEventListener('click', function () { fireAction('notes'); });
+    // 永续常驻：今日归档只读浮层（数据按需拉，未加载时说明「暂无归档」）。
+    const digestBtn = $('#digestBtn');
+    if (digestBtn) digestBtn.addEventListener('click', openDigest);
+    const closeDigestBtn = $('#closeDigest');
+    if (closeDigestBtn) closeDigestBtn.addEventListener('click', closeDigest);
   }
 
   /* =====================================================================
@@ -5621,6 +6351,11 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     // 0.9.8：轨迹 tab 可见时跟着对话数据一起刷新（隐藏时不白算）。
     const trajBox = $('#traceTrajectory');
     if (trajBox && !trajBox.hidden) renderTrajectory();
+    // 永续常驻：恢复该会话的滚动位置 → 未读徽标 → 若正在看且贴底则记游标（清零未读）。
+    applyPendingScroll();
+    updateUnreadBadge();
+    maybeMarkSeen();
+    updateUnreadBadge();
   }
 
   /* ---------- 右栏交互：折叠 / 选中上级路径 / tooltip ---------- */
@@ -5773,6 +6508,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       // 切回对话：走一次 renderDialog 恢复贴底（内容没变不会重建 DOM，展开态不受影响）。
       renderDialog();
     }
+    // 永续常驻：记住大管家页的页签（对话 / 轨迹）。
+    restoreWrite(RESTORE_KEYS.tab, name === 'trajectory' ? 'trajectory' : 'dialogue');
     hideTip();
   }
   function initDialogueTabs() {
@@ -5788,6 +6525,11 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     const pick = $('#sessionPick');
     if (pick) pick.addEventListener('change', function () {
       const target = pick.value || '';
+      // 永续常驻：离开当前会话前先记滚动位置；手动选择写进 storage（重开恢复）。
+      saveScrollNow();
+      restoreWrite(RESTORE_KEYS.session, target);
+      restorePendingSession = '';
+      state.restore.appliedFor = '';
       closeDialogStream('switch');
       state.dialog = resetDialogState({ target: target, stream: null });
       renderDialog();
@@ -5799,11 +6541,16 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       state.dialog.stickBottom = false;
       loadEarlierDialog();
     });
-    // 用户手动往上翻就不抢滚动；回到底部附近再恢复贴底。
+    // 用户手动往上翻就不抢滚动；回到底部附近再恢复贴底。滚动位置按会话记住。
     const thread = $('#thread');
     if (thread) thread.addEventListener('scroll', function () {
       state.dialog.stickBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 80;
+      scheduleScrollSave();
+      maybeMarkSeen();
+      updateUnreadBadge();
     });
+    // 关页面/刷新前尽量落一次滚动位置（debounce 之外的兜底）。
+    window.addEventListener('pagehide', saveScrollNow);
   }
 
   /* =====================================================================
@@ -5976,6 +6723,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     loadAlerts();
     loadButler();
     loadDialog();
+    loadContinuity();
+    loadContext();
   }
   function setDatasetFlag(kind, value) {
     try { document.body.dataset[kind] = value; } catch (error) { /* 旧内核无 dataset 也不影响功能 */ }
@@ -6004,6 +6753,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     }
   }
   safeStep('initNav', initNav);
+  safeStep('restorePanelState', restorePanelState);
   safeStep('initActions', initActions);
   safeStep('initWriteChannel', initWriteChannel);
   safeStep('initComposerModel', initComposerModel);
@@ -6030,8 +6780,8 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   safeStep('renderBoardModule', renderBoardModule);
   safeStep('renderThreeQuestions', renderThreeQuestions);
   safeStep('renderHostModule', renderHostModule);
-  safeStep('setStatusBarExpanded', function () { setStatusBarExpanded(false); });
-  safeStep('setPage', function () { setPage('butler'); });
+  safeStep('renderContinuity', renderContinuity);
+  safeStep('renderContext', renderContext);
   safeStep('markState', markState);
 
   const refreshBtn = $('#refreshBtn');
@@ -6065,6 +6815,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
       hideTip();
       closeSayConfirm();
       closeModelMenu();
+      closeDigest();
     }
   });
   refreshAll();
@@ -6074,7 +6825,13 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     loadBoard();
     loadHost();
     loadAlerts();
+    loadContext();
   }, POLL_MS);
+  /* 永续常驻：常驻时长/重建次数 60 秒一次（只更新一行小标签，404 时保持「未知」不刷屏）。 */
+  setInterval(function () {
+    if (document.hidden) return;
+    loadContinuity();
+  }, 60000);
   setInterval(function () {
     if (document.hidden) return;
     loadTiers();
@@ -6087,10 +6844,11 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   }, BUTLER_POLL_MS);
   setInterval(function () {
     if (document.hidden) return;
-    if (state.page !== 'butler') return;
     if (state.dialog.kind !== 'real') return;
     const stream = state.dialog.stream || freshDialogStream();
-    const interval = stream.kind === 'live' ? STREAM_POLL_MS : DIALOG_POLL_MS;
+    // 不在大管家页时也要低频拉一次对话：否则 nav「大管家」的未读徽标永远停在离开时那一刻。
+    const away = state.page !== 'butler';
+    const interval = away ? 8000 : (stream.kind === 'live' ? STREAM_POLL_MS : DIALOG_POLL_MS);
     const now = Date.now();
     if (now - (stream.lastPollAt || 0) < interval) return;
     stream.lastPollAt = now;

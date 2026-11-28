@@ -1,15 +1,15 @@
 {
   "file": "public/index.html",
-  "bytes": 249658,
-  "sha256": "10c409307dd5589e7a71469dc6a807803fd25e6e56e9c8b9fc258add0087c801",
-  "checks": 212,
+  "bytes": 366351,
+  "sha256": "fdf764cc07eb944402ae4bdb984d5f178b88e34e28e5235251c077ef2fa1aea8",
+  "checks": 262,
   "failed": 0,
   "pass": true,
   "results": [
     {
       "name": "文件存在且非空",
       "ok": true,
-      "detail": "249658 B"
+      "detail": "366351 B"
     },
     {
       "name": "无 UTF-8 BOM",
@@ -104,22 +104,22 @@
     {
       "name": "fetch 只有同源相对路径",
       "ok": true,
-      "detail": "共 4 处 fetch"
+      "detail": "共 6 处 fetch"
     },
     {
       "name": "老四条只读路由都读了",
       "ok": true,
-      "detail": "实际：api/cluster, api/board, api/host, api/tiers, api/alerts, api/butler/sessions, api/butler/dialog"
+      "detail": "实际：api/cluster, api/board, api/host, api/tiers, api/alerts, api/butler/continuity, api/butler/context, api/butler/digest?days=1, api/butler/sessions, api/butler/dialog"
     },
     {
       "name": "驾驶舱两条新只读路由都读了（M0/M1）",
       "ok": true,
-      "detail": "api/butler/sessions, api/butler/dialog"
+      "detail": "api/butler/continuity, api/butler/context, api/butler/digest?days=1, api/butler/sessions, api/butler/dialog"
     },
     {
       "name": "api 路径都是相对路径",
       "ok": true,
-      "detail": "api/cluster | api/board | api/host | api/tiers | api/alerts | api/butler/sessions | api/butler/dialog"
+      "detail": "api/cluster | api/board | api/host | api/tiers | api/alerts | api/butler/continuity | api/butler/context | api/butler/digest?days=1 | api/butler/sessions | api/butler/dialog"
     },
     {
       "name": "没有写死任何 api 外部地址",
@@ -152,29 +152,14 @@
       "detail": "共 1 段"
     },
     {
-      "name": "内联 <script> 恰一段且无 src",
+      "name": "内联 <script> 两段（诊断 + 主程序）且无 src",
       "ok": true,
-      "detail": "共 1 段"
+      "detail": "共 2 段"
     },
     {
       "name": "CSS 花括号配平",
       "ok": true,
-      "detail": "540 { / 540 }"
-    },
-    {
-      "name": "内联 JS 语法可解析",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "JS 开启 use strict",
-      "ok": true,
-      "detail": ""
-    },
-    {
-      "name": "JS 有自执行入口",
-      "ok": true,
-      "detail": ""
+      "detail": "657 { / 657 }"
     },
     {
       "name": "页面标题是「大管家」",
@@ -297,7 +282,12 @@
       "detail": ""
     },
     {
-      "name": "轨迹视图诚实占位（M2 未接入，不伪造轨迹）",
+      "name": "轨迹视图真实渲染（容器 + 渲染函数 + 统计行 + 降级说明，不再有 M2 未接入占位）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "轨迹不伪造轮次/步骤（缺 turn 用「第 N 段」+ 失败条目标红）",
       "ok": true,
       "detail": ""
     },
@@ -672,12 +662,12 @@
       "detail": ""
     },
     {
-      "name": "设置页版本是 0.8.1",
+      "name": "设置页版本是 1.0.0",
       "ok": true,
       "detail": ""
     },
     {
-      "name": "页脚版本是 0.8.1",
+      "name": "页脚版本是 1.0.0",
       "ok": true,
       "detail": ""
     },
@@ -952,7 +942,7 @@
       "detail": ""
     },
     {
-      "name": "附件按钮保持禁用（本批不做附件）",
+      "name": "附件按钮明确禁用（本轮仅文本，无 hover 假象）",
       "ok": true,
       "detail": ""
     },
@@ -1039,12 +1029,12 @@
     {
       "name": "关键 id 齐全",
       "ok": true,
-      "detail": "118 个都在"
+      "detail": "130 个都在"
     },
     {
       "name": "页面 id 不重复",
       "ok": true,
-      "detail": "185 个静态 id"
+      "detail": "212 个静态 id"
     },
     {
       "name": "XSS 防护：动态文本过 esc()",
@@ -1063,6 +1053,266 @@
     },
     {
       "name": "渲染状态写进 body.dataset（无头自检用）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "注入折叠用原生 details.ctx-row（默认收起）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "折叠态 24px 一行 + 展开体 141px 滚动 + 11/16 代码字体 + pre-wrap",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "折叠行四段：标签 + source + 摘要 + 行数/大小",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "不再整段直出系统注入（旧 .msg.notice .body 已移除）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "客户端兜底摘要（host 没给 summary 也能折叠）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "展开体 20k 截断并标注",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "SSE 只绑绑定会话：EventSource + api/butler/dialog/stream（URL 不带 token）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "live 气泡独立增量渲染且不写进 durable messages",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "durable 列表内容未变不写 DOM + 按住指针推迟重建（点击不被吞）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "live 节点回收：断流/换绑时移除（closeDialogStream + resetDialogRenderCache）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "实时/轮询/离线徽标 + body.dataset.stream",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "断线退轮询 + 30s 重连 + tick 去抖 + 页面隐藏关 ES",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "end.committed 后清 live 并静默拉 durable（300ms 重试一次）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "实时态 durable 兜底 8 秒、轮询态保持 2 秒",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "SSE 帧处理齐全（hello/start/assistant/reset/end/tick）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "启动期异常红条：window.error/unhandledrejection + #panelDiag",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "init 逐步隔离：safeStep 包住每个 init/render，单步失败不掐断后续",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "SSE 退避：fallback 后 suppressUntil 期间 loadDialog 不再重连（429 风暴修复）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "窄屏遮罩硬化：初始化强制复位 drawer + mask hidden/aria",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "临时自检已移除（避免生产页多一块调试面板）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "模型 chip 是真按钮（不是占位 span）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "模型菜单是 listbox（官方 catalog 分组 + 选中态 + Esc 关闭）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "模型切换走官方 selectModel + 写 token + 绑定会话 + 一次点击直接生效（0.9.7 去掉二次确认）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "模型目录读官方 modelCatalog/投影（不写死模型）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "权限徽标只读（无假下拉/假按钮；官方无切已有会话权限的远程方法）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "附件按钮明确禁用（本轮仅文本，无 hover 假象）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "dialog 重建统一走 resetDialogState（页面无裸 state.dialog = { 赋值）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "resetDialogState 同时兜住 live 与 stream（不再漏字段）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "stream 读取容错：dialogStreamOf + renderDialogHeader/轮询/可见性三处防御",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "会话选择器切会话：先关流再给全新 stream（本次触发点）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "思考档位控件存在：当前模型 efforts 段 + 选项 + 选中态",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "空 efforts 模型明确禁用（该模型不支持思考档位，不给假选项）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "chip 显示当前有效档位（显式 effort 优先，其次官方 defaultEffort）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "选档位走同一条写通道 + 一次点击直接生效（0.9.7 去掉二次确认，换档=重写模型选择）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "0.9.6 档位段排在模型列表之前（打开菜单第一眼可见）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "0.9.7 去掉模型/档位二次确认（确认框只剩发消息一条路径）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "恢复层纯函数块有起止标记且初始化时挂载 window.__dshhpState",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "storage 键统一 dshhp: 前缀（页 / 页签 / 会话 / 状态条 / 游标 / 滚动）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "纯函数覆盖序列化 / 校验 / 回退（页 · 页签 · 状态条 · 游标 · 滚动 · 会话）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "失效恢复目标回退默认并说明原因（restoreNote 常驻，不静默吞）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "恢复层只依赖 id 约定（RESTORE_DOM 适配器，可在新 DOM 上复用）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "恢复范围齐全：当前页 / 页签 / 会话 / 状态条展开 / 每会话滚动 / 对话游标",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "未读徽标：nav 大管家上有徽标 + 游标对比 + 切页/滚到底清零",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "未读数据源缺失/游标未知不显示假值（直接 hidden）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "未读窗口截断显示 N+（不把上限当真实总数）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "常驻运行时长/重建次数来自 api/butler/continuity（404 显示未知）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "上下文 pill 来自 api/butler/context：>80% 变色、100% 或不可用降级未知",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "今日归档入口来自 api/butler/digest?days=1 + 只读浮层 + 无数据说明",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "今日归档 counts=null 显示「—」（数据源不可用不冒充 0）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "新路由 404 只降级不刷屏（continuity/context 按未知渲染，digest 按暂无归档）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "设置页列出三条新只读路由",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "新路由按契约校验字段（available/firstBoundAt/uptimeMs/rebuildCount · used/limit · counts/items）",
       "ok": true,
       "detail": ""
     }

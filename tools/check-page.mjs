@@ -104,7 +104,7 @@ check('fetch 只有同源相对路径', fetchArgs.length > 0 && externalFetch.le
 const apiPaths = [...html.matchAll(/fetchJson\(\s*'([^']+)'/g)].map(m => m[1].replace(/\?$/, ''))
 check('老四条只读路由都读了', ['api/cluster', 'api/board', 'api/host', 'api/tiers'].every(p => apiPaths.includes(p)), '实际：' + [...new Set(apiPaths)].join(', '))
 check('驾驶舱两条新只读路由都读了（M0/M1）', ['api/butler/sessions', 'api/butler/dialog'].every(p => apiPaths.includes(p)), apiPaths.filter(p => p.startsWith('api/butler')).join(', '))
-check('api 路径都是相对路径', apiPaths.length > 0 && apiPaths.every(p => /^api\/(?:[a-z]+|butler\/[a-z]+)(?:\?)?$/.test(p)), apiPaths.join(' | '))
+check('api 路径都是相对路径', apiPaths.length > 0 && apiPaths.every(p => /^api\/(?:[a-z]+|butler\/[a-z]+)(?:\?[a-z]+=\d+)?$/.test(p)), apiPaths.join(' | '))
 check('没有写死任何 api 外部地址', !/fetchJson\(\s*['"`](?:https?:|\/\/)/i.test(html))
 check('写动作只走同源 POST api/action', /fetch\('api\/action'/.test(html) && /method: 'POST'/.test(html) && /JSON\.stringify\(\{ action: action \}\)/.test(html))
 check('写对话通道走同源 POST api/butler/say 且带注入 token 头', /fetch\('api\/butler\/say'/.test(html) && /x-butler-write-token/.test(html) && /INJECTED_WRITE/.test(html))
@@ -285,9 +285,9 @@ check('设备/链路列表接真实字段', /function renderClusterList\(/.test(
 /* ---------- 13. 记忆 / 设置页 ---------- */
 check('记忆页真探测入口', /id="memoryProbe"/.test(html) && /fireAction\('notes'\)/.test(html))
 check('记忆状态文案来自真实回执', /state\.memory = \{ kind: 'ok'/.test(html) && /state\.memory = \{ kind: 'fail'/.test(html))
-check('设置页版本是 0.9.8', /id="setVersion">0\.9\.8</.test(html) && /setVersion\.textContent = '0\.9\.8'/.test(html))
+check('设置页版本是 1.1.0', /id="setVersion">1\.1\.0</.test(html) && /setVersion\.textContent = '1\.1\.0'/.test(html))
 /* 0.9.5：页脚版本行精简为「v0.9.x · 驾驶舱」，副标全文移到 title（信息不丢，只是不常驻占位）。 */
-check('页脚版本是 0.9.8', /v0\.9\.8 · 驾驶舱</.test(html) && /title="驾驶舱 · 写通道 M2 · 模型\/档位 · 自诊断"/.test(html))
+check('页脚版本是 1.1.0', /v1\.1\.0 · 驾驶舱</.test(html) && /title="驾驶舱 · 写通道 M2 · 模型\/档位 · 自诊断"/.test(html))
 check('设置页列出七条只读路由', /api\/cluster · api\/board · api\/host · api\/tiers · api\/alerts · api\/butler\/sessions · api\/butler\/dialog/.test(html))
 check('设置页列出写通道路由（say/session）', /POST api\/butler\/say/.test(html) && /POST api\/butler\/session/.test(html))
 check('设置页数据源接真实字段', /id="setBoard"/.test(html) && /id="setTiersSource"/.test(html) && /id="setHost"/.test(html) && /id="setButler"/.test(html))
@@ -386,7 +386,9 @@ const requiredIds = ['toast', 'chipStale', 'chipStaleText', 'statDevices', 'stat
   'bindPinned', 'bindNote', 'rebuildBtn', 'dlgWriteTag', 'composerRoTag',
   'confirmMask', 'confirmTitle', 'confirmTarget', 'confirmPreview', 'confirmSend', 'confirmCancel', 'dlgStreamBadge',
   'tqNeeds', 'tqNeedsN', 'tqNeedsList', 'tqHealth', 'tqHealthN', 'tqHealthList', 'tqHistory', 'tqHistoryN', 'tqHistoryList',
-  'officialCard', 'officialList', 'officialEmpty', 'officialHint', 'officialCount', 'officialLegend', 'setAlerts']
+  'officialCard', 'officialList', 'officialEmpty', 'officialHint', 'officialCount', 'officialLegend', 'setAlerts',
+  'navUnread', 'contUptime', 'contRebuild', 'restoreNote', 'pillContext', 'pillContextWrap',
+  'digestBtn', 'digestPanel', 'digestMeta', 'digestBody', 'closeDigest']
 const markupOnly = stripRawText(html)
 const missingIds = requiredIds.filter(id => !new RegExp('id="' + id + '"').test(markupOnly))
 check('关键 id 齐全', missingIds.length === 0, missingIds.join(',') || requiredIds.length + ' 个都在')
@@ -445,6 +447,24 @@ check('选档位走同一条写通道 + 一次点击直接生效（0.9.7 去掉�
 check('0.9.6 档位段排在模型列表之前（打开菜单第一眼可见）', html.indexOf("'思考档位 · '") > -1 && html.indexOf("'思考档位 · '") < html.indexOf('catalog.groups.forEach'))
 /* 0.9.7：正文确认弹窗只服务于「发消息」，不再有模型/档位确认分支。 */
 check('0.9.7 去掉模型/档位二次确认（确认框只剩发消息一条路径）', !/openModelConfirm/.test(html) && !/kind: 'model'/.test(html) && /id="confirmMask"/.test(html) && /function openSayConfirm\(/.test(html))
+
+/* ---------- 13.14 永续常驻（页面侧）：状态恢复 / 未读 / 常驻时长 / 上下文预算 / 今日归档 ---------- */
+check('恢复层纯函数块有起止标记且初始化时挂载 window.__dshhpState', /\/\* __DSHHP_STATE_BEGIN__ \*\//.test(html) && /\/\* __DSHHP_STATE_END__ \*\//.test(html) && /window\.__dshhpState = RESTORE_PURE/.test(html) && /const RESTORE_PURE = \{/.test(html))
+check('storage 键统一 dshhp: 前缀（页 / 页签 / 会话 / 状态条 / 游标 / 滚动）', /const RESTORE_PREFIX = 'dshhp:'/.test(html) && /page: RESTORE_PREFIX \+ 'page'/.test(html) && /tab: RESTORE_PREFIX \+ 'tab'/.test(html) && /session: RESTORE_PREFIX \+ 'session'/.test(html) && /statusBar: RESTORE_PREFIX \+ 'statusBar'/.test(html) && /cursors: RESTORE_PREFIX \+ 'cursors'/.test(html) && /scroll: RESTORE_PREFIX \+ 'scroll'/.test(html))
+check('纯函数覆盖序列化 / 校验 / 回退（页 · 页签 · 状态条 · 游标 · 滚动 · 会话）', ['restoreParsePage', 'restoreParseTab', 'restoreParseStatusBar', 'restoreParseCursors', 'restoreParseScroll', 'restoreResolveSession'].every(fn => new RegExp('function ' + fn + '\\(').test(html)) && /JSON\.parse/.test(html))
+check('失效恢复目标回退默认并说明原因（restoreNote 常驻，不静默吞）', /id="restoreNote"/.test(html) && /function showRestoreNote\(/.test(html) && /已回退「大管家」/.test(html) && /已回退「对话」/.test(html) && /已回退自动绑定/.test(html) && /function restorePanelState\(/.test(html))
+check('恢复层只依赖 id 约定（RESTORE_DOM 适配器，可在新 DOM 上复用）', /const RESTORE_DOM = \{/.test(html) && /thread: function \(\)/.test(html) && /sessionOptions: function \(\)/.test(html) && /currentTab: function \(\)/.test(html) && /function applyPendingScroll\(/.test(html))
+check('恢复范围齐全：当前页 / 页签 / 会话 / 状态条展开 / 每会话滚动 / 对话游标', /restoreWrite\(RESTORE_KEYS\.page/.test(html) && /restoreWrite\(RESTORE_KEYS\.tab/.test(html) && /restoreWrite\(RESTORE_KEYS\.session/.test(html) && /restoreWrite\(RESTORE_KEYS\.statusBar/.test(html) && /restoreWrite\(RESTORE_KEYS\.scroll/.test(html) && /restoreWrite\(RESTORE_KEYS\.cursors/.test(html))
+check('未读徽标：nav 大管家上有徽标 + 游标对比 + 切页/滚到底清零', /id="navUnread"/.test(html) && /function updateUnreadBadge\(/.test(html) && /function maybeMarkSeen\(/.test(html) && /RESTORE_PURE\.unread\(/.test(html) && /data-count/.test(html))
+check('未读数据源缺失/游标未知不显示假值（直接 hidden）', /badge\.hidden = true/.test(html) && /cursor === null/.test(html) && /known !== true/.test(html) && /restoreUnreadBadge/.test(html))
+check('未读窗口截断显示 N+（不把上限当真实总数）', /capped \? view\.count \+ '\+'/.test(html) && /窗口上限/.test(html))
+check('常驻运行时长/重建次数来自 api/butler/continuity（404 显示未知）', /fetchJson\('api\/butler\/continuity'/.test(html) && /id="contUptime"/.test(html) && /id="contRebuild"/.test(html) && /function renderContinuity\(/.test(html) && /常驻 未知/.test(html) && /重建 未知/.test(html))
+check('上下文 pill 来自 api/butler/context：>80% 变色、100% 或不可用降级未知', /fetchJson\('api\/butler\/context'/.test(html) && /id="pillContext"/.test(html) && /function contextPillView\(/.test(html) && /percent > 80 \? 'warn'/.test(html) && /percent >= 100/.test(html) && /'上下文 未知'/.test(html))
+check('今日归档入口来自 api/butler/digest?days=1 + 只读浮层 + 无数据说明', /fetchJson\('api\/butler\/digest\?days=1'/.test(html) && /id="digestBtn"/.test(html) && /id="digestPanel"/.test(html) && /function renderDigest\(/.test(html) && /暂无归档/.test(html) && /digest 路由尚未加载/.test(html))
+check('今日归档 counts=null 显示「—」（数据源不可用不冒充 0）', /rawCounts\[key\] !== null/.test(html) && /return value === null \? '—' : String\(value\)/.test(html) && /数据缺口：/.test(html))
+check('新路由 404 只降级不刷屏（continuity/context 按未知渲染，digest 按暂无归档）', /state\.continuity = \{ kind: 'missing'/.test(html) && /state\.context = \{ kind: 'missing'/.test(html) && /state\.digest = \{ kind: 'missing'/.test(html) && /contUptime/.test(html) && !/alert\(/.test(html))
+check('设置页列出三条新只读路由', /api\/butler\/continuity · api\/butler\/context · api\/butler\/digest/.test(html))
+check('新路由按契约校验字段（available/firstBoundAt/uptimeMs/rebuildCount · used/limit · counts/items）', /available !== true/.test(html) && /uptimeMs/.test(html) && /rebuildCount/.test(html) && /payload\.used/.test(html) && /payload\.limit/.test(html) && /payload\.counts/.test(html) && /payload\.items/.test(html))
 
 /* ---------- 汇总 ---------- */
 const failed = checks.filter(c => !c.ok)

@@ -54,6 +54,83 @@
 
 ---
 
+## 永续常驻（1.1.0）
+
+> 目标（主人拍板的产品口径）：把「大管家」做成**永续常驻**——会话可观测、按天有摘要、上下文有预算。
+> 全部**只读**：三条新路由不写配置、不写会话、不花钱；唯一的写操作是自己的状态文件（见下）。
+
+### 新增三条只读路由（同源，`GET|HEAD`，鉴权与其它 `api/*` 一致）
+
+| 路由 | 契约 | 数据来源 |
+|---|---|---|
+| `GET api/butler/continuity` | `{ ok, sessionId, title, available, reason, firstBoundAt, lastSeenAt, uptimeMs, rebuildCount, source }` | `api/butler/sessions` 的同一份 4 s 缓存 + 本插件状态文件 |
+| `GET api/butler/digest?days=7&date=YYYY-MM-DD` | `{ ok, date, generatedAt, source, counts:{done,dispatched,alerts}, items:[{kind,text,at}] }` | 共享板（`api/board`）+ 派活层级（`api/tiers`）+ 告警（`api/alerts`），全部复用它们的进程内缓存 |
+| `GET api/butler/context` | `{ ok, used, limit, percent, compactions:{count,lastAt}, source }` | `ctx.tokenMeter.contextPressure(活会话)` + 活会话持久日志的 `compaction/*` 事件 |
+
+字段名是页面契约（只许新增、不许改）；附加字段（`label`、`statePath`、`degraded`、`cached`、`coverage`、
+`archived`、`sessionId` 等）页面可忽略。
+
+### continuity：会话自续（观测，不改配置）
+
+- 首次绑定时间取会话创建时间（`node.startedAt`），读不到记录就退回首次观测时刻；会话此刻不可见时不编时间
+  （`firstBoundAt/lastSeenAt/uptimeMs` 给 `null`）；`lastSeenAt` 只在观测到会话存活时刷新，**60 s 内重复轮询不重复写盘**；
+  `sessionId` 变化（说明走过「重建」流程）→ `rebuildCount+1`、`firstBoundAt` 按新会话重算。
+- 会话文件丢失 / 会话列表里找不到绑定 id：`available:false + reason`（复用 M0 binding 的人话原因），
+  `lastSeenAt` 保留上一次存活时间；**绝不静默改配置**——写回 `butler.sessionId` 只发生在既有的
+  「用户点重建」流程（`POST api/butler/session`）。
+- `ok:true` 表示「观测完成」，`available:false` 是合法观测结果；只有组装层异常才会给 `ok:false` 兜底。
+
+### digest：按天归档（真实数据，不造假）
+
+- 语义：`date` 缺省 = 本地今天；`days`（1..31，默认 7）只做参数收敛/回显，不改变单日语义。
+- 今天：从 share board 的 `/events`（按 `at` 落在当天窗口）数 `task.done` / `task.dispatched`；告警没有逐条
+  时间，只按告警快照的 `generatedAt` 归属（所以只有今天的 digest 才有 `alerts` 计数）。
+- **缺数据 = `null`，不是 0**：共享板不可用时 `done/dispatched=null`（层级快照可补 `dispatched`）；
+  告警 reader 不可用 `alerts=null`；全部不可用 → `ok:false + source:'unavailable' + reason`，`items:[]`。
+- 共享板 `/events` 只保留最近 12 条：取满上限且最早一条晚于当天 0 点时标 `coverage:'partial'` 并写明
+  「当天计数只覆盖可见事件」。**不估算**。
+- 落盘 `digests/<date>.json`；同一天重复生成覆盖同一份归档（幂等）。今天 60 s 内复用归档（`source:'archive'`）；
+  过去日期**只读归档**，没有归档就 `ok:false`（共享板不保留历史，重建过去只能靠猜——不猜）。
+
+### context：上下文预算（真实数字，拿不到就诚实降级）
+
+- 数据来自宿主已有服务，**零模型调用**：`ctx.tokenMeter.contextPressure(session)`（token-meter 插件回放持久
+  日志，返回提供方上报的最新提示词规模 `pressureTokens` 与路由容量 `contextWindow`），
+  `used/limit/percent` 直接取这两个数；`compactions.count` 数会话日志里成功的 `compaction/summary`，
+  `lastAt` 取任意 `compaction/*` 事件的最晚时间。
+- 冷会话（`ctx.sessions.list()` 里没有）/ token-meter 未挂载 / 会话还没产生过请求 → `ok:false`、
+  `used|limit|percent` 给 `null` + `reason`；**绝不拿字符数估算 token**。
+- 会话事件超过扫描上限（50000）时压缩次数给 `null` 并说明，不截断着报数。
+
+### 状态文件落盘位置与依据（1.1.0 调研结论）
+
+- 位置：**`$DSH_HOME/dsh-html-panel/`**（`DSH_HOME` 环境变量，缺省 `~/.dsh`）——
+  `continuity.json` 与 `digests/<YYYY-MM-DD>.json`；写盘是 `tmp + rename` 原子替换，损坏文件先留
+  `<名>.bak-corrupt-<时间戳>` 再重写（正常写盘不留备份）。
+- 依据（查过宿主约定）：
+  1. 宿主官方持久化是 `ctx.storage`（`@deepseek-ai/dsh-storage` + `dsh-storage-json`，backend root =
+     `$DSH_HOME/storages`，见 `app.asar` 内 `@deepseek-ai/dsh-base/cordis.patch.yml`）。但消费方契约要求用
+     `@deepseek-ai/dsh-storage-domain` 的 `defineDomain()`（记录 schema 是 zod）声明领域；本插件是外部插件，
+     profile 的 node_modules 里没有这些包（宿主打包在 app.asar 内部），也不允许装依赖。硬造 spec 调
+     `ctx.storageDomain.open()` 等于手写宿主内部契约（升级即碎），而 `$DSH_HOME/storages` 是后端单元命名空间，
+     也不能塞私货。
+  2. `$DSH_HOME` 是 DSH 的**数据根**（sessions/logs/skills/plugins 都在下面），不是用户目录；插件在这里放
+     自己的子目录是本生态既有做法：`dsh-team-mesh` → `$DSH_HOME/team/team.db`、
+     `dsh-opencode-go-router` → `$DSH_HOME/storages/opencode-router/state.json`。
+  3. 插件安装目录（profile 的 `node_modules`）会被重装/覆盖，不能当数据目录。
+
+### 测试与生效
+
+- `node --test tools/continuity.test.mjs`：19 条（continuity 正常/节流/丢失/重建/损坏/读取失败；digest
+  聚合/幂等/过去归档/降级/非法日期/partial；context 活会话/冷会话/无 tokenMeter/无用量；三条路由真接线）。
+- **Host 侧 `lib/` 改动需要重启一次 DSH 才生效**（页面文件改动刷新即可）。重启前页面请求三条新路由会落到
+  `api/*` 的 JSON 404（旧 Host），页面需自行容忍。
+- 回滚：还原 `lib/index.js`、`package.json`、`README.md` 的备份
+  （`*.bak-before-110-<时间戳>`），删除 `lib/butler-continuity.js`、`lib/butler-state.js`、
+  `tools/continuity.test.mjs`、`$DSH_HOME/dsh-html-panel/`，然后重启 DSH。
+
+---
+
 ## 0.9.0 改了什么（中栏：系统注入折叠 + 回复流式）
 
 > 依据：`big-butler-upgrade/streaming-collapse-research.md`（只读调研报告）。

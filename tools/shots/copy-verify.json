@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-28T03:22:17.804Z",
+  "generatedAt": "2026-11-28T12:13:51.333Z",
   "source": "~/dsh-plugins/dsh-html-panel",
   "installedCopy": "~/.dsh/profiles/desktop/node_modules/dsh-html-panel",
   "profileDir": "~/.dsh/profiles/desktop",
@@ -10,7 +10,7 @@
     "selfReport": "tools/shots/copy-verify.json",
     "errors": []
   },
-  "comparedFiles": 127,
+  "comparedFiles": 142,
   "mismatched": 0,
   "missingInDestination": [],
   "extraInDestination": [],
@@ -25,9 +25,9 @@
     },
     {
       "path": "cordis.patch.yml",
-      "bytes": 693,
-      "sha256": "e88d2998eb15c39f7ad023d334dc6bdd84a00ed4ae23fe8a74549484ea2f4b52",
-      "destinationSha256": "e88d2998eb15c39f7ad023d334dc6bdd84a00ed4ae23fe8a74549484ea2f4b52",
+      "bytes": 4171,
+      "sha256": "5564c28719376b497272eb2a415a099bf16ffc70f7b23b733516de586e6b4158",
+      "destinationSha256": "5564c28719376b497272eb2a415a099bf16ffc70f7b23b733516de586e6b4158",
       "identical": true
     },
     {
@@ -109,9 +109,93 @@
     },
     {
       "path": "lib/index.js",
-      "bytes": 46077,
-      "sha256": "48822f1010488271dee2ac885ad09828cfb0c2fdd410efb8a07b09f96d429247",
-      "destinationSha256": "48822f1010488271dee2ac885ad09828cfb0c2fdd410efb8a07b09f96d429247",
+      "bytes": 47876,
+      "sha256": "4396433ba6c3ddf1fa27a329f317c15e65f1f1c8c43aea9e6a48bc03d583a2f9",
+      "destinationSha256": "4396433ba6c3ddf1fa27a329f317c15e65f1f1c8c43aea9e6a48bc03d583a2f9",
+      "identical": true
+    },
+    {
+      "path": "lib/iroh-link/front.js",
+      "bytes": 4254,
+      "sha256": "f947ffd56fbdce0b3a0ab225bf3482a20dd4cdb00d728c4ba41fa3a833baca83",
+      "destinationSha256": "f947ffd56fbdce0b3a0ab225bf3482a20dd4cdb00d728c4ba41fa3a833baca83",
+      "identical": true
+    },
+    {
+      "path": "lib/iroh-link/index.js",
+      "bytes": 19706,
+      "sha256": "7b5fbe879bafae3d181379d3a06fe771b230e1b770bebf1a51852100279d60dc",
+      "destinationSha256": "7b5fbe879bafae3d181379d3a06fe771b230e1b770bebf1a51852100279d60dc",
+      "identical": true
+    },
+    {
+      "path": "lib/iroh-link/iroh-host.ps1",
+      "bytes": 6250,
+      "sha256": "c5a9dc45f41c91659c2b2fec239a13a37886930ca58a51c4198b32c4290d92b8",
+      "destinationSha256": "c5a9dc45f41c91659c2b2fec239a13a37886930ca58a51c4198b32c4290d92b8",
+      "identical": true
+    },
+    {
+      "path": "lib/iroh-link/run-host.cmd",
+      "bytes": 342,
+      "sha256": "fa7bdaaabd232e789c03fef1ff1cd93818d3e8c4120169147bb33ad5a9d156ce",
+      "destinationSha256": "fa7bdaaabd232e789c03fef1ff1cd93818d3e8c4120169147bb33ad5a9d156ce",
+      "identical": true
+    },
+    {
+      "path": "lib/iroh-link/shared.js",
+      "bytes": 11632,
+      "sha256": "16565ea037f2e1331ce9d1121448d80c045ea6472fec1074420aba5abcbe059b",
+      "destinationSha256": "16565ea037f2e1331ce9d1121448d80c045ea6472fec1074420aba5abcbe059b",
+      "identical": true
+    },
+    {
+      "path": "lib/iroh-link/transports/frp.js",
+      "bytes": 4593,
+      "sha256": "c0faf367dee95f4870f71abe7aada03bd111f4c7882ffbb3a79f7a3aca756fce",
+      "destinationSha256": "c0faf367dee95f4870f71abe7aada03bd111f4c7882ffbb3a79f7a3aca756fce",
+      "identical": true
+    },
+    {
+      "path": "lib/iroh-link/transports/iroh.js",
+      "bytes": 4685,
+      "sha256": "e2ee9b3a6aca47ccfecd170d6865dedcc5333f4d60f8094305f45383486c226e",
+      "destinationSha256": "e2ee9b3a6aca47ccfecd170d6865dedcc5333f4d60f8094305f45383486c226e",
+      "identical": true
+    },
+    {
+      "path": "lib/iroh-link/transports/ssh.js",
+      "bytes": 3106,
+      "sha256": "2f6927ad92ff3f48d5ca139e5669b8068b412f734db0d6ca1e4bf967ee464f8c",
+      "destinationSha256": "2f6927ad92ff3f48d5ca139e5669b8068b412f734db0d6ca1e4bf967ee464f8c",
+      "identical": true
+    },
+    {
+      "path": "lib/iroh-link/vendor/iroh/LICENSE-APACHE",
+      "bytes": 519,
+      "sha256": "7ee92352fcac2b427c4754822087d0aeb3afc99951b71bd15cc4c2e5c61c1b60",
+      "destinationSha256": "7ee92352fcac2b427c4754822087d0aeb3afc99951b71bd15cc4c2e5c61c1b60",
+      "identical": true
+    },
+    {
+      "path": "lib/iroh-link/vendor/iroh/LICENSE-MIT",
+      "bytes": 1045,
+      "sha256": "b801c8d677ef9701149e05cf98f28b82a56832dd67c94d96d36d25d063b1b353",
+      "destinationSha256": "b801c8d677ef9701149e05cf98f28b82a56832dd67c94d96d36d25d063b1b353",
+      "identical": true
+    },
+    {
+      "path": "lib/iroh-link/vendor/iroh/README.md",
+      "bytes": 1098,
+      "sha256": "f95e9e3f3230007d4673d2623a6edd37a077a5f6e11be2deae67160e7f0c0ff9",
+      "destinationSha256": "f95e9e3f3230007d4673d2623a6edd37a077a5f6e11be2deae67160e7f0c0ff9",
+      "identical": true
+    },
+    {
+      "path": "lib/iroh-link/vendor/iroh/dumbpipe.exe",
+      "bytes": 5549568,
+      "sha256": "7d6edef3f30c98499c36166748f7190a93ed74a2be4e01fe9daa889730d05c6f",
+      "destinationSha256": "7d6edef3f30c98499c36166748f7190a93ed74a2be4e01fe9daa889730d05c6f",
       "identical": true
     },
     {
@@ -158,16 +242,16 @@
     },
     {
       "path": "package.json",
-      "bytes": 3248,
-      "sha256": "0199b2872a047f8b54b57738ebf3a9dabf925f4cdbfdde95b88ff03e9fbfddeb",
-      "destinationSha256": "0199b2872a047f8b54b57738ebf3a9dabf925f4cdbfdde95b88ff03e9fbfddeb",
+      "bytes": 3269,
+      "sha256": "4e493d62ca4fce70b78bee8a6add48f31982be8c0c27d8ec300f0ce33a0c0449",
+      "destinationSha256": "4e493d62ca4fce70b78bee8a6add48f31982be8c0c27d8ec300f0ce33a0c0449",
       "identical": true
     },
     {
       "path": "public/index.html",
       "bytes": 328173,
-      "sha256": "9f368bdf46821a3ad924c84c7817b0e6d7b316fb88b75a4a75d273554a011d7d",
-      "destinationSha256": "9f368bdf46821a3ad924c84c7817b0e6d7b316fb88b75a4a75d273554a011d7d",
+      "sha256": "839c3a5eab1beedf54e1c8ff0f5ed0f9af968aed33014fb455876f36c705bf32",
+      "destinationSha256": "839c3a5eab1beedf54e1c8ff0f5ed0f9af968aed33014fb455876f36c705bf32",
       "identical": true
     },
     {
@@ -215,8 +299,8 @@
     {
       "path": "tools/butler.test.mjs",
       "bytes": 79464,
-      "sha256": "c84b7244bb1e52673d7f712c5e1a56117130774738a80e730a6838fb2b144b20",
-      "destinationSha256": "c84b7244bb1e52673d7f712c5e1a56117130774738a80e730a6838fb2b144b20",
+      "sha256": "918b5daae3436ed6672a338fbe78bc6db52f721c0f5478707b2ea6500f073c1a",
+      "destinationSha256": "918b5daae3436ed6672a338fbe78bc6db52f721c0f5478707b2ea6500f073c1a",
       "identical": true
     },
     {
@@ -236,8 +320,8 @@
     {
       "path": "tools/cdp-butler.mjs",
       "bytes": 100139,
-      "sha256": "b73602e22c4c22e5d9fd875f91869027a5e695da82bf63aa8fdbdae4988ae527",
-      "destinationSha256": "b73602e22c4c22e5d9fd875f91869027a5e695da82bf63aa8fdbdae4988ae527",
+      "sha256": "a99874d757db17f1f71ac613fcb4a39a20e2354796f0a6aa6d9975a5047f21eb",
+      "destinationSha256": "a99874d757db17f1f71ac613fcb4a39a20e2354796f0a6aa6d9975a5047f21eb",
       "identical": true
     },
     {
@@ -250,8 +334,8 @@
     {
       "path": "tools/check-page.mjs",
       "bytes": 51500,
-      "sha256": "1ca2bc3f3ece7748d713fd22bcd34871341731385c1ddb5104343e76b274d680",
-      "destinationSha256": "1ca2bc3f3ece7748d713fd22bcd34871341731385c1ddb5104343e76b274d680",
+      "sha256": "03fda61359b46785cdbcf422f9245791881a158580933293e150b1491632ea8b",
+      "destinationSha256": "03fda61359b46785cdbcf422f9245791881a158580933293e150b1491632ea8b",
       "identical": true
     },
     {
@@ -263,9 +347,9 @@
     },
     {
       "path": "tools/cluster.test.mjs",
-      "bytes": 17740,
-      "sha256": "b4000b12a9f7091cdcaba359f3a3ee4a34165982d0435a20e1b8275762de12ef",
-      "destinationSha256": "b4000b12a9f7091cdcaba359f3a3ee4a34165982d0435a20e1b8275762de12ef",
+      "bytes": 17765,
+      "sha256": "318b702fdf8958cbd7f4c0022753aa6c5529eaaaba211c412b9ca3a64dc9457d",
+      "destinationSha256": "318b702fdf8958cbd7f4c0022753aa6c5529eaaaba211c412b9ca3a64dc9457d",
       "identical": true
     },
     {
@@ -294,6 +378,20 @@
       "bytes": 4230,
       "sha256": "f0e1c1a40527f37fd06ef44ae7e7d28b6c92e62224738e52de0296039645aba1",
       "destinationSha256": "f0e1c1a40527f37fd06ef44ae7e7d28b6c92e62224738e52de0296039645aba1",
+      "identical": true
+    },
+    {
+      "path": "tools/iroh-link.integration.test.mjs",
+      "bytes": 8588,
+      "sha256": "8f1bae05a9f2fb6bb387ff4f774e1bdd53ffbf88a1be9458b234f93ccee8d34c",
+      "destinationSha256": "8f1bae05a9f2fb6bb387ff4f774e1bdd53ffbf88a1be9458b234f93ccee8d34c",
+      "identical": true
+    },
+    {
+      "path": "tools/iroh-link.test.mjs",
+      "bytes": 30230,
+      "sha256": "a5245c91d80ec64ef4a7cb8aadae51c731ce3cbdd4dfe525fdc74ad0485d4eb8",
+      "destinationSha256": "a5245c91d80ec64ef4a7cb8aadae51c731ce3cbdd4dfe525fdc74ad0485d4eb8",
       "identical": true
     },
     {
@@ -896,6 +994,13 @@
       "bytes": 37720,
       "sha256": "01b03f0c4225f59fe0e5ff881de9ac5bb389703ace642cb18d49a1633244ffa6",
       "destinationSha256": "01b03f0c4225f59fe0e5ff881de9ac5bb389703ace642cb18d49a1633244ffa6",
+      "identical": true
+    },
+    {
+      "path": "tools/traj-live-probe.mjs",
+      "bytes": 19213,
+      "sha256": "f67cfd899f2ca072e75c5059396c69b76e0f0441ea9391b59814676699104451",
+      "destinationSha256": "f67cfd899f2ca072e75c5059396c69b76e0f0441ea9391b59814676699104451",
       "identical": true
     },
     {

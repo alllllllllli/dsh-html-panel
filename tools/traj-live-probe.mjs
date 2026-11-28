@@ -196,7 +196,7 @@ try {
   log('--- A) 初始状态（对话 tab） ---')
   log(JSON.stringify(facts.facts.before, null, 2))
 
-  check('页面服务的是 0.9.8（#sfVer）', /v0\.9\.8/.test(facts.facts.before.sfVer), facts.facts.before.sfVer)
+  check('页面服务的是 1.1.0（#sfVer）', /v1\.1\.0/.test(facts.facts.before.sfVer), facts.facts.before.sfVer)
   check('初始在对话 tab（轨迹容器隐藏）', facts.facts.before.dialogueVisible === true && facts.facts.before.trajHidden === true)
 
   log('--- B) 真实指针点「轨迹」tab ---')

@@ -1,0 +1,862 @@
+{
+  "page": "public/index.html",
+  "scenarios": [
+    {
+      "name": "standalone-file",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "boot": [
+          "initNav:ok",
+          "restorePanelState:ok",
+          "initActions:ok",
+          "initWriteChannel:ok",
+          "initComposerModel:ok",
+          "initBoardTabs:ok",
+          "initDialogueTabs:ok",
+          "initButlerDialog:ok",
+          "initTodos:ok",
+          "initTierInteractions:ok",
+          "initDrawer:ok",
+          "initDialogPointerGuard:ok",
+          "resetDrawer:ok",
+          "renderTopology:ok",
+          "setTopoBadge:ok",
+          "renderButler:ok",
+          "renderDialog:ok",
+          "renderMemory:ok",
+          "renderChrome:ok",
+          "renderBoardModule:ok",
+          "renderThreeQuestions:ok",
+          "renderHostModule:ok",
+          "renderContinuity:ok",
+          "renderContext:ok",
+          "markState:ok"
+        ],
+        "page": "butler",
+        "activeNav": "butler",
+        "trajectorySelected": "false",
+        "traceTrajectoryHidden": true,
+        "statusExpanded": "false",
+        "statusDetailHidden": true,
+        "sessionPick": "",
+        "bindMode": "绑定需重启后生效",
+        "statusSummary": "有 5 项降级",
+        "unread": {
+          "hidden": true,
+          "text": "",
+          "count": null
+        },
+        "contUptime": "常驻 未知",
+        "contRebuild": "重建 未知",
+        "context": {
+          "text": "上下文 未知",
+          "tone": "muted",
+          "title": "api/butler/context 不可用（上下文预算未知）：Failed to fetch"
+        },
+        "restoreNote": {
+          "hidden": true,
+          "text": ""
+        },
+        "digest": {
+          "hidden": true,
+          "body": "",
+          "meta": ""
+        },
+        "dialogEmpty": "真实对话不可用：Failed to fetch",
+        "thread": {
+          "top": 0,
+          "height": 681,
+          "client": 681
+        },
+        "panelErrors": [],
+        "viewport": {
+          "w": 1440,
+          "h": 1000,
+          "scrollWidth": 1440
+        }
+      },
+      "shot": "tools/shots/shot-continuity-00-standalone-file-1440.png"
+    },
+    {
+      "name": "restored-dialogue",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "boot": [
+          "initNav:ok",
+          "restorePanelState:ok",
+          "initActions:ok",
+          "initWriteChannel:ok",
+          "initComposerModel:ok",
+          "initBoardTabs:ok",
+          "initDialogueTabs:ok",
+          "initButlerDialog:ok",
+          "initTodos:ok",
+          "initTierInteractions:ok",
+          "initDrawer:ok",
+          "initDialogPointerGuard:ok",
+          "resetDrawer:ok",
+          "renderTopology:ok",
+          "setTopoBadge:ok",
+          "renderButler:ok",
+          "renderDialog:ok",
+          "renderMemory:ok",
+          "renderChrome:ok",
+          "renderBoardModule:ok",
+          "renderThreeQuestions:ok",
+          "renderHostModule:ok",
+          "renderContinuity:ok",
+          "renderContext:ok",
+          "markState:ok"
+        ],
+        "page": "butler",
+        "activeNav": "butler",
+        "trajectorySelected": "false",
+        "traceTrajectoryHidden": true,
+        "statusExpanded": "true",
+        "statusDetailHidden": false,
+        "sessionPick": "session-restored",
+        "bindMode": "手动选择",
+        "statusSummary": "有 1 项降级 · 在管 1 个活 · 板 1 任务",
+        "unread": {
+          "hidden": false,
+          "text": "20",
+          "count": "20"
+        },
+        "contUptime": "常驻 3 小时 25 分",
+        "contRebuild": "重建 2 次",
+        "context": {
+          "text": "上下文 85%",
+          "tone": "warn",
+          "title": "上下文预算 85000/100000（85%） · 已超过 80%，注意压缩"
+        },
+        "restoreNote": {
+          "hidden": true,
+          "text": ""
+        },
+        "digest": {
+          "hidden": true,
+          "body": "",
+          "meta": ""
+        },
+        "dialogEmpty": "正在读取真实会话对话…",
+        "thread": {
+          "top": 0,
+          "height": 1128,
+          "client": 539
+        },
+        "panelErrors": [],
+        "viewport": {
+          "w": 1440,
+          "h": 1000,
+          "scrollWidth": 1440
+        }
+      },
+      "shot": "tools/shots/shot-continuity-01-restored-1440.png"
+    },
+    {
+      "name": "restored-trajectory",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "boot": [
+          "initNav:ok",
+          "restorePanelState:ok",
+          "initActions:ok",
+          "initWriteChannel:ok",
+          "initComposerModel:ok",
+          "initBoardTabs:ok",
+          "initDialogueTabs:ok",
+          "initButlerDialog:ok",
+          "initTodos:ok",
+          "initTierInteractions:ok",
+          "initDrawer:ok",
+          "initDialogPointerGuard:ok",
+          "resetDrawer:ok",
+          "renderTopology:ok",
+          "setTopoBadge:ok",
+          "renderButler:ok",
+          "renderDialog:ok",
+          "renderMemory:ok",
+          "renderChrome:ok",
+          "renderBoardModule:ok",
+          "renderThreeQuestions:ok",
+          "renderHostModule:ok",
+          "renderContinuity:ok",
+          "renderContext:ok",
+          "markState:ok"
+        ],
+        "page": "butler",
+        "activeNav": "butler",
+        "trajectorySelected": "true",
+        "traceTrajectoryHidden": false,
+        "statusExpanded": "true",
+        "statusDetailHidden": false,
+        "sessionPick": "session-restored",
+        "bindMode": "手动选择",
+        "statusSummary": "有 1 项降级 · 在管 1 个活 · 板 1 任务",
+        "unread": {
+          "hidden": false,
+          "text": "20",
+          "count": "20"
+        },
+        "contUptime": "常驻 3 小时 25 分",
+        "contRebuild": "重建 2 次",
+        "context": {
+          "text": "上下文 85%",
+          "tone": "warn",
+          "title": "上下文预算 85000/100000（85%） · 已超过 80%，注意压缩"
+        },
+        "restoreNote": {
+          "hidden": true,
+          "text": ""
+        },
+        "digest": {
+          "hidden": true,
+          "body": "",
+          "meta": ""
+        },
+        "dialogEmpty": "正在读取真实会话对话…",
+        "thread": {
+          "top": 0,
+          "height": 1688,
+          "client": 539
+        },
+        "panelErrors": [],
+        "viewport": {
+          "w": 1440,
+          "h": 1000,
+          "scrollWidth": 1440
+        }
+      },
+      "shot": "tools/shots/shot-continuity-02-restored-trajectory-1440.png"
+    },
+    {
+      "name": "page-tasks-unread",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "boot": [
+          "initNav:ok",
+          "restorePanelState:ok",
+          "initActions:ok",
+          "initWriteChannel:ok",
+          "initComposerModel:ok",
+          "initBoardTabs:ok",
+          "initDialogueTabs:ok",
+          "initButlerDialog:ok",
+          "initTodos:ok",
+          "initTierInteractions:ok",
+          "initDrawer:ok",
+          "initDialogPointerGuard:ok",
+          "resetDrawer:ok",
+          "renderTopology:ok",
+          "setTopoBadge:ok",
+          "renderButler:ok",
+          "renderDialog:ok",
+          "renderMemory:ok",
+          "renderChrome:ok",
+          "renderBoardModule:ok",
+          "renderThreeQuestions:ok",
+          "renderHostModule:ok",
+          "renderContinuity:ok",
+          "renderContext:ok",
+          "markState:ok"
+        ],
+        "page": "tasks",
+        "activeNav": "tasks",
+        "trajectorySelected": "false",
+        "traceTrajectoryHidden": true,
+        "statusExpanded": "false",
+        "statusDetailHidden": true,
+        "sessionPick": "session-restored",
+        "bindMode": "手动选择",
+        "statusSummary": "有 1 项降级 · 在管 1 个活 · 板 1 任务",
+        "unread": {
+          "hidden": false,
+          "text": "20",
+          "count": "20"
+        },
+        "contUptime": "常驻 3 小时 25 分",
+        "contRebuild": "重建 2 次",
+        "context": {
+          "text": "上下文 85%",
+          "tone": "warn",
+          "title": "上下文预算 85000/100000（85%） · 已超过 80%，注意压缩"
+        },
+        "restoreNote": {
+          "hidden": true,
+          "text": ""
+        },
+        "digest": {
+          "hidden": true,
+          "body": "",
+          "meta": ""
+        },
+        "dialogEmpty": "正在读取真实会话对话…",
+        "thread": {
+          "top": 0,
+          "height": 0,
+          "client": 0
+        },
+        "panelErrors": [],
+        "viewport": {
+          "w": 1440,
+          "h": 1000,
+          "scrollWidth": 1440
+        }
+      },
+      "shot": "tools/shots/shot-continuity-03-page-restored-unread-1440.png"
+    },
+    {
+      "name": "invalid-fallback",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "boot": [
+          "initNav:ok",
+          "restorePanelState:ok",
+          "initActions:ok",
+          "initWriteChannel:ok",
+          "initComposerModel:ok",
+          "initBoardTabs:ok",
+          "initDialogueTabs:ok",
+          "initButlerDialog:ok",
+          "initTodos:ok",
+          "initTierInteractions:ok",
+          "initDrawer:ok",
+          "initDialogPointerGuard:ok",
+          "resetDrawer:ok",
+          "renderTopology:ok",
+          "setTopoBadge:ok",
+          "renderButler:ok",
+          "renderDialog:ok",
+          "renderMemory:ok",
+          "renderChrome:ok",
+          "renderBoardModule:ok",
+          "renderThreeQuestions:ok",
+          "renderHostModule:ok",
+          "renderContinuity:ok",
+          "renderContext:ok",
+          "markState:ok"
+        ],
+        "page": "butler",
+        "activeNav": "butler",
+        "trajectorySelected": "false",
+        "traceTrajectoryHidden": true,
+        "statusExpanded": "false",
+        "statusDetailHidden": true,
+        "sessionPick": "",
+        "bindMode": "配置固定 · 专属会话",
+        "statusSummary": "有 1 项降级 · 在管 1 个活 · 板 1 任务",
+        "unread": {
+          "hidden": true,
+          "text": "",
+          "count": null
+        },
+        "contUptime": "常驻 3 小时 25 分",
+        "contRebuild": "重建 2 次",
+        "context": {
+          "text": "上下文 85%",
+          "tone": "warn",
+          "title": "上下文预算 85000/100000（85%） · 已超过 80%，注意压缩"
+        },
+        "restoreNote": {
+          "hidden": false,
+          "text": "恢复提示：上次停留的页面「nowhere」已不存在 → 已回退「大管家」；上次的页签「tabs-that-do-not-exist」已不存在 → 已回退「对话」；状态条展开态记录无效（maybe）→ 已回退收起；上次查看的会话已不在会话清单里（session-dead）→ 已回退自动绑定"
+        },
+        "digest": {
+          "hidden": true,
+          "body": "",
+          "meta": ""
+        },
+        "dialogEmpty": "正在读取真实会话对话…",
+        "thread": {
+          "top": 543,
+          "height": 1200,
+          "client": 657
+        },
+        "panelErrors": [],
+        "viewport": {
+          "w": 1440,
+          "h": 1000,
+          "scrollWidth": 1440
+        }
+      },
+      "shot": "tools/shots/shot-continuity-04-invalid-fallback-1440.png"
+    },
+    {
+      "name": "api-404-degrade",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "boot": [
+          "initNav:ok",
+          "restorePanelState:ok",
+          "initActions:ok",
+          "initWriteChannel:ok",
+          "initComposerModel:ok",
+          "initBoardTabs:ok",
+          "initDialogueTabs:ok",
+          "initButlerDialog:ok",
+          "initTodos:ok",
+          "initTierInteractions:ok",
+          "initDrawer:ok",
+          "initDialogPointerGuard:ok",
+          "resetDrawer:ok",
+          "renderTopology:ok",
+          "setTopoBadge:ok",
+          "renderButler:ok",
+          "renderDialog:ok",
+          "renderMemory:ok",
+          "renderChrome:ok",
+          "renderBoardModule:ok",
+          "renderThreeQuestions:ok",
+          "renderHostModule:ok",
+          "renderContinuity:ok",
+          "renderContext:ok",
+          "markState:ok"
+        ],
+        "page": "butler",
+        "activeNav": "butler",
+        "trajectorySelected": "true",
+        "traceTrajectoryHidden": false,
+        "statusExpanded": "true",
+        "statusDetailHidden": false,
+        "sessionPick": "",
+        "bindMode": "手动选择",
+        "statusSummary": "有 5 项降级",
+        "unread": {
+          "hidden": true,
+          "text": "",
+          "count": null
+        },
+        "contUptime": "常驻 未知",
+        "contRebuild": "重建 未知",
+        "context": {
+          "text": "上下文 未知",
+          "tone": "muted",
+          "title": "api/butler/context 不可用（上下文预算未知）：HTTP 404"
+        },
+        "restoreNote": {
+          "hidden": true,
+          "text": ""
+        },
+        "digest": {
+          "hidden": false,
+          "body": "暂无归档：api/butler/digest 路由尚未加载（HTTP 404）—— 面板其余功能不受影响，Host 半生效后再看。",
+          "meta": "api/butler/digest · 不可用"
+        },
+        "dialogEmpty": "真实对话路由尚未加载（HTTP 404）：0.8.0 Host 需重启 DSH 后生效（M0/M1/M2 一起加载）。在此之前中栏不显示任何示例对话。",
+        "thread": {
+          "top": 0,
+          "height": 446,
+          "client": 446
+        },
+        "panelErrors": [],
+        "viewport": {
+          "w": 1440,
+          "h": 1000,
+          "scrollWidth": 1440
+        }
+      },
+      "shot": "tools/shots/shot-continuity-05-api-404-degrade-1440.png"
+    },
+    {
+      "name": "route-unavailable-degrade",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "view": {
+        "boot": [
+          "initNav:ok",
+          "restorePanelState:ok",
+          "initActions:ok",
+          "initWriteChannel:ok",
+          "initComposerModel:ok",
+          "initBoardTabs:ok",
+          "initDialogueTabs:ok",
+          "initButlerDialog:ok",
+          "initTodos:ok",
+          "initTierInteractions:ok",
+          "initDrawer:ok",
+          "initDialogPointerGuard:ok",
+          "resetDrawer:ok",
+          "renderTopology:ok",
+          "setTopoBadge:ok",
+          "renderButler:ok",
+          "renderDialog:ok",
+          "renderMemory:ok",
+          "renderChrome:ok",
+          "renderBoardModule:ok",
+          "renderThreeQuestions:ok",
+          "renderHostModule:ok",
+          "renderContinuity:ok",
+          "renderContext:ok",
+          "markState:ok"
+        ],
+        "page": "butler",
+        "activeNav": "butler",
+        "trajectorySelected": "false",
+        "traceTrajectoryHidden": true,
+        "statusExpanded": "true",
+        "statusDetailHidden": false,
+        "sessionPick": "session-restored",
+        "bindMode": "手动选择",
+        "statusSummary": "有 1 项降级 · 在管 1 个活 · 板 1 任务",
+        "unread": {
+          "hidden": false,
+          "text": "23",
+          "count": "23"
+        },
+        "contUptime": "常驻 未知",
+        "contRebuild": "重建 未知",
+        "context": {
+          "text": "上下文 未知",
+          "tone": "muted",
+          "title": "api/butler/context 不可用：DSH 没有可用的 tokenMeter 服务（token-meter 未挂载）：拒绝估算（上下文预算未知）"
+        },
+        "restoreNote": {
+          "hidden": true,
+          "text": ""
+        },
+        "digest": {
+          "hidden": false,
+          "body": "暂无归档：数据源都不可用：共享板 / 层级 / 告警都读不到（不估算）",
+          "meta": "api/butler/digest · 不可用"
+        },
+        "dialogEmpty": "正在读取真实会话对话…",
+        "thread": {
+          "top": 0,
+          "height": 1200,
+          "client": 426
+        },
+        "panelErrors": [],
+        "viewport": {
+          "w": 1440,
+          "h": 1000,
+          "scrollWidth": 1440
+        }
+      },
+      "shot": "tools/shots/shot-continuity-06-route-unavailable-1440.png"
+    }
+  ],
+  "checks": [
+    {
+      "label": "独立文件：页面照常渲染（默认大管家页）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "独立文件：状态条有降级摘要",
+      "ok": true,
+      "detail": "有 5 项降级"
+    },
+    {
+      "label": "独立文件：常驻降级为未知",
+      "ok": true,
+      "detail": "常驻 未知"
+    },
+    {
+      "label": "独立文件：上下文降级为未知",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "独立文件：对话区写明数据源不可用",
+      "ok": true,
+      "detail": "真实对话不可用：Failed to fetch"
+    },
+    {
+      "label": "恢复：restorePanelState 初始化成功",
+      "ok": true,
+      "detail": "initNav:ok,restorePanelState:ok,initActions:ok,initWriteChannel:ok,initComposerModel:ok,initBoardTabs:ok,initDialogueTabs:ok,initButlerDialo"
+    },
+    {
+      "label": "恢复：停留在上次的大管家页",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "恢复：状态条展开态还原（data-expanded=true）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "恢复：状态条详情面板可见",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "恢复：会话选择器还原为上次会话",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "恢复：绑定条标明手动选择",
+      "ok": true,
+      "detail": "手动选择"
+    },
+    {
+      "label": "恢复：对话 tab 选中",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "恢复：滚动位置在顶部而非自动贴底",
+      "ok": true,
+      "detail": "{\"top\":0,\"height\":1128,\"client\":539}"
+    },
+    {
+      "label": "未读：游标 100 对比窗口 101–120 → 20 条",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "未读：徽标带 data-count",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "常驻：运行时长来自 api/butler/continuity",
+      "ok": true,
+      "detail": "常驻 3 小时 25 分"
+    },
+    {
+      "label": "常驻：最近重建次数",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "上下文：85% 显示百分比",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "上下文：超过 80% 标 warn",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "恢复：没有失效记录时不显示恢复提示",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "页面无 JS 报错（恢复场景）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "布局：无横向溢出",
+      "ok": true,
+      "detail": "{\"w\":1440,\"h\":1000,\"scrollWidth\":1440}"
+    },
+    {
+      "label": "恢复：上次页签是轨迹就回到轨迹",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "恢复：轨迹面板可见",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "恢复：轨迹 tab 下未读仍然保留（未看对话）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "恢复：回到上次停留的任务页",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "恢复：状态条收起态还原",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "未读：在别的页时 nav 上保留未读数",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "未读：徽标可见",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "未读：不在大管家页时也会随新消息增长（20 → 23）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "未读：切到大管家页后清零（页恢复为 butler）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "未读：清零后徽标隐藏",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "失效：页回退大管家",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "失效：会话回退自动绑定（picker 空值）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "失效：恢复提示可见",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "失效：说明页已回退原因",
+      "ok": true,
+      "detail": "恢复提示：上次停留的页面「nowhere」已不存在 → 已回退「大管家」；上次的页签「tabs-that-do-not-exist」已不存在 → 已回退「对话」；状态条展开态记录无效（maybe）→ 已回退收起；上次查看的会话已不在会话清单里（session-dead）→ 已回退"
+    },
+    {
+      "label": "失效：说明页签已回退原因",
+      "ok": true,
+      "detail": "恢复提示：上次停留的页面「nowhere」已不存在 → 已回退「大管家」；上次的页签「tabs-that-do-not-exist」已不存在 → 已回退「对话」；状态条展开态记录无效（maybe）→ 已回退收起；上次查看的会话已不在会话清单里（session-dead）→ 已回退"
+    },
+    {
+      "label": "失效：说明状态条记录无效",
+      "ok": true,
+      "detail": "恢复提示：上次停留的页面「nowhere」已不存在 → 已回退「大管家」；上次的页签「tabs-that-do-not-exist」已不存在 → 已回退「对话」；状态条展开态记录无效（maybe）→ 已回退收起；上次查看的会话已不在会话清单里（session-dead）→ 已回退"
+    },
+    {
+      "label": "失效：说明会话已失效并回退自动绑定",
+      "ok": true,
+      "detail": "恢复提示：上次停留的页面「nowhere」已不存在 → 已回退「大管家」；上次的页签「tabs-that-do-not-exist」已不存在 → 已回退「对话」；状态条展开态记录无效（maybe）→ 已回退收起；上次查看的会话已不在会话清单里（session-dead）→ 已回退"
+    },
+    {
+      "label": "页面无 JS 报错（失效回退场景）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "404：常驻时长降级「未知」",
+      "ok": true,
+      "detail": "常驻 未知"
+    },
+    {
+      "label": "404：重建次数降级「未知」",
+      "ok": true,
+      "detail": "重建 未知"
+    },
+    {
+      "label": "404：上下文 pill 降级「未知」",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "404：上下文降级为 muted",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "404：对话区如实说明路由未加载",
+      "ok": true,
+      "detail": "真实对话路由尚未加载（HTTP 404）：0.8.0 Host 需重启 DSH 后生效（M0/M1/M2 一起加载）。在此之前中栏不显示任何示例对话。"
+    },
+    {
+      "label": "404：未读徽标不显示假值",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "404：今日归档浮层已打开",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "404：今日归档说明暂无归档",
+      "ok": true,
+      "detail": "暂无归档：api/butler/digest 路由尚未加载（HTTP 404）—— 面板其余功能不受影响，Host 半生效后再看。"
+    },
+    {
+      "label": "404：今日归档写明路由未加载",
+      "ok": true,
+      "detail": "暂无归档：api/butler/digest 路由尚未加载（HTTP 404）—— 面板其余功能不受影响，Host 半生效后再看。"
+    },
+    {
+      "label": "页面无 JS 报错（404 降级场景）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "降级：打开归档浮层前后滚动位置不变（恢复位置不被抢）",
+      "ok": true,
+      "detail": "{\"before\":{\"top\":0,\"height\":1200,\"client\":539},\"after\":{\"top\":0,\"height\":1200,\"client\":426}}"
+    },
+    {
+      "label": "降级：continuity ok:false → 常驻未知",
+      "ok": true,
+      "detail": "常驻 未知"
+    },
+    {
+      "label": "降级：continuity ok:false → 重建未知",
+      "ok": true,
+      "detail": "重建 未知"
+    },
+    {
+      "label": "降级：context ok:false → 上下文未知",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "降级：context 未冒充 0%",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "降级：今日归档浮层已打开",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "降级：digest ok:false → 暂无归档",
+      "ok": true,
+      "detail": "暂无归档：数据源都不可用：共享板 / 层级 / 告警都读不到（不估算）"
+    },
+    {
+      "label": "降级：digest 写明宿主降级原因",
+      "ok": true,
+      "detail": "暂无归档：数据源都不可用：共享板 / 层级 / 告警都读不到（不估算）"
+    },
+    {
+      "label": "页面无 JS 报错（200+ok:false 降级场景）",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "label": "运行期无页面 JS 异常（Runtime.exceptionThrown + 非网络 console）",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "pageErrors": [],
+  "ok": true
+}

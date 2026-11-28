@@ -387,6 +387,6 @@ test('inject 同时声明 webServer 与 interconnect；注册 prefix + exact act
   for (const route of host.registrations.filter(item => item.kind === 'exact')) {
     assert.equal(typeof route.handler, 'function')
   }
-  assert.equal(host.effects.length, 8) // prefix + 6 exact + hub dispose effect
+  assert.equal(host.effects.length, 9) // prefix + 6 exact + hub dispose effect + iroh 承载（1.0.0）
   for (const effect of host.effects) assert.match(effect, /dsh-html-panel/)
 })
