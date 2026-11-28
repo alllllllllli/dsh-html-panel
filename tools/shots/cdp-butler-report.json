@@ -4,7 +4,7 @@
     "width": 1440,
     "height": 1000
   },
-  "generatedAt": "2026-11-28T02:06:29.506Z",
+  "generatedAt": "2026-11-28T03:17:15.747Z",
   "checks": [
     {
       "name": "页面标题是大管家",
@@ -322,6 +322,96 @@
       "detail": "actual=true expected=true"
     },
     {
+      "name": "轨迹 tab 可见 / 对话 tab 隐藏",
+      "ok": true,
+      "detail": "actual=\"true/false\" expected=\"true/false\""
+    },
+    {
+      "name": "轨迹数据源徽标可见",
+      "ok": true,
+      "detail": "actual=false expected=false"
+    },
+    {
+      "name": "轨迹数据源写明 api/butler/dialog",
+      "ok": true,
+      "detail": "needle=api/butler/dialog"
+    },
+    {
+      "name": "轨迹统计行=真实轮数",
+      "ok": true,
+      "detail": "needle=共 1 轮"
+    },
+    {
+      "name": "轨迹统计行=真实步数",
+      "ok": true,
+      "detail": "needle=2 步"
+    },
+    {
+      "name": "轨迹统计行=工具调用次数",
+      "ok": true,
+      "detail": "needle=2 次工具调用"
+    },
+    {
+      "name": "轨迹统计行=失败次数",
+      "ok": true,
+      "detail": "needle=0 次失败"
+    },
+    {
+      "name": "轨迹按 turn 分组 + 无 turn 尾段",
+      "ok": true,
+      "detail": "actual=\"第 1 轮,第 1 段\" expected=\"第 1 轮,第 1 段\""
+    },
+    {
+      "name": "轨迹条目数=5 消息 + 2 工具（按 seq 排序）",
+      "ok": true,
+      "detail": "actual=7 expected=7"
+    },
+    {
+      "name": "轨迹工具条目带真实工具名",
+      "ok": true,
+      "detail": "actual=\"read,bash\" expected=\"read,bash\""
+    },
+    {
+      "name": "轨迹工具条目带状态徽标",
+      "ok": true,
+      "detail": "needle=完成"
+    },
+    {
+      "name": "轨迹工具条目布局完整（两行都在卡内，未被 .tool 图标样式压扁）",
+      "ok": true,
+      "detail": "{\"liH\":56,\"liW\":680,\"summaryH\":42,\"rows\":2,\"displays\":[\"flex\",\"flex\"],\"lastBottom\":49}"
+    },
+    {
+      "name": "轨迹降级说明写明部分步骤缺 turn",
+      "ok": true,
+      "detail": "needle=数据降级"
+    },
+    {
+      "name": "轨迹降级说明写明不补齐轮次号",
+      "ok": true,
+      "detail": "needle=不补齐"
+    },
+    {
+      "name": "轨迹里不再出现「M2 未接入」占位",
+      "ok": true,
+      "detail": "数据源：api/butler/dialog 真实事件（按 seq 去重）· 只读\n              共 1 轮·2 步·2 次工具调用·0 次失败\n "
+    },
+    {
+      "name": "切到轨迹后页面 JS 无新报错",
+      "ok": true,
+      "detail": "actual=0 expected=0"
+    },
+    {
+      "name": "切回对话 tab：轨迹隐藏 / 对话可见",
+      "ok": true,
+      "detail": "actual=\"false/true\" expected=\"false/true\""
+    },
+    {
+      "name": "切回对话 tab：对话消息与工具卡未受影响",
+      "ok": true,
+      "detail": "actual=\"5/2\" expected=\"5/2\""
+    },
+    {
       "name": "任务页可见",
       "ok": true,
       "detail": "actual=\"tasks\" expected=\"tasks\""
@@ -437,9 +527,9 @@
       "detail": "actual=\"settings\" expected=\"settings\""
     },
     {
-      "name": "设置页插件版本 0.9.7",
+      "name": "设置页插件版本 0.9.8",
       "ok": true,
-      "detail": "actual=\"0.9.7\" expected=\"0.9.7\""
+      "detail": "actual=\"0.9.8\" expected=\"0.9.8\""
     },
     {
       "name": "设置页驾驶舱状态显示真实绑定",
@@ -698,6 +788,26 @@
     },
     {
       "name": "404 时加载更早消息按钮隐藏",
+      "ok": true,
+      "detail": "actual=true expected=true"
+    },
+    {
+      "name": "对话 404 时轨迹空态可见且 0 条目",
+      "ok": true,
+      "detail": "actual=\"true/0/0\" expected=\"true/0/0\""
+    },
+    {
+      "name": "轨迹 404 空态写明路由未加载",
+      "ok": true,
+      "detail": "needle=404"
+    },
+    {
+      "name": "轨迹 404 空态写明需重启 / 不显示示例轨迹",
+      "ok": true,
+      "detail": "needle=示例轨迹"
+    },
+    {
+      "name": "轨迹 404 时统计行隐藏（不显示假统计）",
       "ok": true,
       "detail": "actual=true expected=true"
     },
@@ -1244,12 +1354,13 @@
     {
       "name": "截图数量 ≥ 5",
       "ok": true,
-      "detail": "shots=36"
+      "detail": "shots=37"
     }
   ],
   "shots": [
     "tools/shots/shot-butler-01-dashboard-1440.png",
     "tools/shots/shot-butler07-dialog-1440.png",
+    "tools/shots/shot-butler-16-trajectory-1440.png",
     "tools/shots/shot-butler-02-tasks-1440.png",
     "tools/shots/shot-butler07-tasks-1440.png",
     "tools/shots/shot-butler-14-official-board-1440.png",
@@ -1456,5 +1567,5 @@
   ],
   "ok": true,
   "failed": 0,
-  "passed": 248
+  "passed": 270
 }

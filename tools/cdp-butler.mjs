@@ -206,7 +206,7 @@ const DIALOG_REAL = {
   messages: [
     { seq: 9, role: 'user', time: new Date(NOW - 9 * 60000).toISOString(), text: '按 M0+M1 把中栏换成真实会话对话，右栏用真实状态；写通道先不开。' },
     { seq: 10, role: 'notice', time: new Date(NOW - 8 * 60000).toISOString(), text: '系统注入上下文（fixture）：AGENTS.md 规则摘要…', injected: true, source: 'context' },
-    { seq: 11, role: 'assistant', time: new Date(NOW - 7 * 60000).toISOString(), text: '先读可行性报告，再落地 lib/butler.js 的两个只读路由（M0/M1）。', thinking: '口径：只读、不重启 DSH、不编对话；工具输出只留摘要。', tools: [
+    { seq: 11, role: 'assistant', turn: 1, step: 1, time: new Date(NOW - 7 * 60000).toISOString(), text: '先读可行性报告，再落地 lib/butler.js 的两个只读路由（M0/M1）。', thinking: '口径：只读、不重启 DSH、不编对话；工具输出只留摘要。', tools: [
       { seq: 12, callId: 'call-1', name: 'read', args: '{"file_path":"big-butler-upgrade/butler-cockpit-feasibility.md"}', result: { summary: '224 行 · 真实 API 文件:行 与限制已核对', isError: false } },
       { seq: 14, callId: 'call-2', name: 'bash', args: 'node --test tools/butler.test.mjs', result: { summary: '25 tests · 25 pass · 0 fail', isError: false } }
     ] },
@@ -652,6 +652,7 @@ const PAGE_STATE = `(() => {
     visiblePages: ['butler','tasks','cluster','memory','settings'].filter(p => q('#page-' + p) && !q('#page-' + p).hidden),
     dialog: {
       title: txt('#sessTitle'),
+      visible: q('#traceDialogue') ? !q('#traceDialogue').hidden : false,
       stateText: txt('#dlgStateText'),
       bindMode: txt('#bindMode'),
       empty: q('#dialogEmpty') ? !q('#dialogEmpty').hidden : false,
@@ -695,6 +696,41 @@ const PAGE_STATE = `(() => {
       sendDisabled: q('#sendBtn') ? q('#sendBtn').disabled === true : false,
       composerRo: q('#composerRo') ? txt('#composerRo') : '',
       composerValue: q('#prompt') ? q('#prompt').value : ''
+    },
+    traj: {
+      visible: q('#traceTrajectory') ? !q('#traceTrajectory').hidden : false,
+      badge: txt('#trajBadgeText'),
+      badgeHidden: q('#trajBadge') ? q('#trajBadge').hidden : true,
+      stats: txt('#trajStats'),
+      statsHidden: q('#trajStats') ? q('#trajStats').hidden : true,
+      note: txt('#trajNote'),
+      noteHidden: q('#trajNote') ? q('#trajNote').hidden : true,
+      empty: q('#trajEmpty') ? !q('#trajEmpty').hidden : false,
+      emptyText: txt('#trajEmpty'),
+      groups: qa('#trajGroups .tj-group').length,
+      heads: qa('#trajGroups .tj-gh b').map(el => el.textContent.trim()),
+      items: qa('#trajGroups .tj-item').length,
+      toolNames: qa('#trajGroups .tj-k.tool-name').map(el => el.textContent.trim()),
+      toolStates: qa('#trajGroups .tj-item .r-state').map(el => el.textContent.trim()),
+      toolBox: (() => {
+        const li = q('#trajGroups .tj-item.tj-tool')
+        if (!li) return null
+        const summary = li.querySelector('summary')
+        const rows = Array.from(summary.querySelectorAll(':scope > .tj-row'))
+        const lr = li.getBoundingClientRect()
+        const last = rows.length ? rows[rows.length - 1].getBoundingClientRect() : null
+        return {
+          liH: Math.round(lr.height),
+          liW: Math.round(lr.width),
+          summaryH: Math.round(summary.getBoundingClientRect().height),
+          rows: rows.length,
+          displays: rows.map(row => getComputedStyle(row).display),
+          lastBottom: last ? Math.round(last.bottom - lr.top) : 0
+        }
+      })(),
+      failItems: qa('#trajGroups .tj-item.fail').length,
+      noticeRows: qa('#trajGroups .tj-item .tj-fold').length,
+      text: txt('#traceTrajectory')
     },
     confirm: { visible: q('#confirmMask') ? !q('#confirmMask').hidden : false, target: txt('#confirmTarget'), preview: txt('#confirmPreview') },
     statusDetail: q('#statusDetail') ? !q('#statusDetail').hidden : false,
@@ -1042,6 +1078,38 @@ async function main() {
     await shot('shot-butler-01-dashboard-1440.png')
     await shot('shot-butler07-dialog-1440.png')
 
+    /* 0.9.8：轨迹 tab 用同一份真实对话数据（api/butler/dialog）渲染时间线，
+       不是占位。fixture 里第 1 个 assistant 带 turn/step、第 2 个不带 → 同时验证
+       「按轮分组」与「缺 turn 降级成第 N 段 + 页面写明原因」。 */
+    const errorsBeforeTraj = s.errors.length
+    await click('#tab-trajectory')
+    await waitFor('(() => { const el = document.getElementById("traceTrajectory"); const g = document.getElementById("trajGroups"); return !!el && !el.hidden && !!g && !g.hidden && g.querySelectorAll(".tj-item").length > 0; })()', 5000, 'trajectory rendered')
+    s = await state()
+    eq('轨迹 tab 可见 / 对话 tab 隐藏', [s.traj.visible, s.dialog.visible].join('/'), 'true/false')
+    eq('轨迹数据源徽标可见', s.traj.badgeHidden, false)
+    has('轨迹数据源写明 api/butler/dialog', s.traj.badge, 'api/butler/dialog')
+    has('轨迹统计行=真实轮数', s.traj.stats, '共 1 轮')
+    has('轨迹统计行=真实步数', s.traj.stats, '2 步')
+    has('轨迹统计行=工具调用次数', s.traj.stats, '2 次工具调用')
+    has('轨迹统计行=失败次数', s.traj.stats, '0 次失败')
+    eq('轨迹按 turn 分组 + 无 turn 尾段', s.traj.heads.join(','), '第 1 轮,第 1 段')
+    eq('轨迹条目数=5 消息 + 2 工具（按 seq 排序）', s.traj.items, 7)
+    eq('轨迹工具条目带真实工具名', s.traj.toolNames.join(','), 'read,bash')
+    has('轨迹工具条目带状态徽标', s.traj.toolStates.join(','), '完成')
+    ck('轨迹工具条目布局完整（两行都在卡内，未被 .tool 图标样式压扁）',
+      !!s.traj.toolBox && s.traj.toolBox.rows === 2 && s.traj.toolBox.displays.every(d => d === 'flex') &&
+      s.traj.toolBox.liH >= s.traj.toolBox.summaryH && s.traj.toolBox.liW > 200 && s.traj.toolBox.lastBottom <= s.traj.toolBox.liH,
+      JSON.stringify(s.traj.toolBox))
+    has('轨迹降级说明写明部分步骤缺 turn', s.traj.note, '数据降级')
+    has('轨迹降级说明写明不补齐轮次号', s.traj.note, '不补齐')
+    ck('轨迹里不再出现「M2 未接入」占位', !s.traj.text.includes('M2 未接入'), s.traj.text.slice(0, 80))
+    eq('切到轨迹后页面 JS 无新报错', s.errors.length, errorsBeforeTraj)
+    await shot('shot-butler-16-trajectory-1440.png')
+    await click('#tab-dialogue')
+    s = await state()
+    eq('切回对话 tab：轨迹隐藏 / 对话可见', [s.traj.visible, s.dialog.visible].join('/'), 'false/true')
+    eq('切回对话 tab：对话消息与工具卡未受影响', [s.dialog.messages, s.dialog.toolCards].join('/'), '5/2')
+
     // 页面 2：任务
     await selectPage('tasks')
     s = await state()
@@ -1097,7 +1165,7 @@ async function main() {
     await selectPage('settings')
     s = await state()
     eq('设置页可见', s.visiblePages.join(','), 'settings')
-    eq('设置页插件版本 0.9.7', s.settings.version, '0.9.7')
+    eq('设置页插件版本 0.9.8', s.settings.version, '0.9.8')
     has('设置页驾驶舱状态显示真实绑定', s.settings.butler, '绑定')
     has('设置页驾驶舱状态说明只读', s.settings.butler, '只读')
     has('设置页官方任务板数据源可见', s.settingsOfficial, '可用 · 2 任务 · 1 个团队')
@@ -1229,6 +1297,15 @@ async function main() {
     has('对话 404 时提示需要重启', s.dialog.emptyText, '重启')
     eq('404 时绑定方式写明需重启生效', s.dialog.bindMode, '绑定需重启后生效')
     eq('404 时加载更早消息按钮隐藏', s.dialog.earlierHidden, true)
+    /* 0.9.8：对话路由 404 时轨迹也必须诚实空态（不编任何轨迹）。 */
+    await click('#tab-trajectory')
+    s = await state()
+    eq('对话 404 时轨迹空态可见且 0 条目', [s.traj.empty, s.traj.items, s.traj.groups].join('/'), 'true/0/0')
+    has('轨迹 404 空态写明路由未加载', s.traj.emptyText, '404')
+    has('轨迹 404 空态写明需重启 / 不显示示例轨迹', s.traj.emptyText, '示例轨迹')
+    eq('轨迹 404 时统计行隐藏（不显示假统计）', s.traj.statsHidden, true)
+    await click('#tab-dialogue')
+    s = await state()
     has('404 时右栏说明是层级快照', s.tier.hhDesc, '层级快照')
     has('设置页写明驾驶舱路由未加载', s.settings.butler, '404')
     await shot('shot-butler-15-m0-404-1440.png')

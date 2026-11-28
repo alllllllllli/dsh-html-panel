@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-28T02:14:50.553Z",
+  "generatedAt": "2026-11-28T03:22:17.804Z",
   "source": "~/dsh-plugins/dsh-html-panel",
   "installedCopy": "~/.dsh/profiles/desktop/node_modules/dsh-html-panel",
   "profileDir": "~/.dsh/profiles/desktop",
@@ -10,7 +10,7 @@
     "selfReport": "tools/shots/copy-verify.json",
     "errors": []
   },
-  "comparedFiles": 126,
+  "comparedFiles": 127,
   "mismatched": 0,
   "missingInDestination": [],
   "extraInDestination": [],
@@ -159,15 +159,15 @@
     {
       "path": "package.json",
       "bytes": 3248,
-      "sha256": "504942fb5280d674a5e27c07c4a48bb7c286b129c55e882798ac3c4d1416ea63",
-      "destinationSha256": "504942fb5280d674a5e27c07c4a48bb7c286b129c55e882798ac3c4d1416ea63",
+      "sha256": "0199b2872a047f8b54b57738ebf3a9dabf925f4cdbfdde95b88ff03e9fbfddeb",
+      "destinationSha256": "0199b2872a047f8b54b57738ebf3a9dabf925f4cdbfdde95b88ff03e9fbfddeb",
       "identical": true
     },
     {
       "path": "public/index.html",
-      "bytes": 306118,
-      "sha256": "bea956568431811b6da99b730ead84906b7e8f163b4d164bce645c53154f688c",
-      "destinationSha256": "bea956568431811b6da99b730ead84906b7e8f163b4d164bce645c53154f688c",
+      "bytes": 328173,
+      "sha256": "9f368bdf46821a3ad924c84c7817b0e6d7b316fb88b75a4a75d273554a011d7d",
+      "destinationSha256": "9f368bdf46821a3ad924c84c7817b0e6d7b316fb88b75a4a75d273554a011d7d",
       "identical": true
     },
     {
@@ -215,8 +215,8 @@
     {
       "path": "tools/butler.test.mjs",
       "bytes": 79464,
-      "sha256": "bd1ceca831c9dc643cd34a1948fb13008858aed489f8ef71134232f1f5b65d34",
-      "destinationSha256": "bd1ceca831c9dc643cd34a1948fb13008858aed489f8ef71134232f1f5b65d34",
+      "sha256": "c84b7244bb1e52673d7f712c5e1a56117130774738a80e730a6838fb2b144b20",
+      "destinationSha256": "c84b7244bb1e52673d7f712c5e1a56117130774738a80e730a6838fb2b144b20",
       "identical": true
     },
     {
@@ -235,9 +235,9 @@
     },
     {
       "path": "tools/cdp-butler.mjs",
-      "bytes": 95101,
-      "sha256": "c014019ecfef610307545922bf0d3c76a43041b2ea96559f8cecca79320f3fa6",
-      "destinationSha256": "c014019ecfef610307545922bf0d3c76a43041b2ea96559f8cecca79320f3fa6",
+      "bytes": 100139,
+      "sha256": "b73602e22c4c22e5d9fd875f91869027a5e695da82bf63aa8fdbdae4988ae527",
+      "destinationSha256": "b73602e22c4c22e5d9fd875f91869027a5e695da82bf63aa8fdbdae4988ae527",
       "identical": true
     },
     {
@@ -249,9 +249,9 @@
     },
     {
       "path": "tools/check-page.mjs",
-      "bytes": 50660,
-      "sha256": "9e550d7a0b959eadf3b014e93e06bc0c30ec733607f5a2f9daab3cd8b4f7376b",
-      "destinationSha256": "9e550d7a0b959eadf3b014e93e06bc0c30ec733607f5a2f9daab3cd8b4f7376b",
+      "bytes": 51500,
+      "sha256": "1ca2bc3f3ece7748d713fd22bcd34871341731385c1ddb5104343e76b274d680",
+      "destinationSha256": "1ca2bc3f3ece7748d713fd22bcd34871341731385c1ddb5104343e76b274d680",
       "identical": true
     },
     {
@@ -375,9 +375,9 @@
     },
     {
       "path": "tools/shots/cdp-butler-report.json",
-      "bytes": 38613,
-      "sha256": "75a5a603a6b124cc7375b788e2d1423cd466d096f21d1fd701435e79dfb27b9d",
-      "destinationSha256": "75a5a603a6b124cc7375b788e2d1423cd466d096f21d1fd701435e79dfb27b9d",
+      "bytes": 41864,
+      "sha256": "950031ad292b48538e1044cb33c071121ba376f6eaad60f11eeae554056eaa5d",
+      "destinationSha256": "950031ad292b48538e1044cb33c071121ba376f6eaad60f11eeae554056eaa5d",
       "identical": true
     },
     {
@@ -564,219 +564,226 @@
     },
     {
       "path": "tools/shots/shot-butler-01-dashboard-1440.png",
-      "bytes": 164358,
-      "sha256": "99dc009d1b73361fb359be697573535c19268336b9c84d54137971d6803aba94",
-      "destinationSha256": "99dc009d1b73361fb359be697573535c19268336b9c84d54137971d6803aba94",
+      "bytes": 164420,
+      "sha256": "56a4ee52f680495b494f70994e13f2325121508ed659b16c1fd270724775fb8a",
+      "destinationSha256": "56a4ee52f680495b494f70994e13f2325121508ed659b16c1fd270724775fb8a",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-02-tasks-1440.png",
-      "bytes": 165372,
-      "sha256": "4725d8b0e2a6c51390a009579b5a9cfc8b33f902ab1198372f19603209be1037",
-      "destinationSha256": "4725d8b0e2a6c51390a009579b5a9cfc8b33f902ab1198372f19603209be1037",
+      "bytes": 165419,
+      "sha256": "f4b38f28f7de087878f06b23725114ef8663f0b640f60aebb3f20e72920a410c",
+      "destinationSha256": "f4b38f28f7de087878f06b23725114ef8663f0b640f60aebb3f20e72920a410c",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-03-cluster-1440.png",
-      "bytes": 125667,
-      "sha256": "a215939ac18a0c1639220adaf3801ea022f116a9003847bbceeffbf952c0d119",
-      "destinationSha256": "a215939ac18a0c1639220adaf3801ea022f116a9003847bbceeffbf952c0d119",
+      "bytes": 125713,
+      "sha256": "10b8e25c2be988f69e5aea3ff8b75ddc0d63e873fe2903f6b69439af425706ea",
+      "destinationSha256": "10b8e25c2be988f69e5aea3ff8b75ddc0d63e873fe2903f6b69439af425706ea",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-04-memory-1440.png",
-      "bytes": 125723,
-      "sha256": "179ffb0550dc8ba60abce8990f840303b6e5b962b348ff3087fb7f9eed093163",
-      "destinationSha256": "179ffb0550dc8ba60abce8990f840303b6e5b962b348ff3087fb7f9eed093163",
+      "bytes": 125770,
+      "sha256": "4bc3db992f3d4ce61e858035c6ddbe65e47e50fa604779d04af38d5cd48b7921",
+      "destinationSha256": "4bc3db992f3d4ce61e858035c6ddbe65e47e50fa604779d04af38d5cd48b7921",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-05-settings-1440.png",
-      "bytes": 161616,
-      "sha256": "c5054c33113b3e161d4c04d262711b4c5fc0a458ff8f4daf97c7694085dd04c6",
-      "destinationSha256": "c5054c33113b3e161d4c04d262711b4c5fc0a458ff8f4daf97c7694085dd04c6",
+      "bytes": 161840,
+      "sha256": "d85ce5246d651d6e6dac1f2f97d3682bb5a8565540054dc1d6a65ab0a19f8a38",
+      "destinationSha256": "d85ce5246d651d6e6dac1f2f97d3682bb5a8565540054dc1d6a65ab0a19f8a38",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-06-action-report-1440.png",
-      "bytes": 182922,
-      "sha256": "2f6e85801228d297f038a1a0399f1e0ee20093abb3b308d193c59bf6bbcb032c",
-      "destinationSha256": "2f6e85801228d297f038a1a0399f1e0ee20093abb3b308d193c59bf6bbcb032c",
+      "bytes": 182626,
+      "sha256": "306be4059265c93d4c03ef590ba4b1f3f1d0e8431ba8d8d3c422216ef0e3b2f1",
+      "destinationSha256": "306be4059265c93d4c03ef590ba4b1f3f1d0e8431ba8d8d3c422216ef0e3b2f1",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-07-action-unsupported-1440.png",
-      "bytes": 188283,
-      "sha256": "f7d4c59ebe9a558d2810b5a3c4f1c449fe874ed8cb70fa0ffbc58f5ae9a6304a",
-      "destinationSha256": "f7d4c59ebe9a558d2810b5a3c4f1c449fe874ed8cb70fa0ffbc58f5ae9a6304a",
+      "bytes": 187888,
+      "sha256": "2b51a32cdcf83c1a0919c1f0567ab145815dbc37715a401ed711380511a25499",
+      "destinationSha256": "2b51a32cdcf83c1a0919c1f0567ab145815dbc37715a401ed711380511a25499",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-08-tiers-selected-1440.png",
-      "bytes": 185011,
-      "sha256": "ff6ef4d253c32c078f9307bb47052432132367a10576d0159e9576c11e6fc46e",
-      "destinationSha256": "ff6ef4d253c32c078f9307bb47052432132367a10576d0159e9576c11e6fc46e",
+      "bytes": 184877,
+      "sha256": "f1994da3142ea7a614bb1a04fdda789ad56682a123b1814ac97392b7136e97e7",
+      "destinationSha256": "f1994da3142ea7a614bb1a04fdda789ad56682a123b1814ac97392b7136e97e7",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-09-narrow-900.png",
-      "bytes": 88709,
-      "sha256": "e6793ba99793a89849464b6e8ba780e576dcd9f2f9633f69e9d407b96e2bd77f",
-      "destinationSha256": "e6793ba99793a89849464b6e8ba780e576dcd9f2f9633f69e9d407b96e2bd77f",
+      "bytes": 88396,
+      "sha256": "23654b0e1e416df5a83c441ea39367f13b17c841b3853e8a06a723af798127aa",
+      "destinationSha256": "23654b0e1e416df5a83c441ea39367f13b17c841b3853e8a06a723af798127aa",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-10-narrow-900-drawer.png",
-      "bytes": 133467,
-      "sha256": "47571464c9a9635a4dcb1608de774075aa6c67743aa65171a9af3b99f94397cd",
-      "destinationSha256": "47571464c9a9635a4dcb1608de774075aa6c67743aa65171a9af3b99f94397cd",
+      "bytes": 133238,
+      "sha256": "aa1f6ce913e079be2c7021727ff7d946b329408c44015c35c1fb04fb85ded095",
+      "destinationSha256": "aa1f6ce913e079be2c7021727ff7d946b329408c44015c35c1fb04fb85ded095",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-11-tiers-degraded-1440.png",
-      "bytes": 93514,
-      "sha256": "b28e7b847aeda4d4fb246eb6c51dafc9f9393981288cdfcc36f18d343f0ff688",
-      "destinationSha256": "b28e7b847aeda4d4fb246eb6c51dafc9f9393981288cdfcc36f18d343f0ff688",
+      "bytes": 93565,
+      "sha256": "e9cb523027a32575de8bd8763805cfcd7be912f6ccc3ba57c2e8d621420bdd2b",
+      "destinationSha256": "e9cb523027a32575de8bd8763805cfcd7be912f6ccc3ba57c2e8d621420bdd2b",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-12-tiers-404-1440.png",
-      "bytes": 92450,
-      "sha256": "d802a3f14904b6d176534710075cd1ead1e9f5f72ca4aed98a6aa958f85a3ea2",
-      "destinationSha256": "d802a3f14904b6d176534710075cd1ead1e9f5f72ca4aed98a6aa958f85a3ea2",
+      "bytes": 92500,
+      "sha256": "a59752ab1658910a02e712c557b78a2ad8e479ffa526c5a55c0769149e746186",
+      "destinationSha256": "a59752ab1658910a02e712c557b78a2ad8e479ffa526c5a55c0769149e746186",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-13-mock-fallback-1440.png",
-      "bytes": 76255,
-      "sha256": "2972a040d6fecce9bad9d951712d833d791aa63256d890678ff8f5d5ad0ec4bc",
-      "destinationSha256": "2972a040d6fecce9bad9d951712d833d791aa63256d890678ff8f5d5ad0ec4bc",
+      "bytes": 76305,
+      "sha256": "2309cb566049fc6f5aba6f8a75a56c4ddef22348e8f729d3130beb0307e58aa2",
+      "destinationSha256": "2309cb566049fc6f5aba6f8a75a56c4ddef22348e8f729d3130beb0307e58aa2",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-14-official-board-1440.png",
-      "bytes": 173302,
-      "sha256": "39d99195f503d418f1eda6531d25c54002924863dce55275ee7964990397f90a",
-      "destinationSha256": "39d99195f503d418f1eda6531d25c54002924863dce55275ee7964990397f90a",
+      "bytes": 173347,
+      "sha256": "c1fce18e53be3993fc0e0e248d7df9818d94aa63f02d4b739ff169724cb37def",
+      "destinationSha256": "c1fce18e53be3993fc0e0e248d7df9818d94aa63f02d4b739ff169724cb37def",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler-15-m0-404-1440.png",
-      "bytes": 131589,
-      "sha256": "a018c4a002b7adfc23be7137d8b849be883d9978dd740f4100a5aa376e404b30",
-      "destinationSha256": "a018c4a002b7adfc23be7137d8b849be883d9978dd740f4100a5aa376e404b30",
+      "bytes": 131635,
+      "sha256": "8f186d8f9b47cf716252329f75b15a8ae620b079375f35f4662f02e6d7a9c82f",
+      "destinationSha256": "8f186d8f9b47cf716252329f75b15a8ae620b079375f35f4662f02e6d7a9c82f",
+      "identical": true
+    },
+    {
+      "path": "tools/shots/shot-butler-16-trajectory-1440.png",
+      "bytes": 191784,
+      "sha256": "edf8c40c42f2913264110bf2aa7f2fae50ed44ad9db4b993250e128926c99d69",
+      "destinationSha256": "edf8c40c42f2913264110bf2aa7f2fae50ed44ad9db4b993250e128926c99d69",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler07-dialog-1440.png",
-      "bytes": 164358,
-      "sha256": "99dc009d1b73361fb359be697573535c19268336b9c84d54137971d6803aba94",
-      "destinationSha256": "99dc009d1b73361fb359be697573535c19268336b9c84d54137971d6803aba94",
+      "bytes": 164420,
+      "sha256": "56a4ee52f680495b494f70994e13f2325121508ed659b16c1fd270724775fb8a",
+      "destinationSha256": "56a4ee52f680495b494f70994e13f2325121508ed659b16c1fd270724775fb8a",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler07-narrow-900.png",
-      "bytes": 88709,
-      "sha256": "e6793ba99793a89849464b6e8ba780e576dcd9f2f9633f69e9d407b96e2bd77f",
-      "destinationSha256": "e6793ba99793a89849464b6e8ba780e576dcd9f2f9633f69e9d407b96e2bd77f",
+      "bytes": 88396,
+      "sha256": "23654b0e1e416df5a83c441ea39367f13b17c841b3853e8a06a723af798127aa",
+      "destinationSha256": "23654b0e1e416df5a83c441ea39367f13b17c841b3853e8a06a723af798127aa",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler07-tasks-1440.png",
-      "bytes": 165372,
-      "sha256": "4725d8b0e2a6c51390a009579b5a9cfc8b33f902ab1198372f19603209be1037",
-      "destinationSha256": "4725d8b0e2a6c51390a009579b5a9cfc8b33f902ab1198372f19603209be1037",
+      "bytes": 165419,
+      "sha256": "f4b38f28f7de087878f06b23725114ef8663f0b640f60aebb3f20e72920a410c",
+      "destinationSha256": "f4b38f28f7de087878f06b23725114ef8663f0b640f60aebb3f20e72920a410c",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler08-confirm-1440.png",
-      "bytes": 149391,
-      "sha256": "9348b0ce7d7ed599bbf2a66f4a356553e8e31a6bf91d06bc2ac96f4d51c8e411",
-      "destinationSha256": "9348b0ce7d7ed599bbf2a66f4a356553e8e31a6bf91d06bc2ac96f4d51c8e411",
+      "bytes": 149431,
+      "sha256": "9bdfb28bf3505d8c84b5813c33ca5a01ae31189e282211468029bb45ebd68a5d",
+      "destinationSha256": "9bdfb28bf3505d8c84b5813c33ca5a01ae31189e282211468029bb45ebd68a5d",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler08-create-unbound-1440.png",
-      "bytes": 148357,
-      "sha256": "e5e94131c105fb75fdd266f1016b7246c02eadb1e0eef09a8d50cc1b1b6282db",
-      "destinationSha256": "e5e94131c105fb75fdd266f1016b7246c02eadb1e0eef09a8d50cc1b1b6282db",
+      "bytes": 148407,
+      "sha256": "ed61e12f8c34fb90b8c21ce8a7baa554bb8003d7bdf72cb9830b7385a60eee72",
+      "destinationSha256": "ed61e12f8c34fb90b8c21ce8a7baa554bb8003d7bdf72cb9830b7385a60eee72",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler08-narrow-900.png",
-      "bytes": 70243,
-      "sha256": "8bb7ea3410d5159756c7b9b62ac4b61be6a31ec279cf8c3d5237bd9b6d350c09",
-      "destinationSha256": "8bb7ea3410d5159756c7b9b62ac4b61be6a31ec279cf8c3d5237bd9b6d350c09",
+      "bytes": 70239,
+      "sha256": "6c590414acbdd8d9d0ac113a305d04ac4bfa08720ab275250c95270b5d245a4e",
+      "destinationSha256": "6c590414acbdd8d9d0ac113a305d04ac4bfa08720ab275250c95270b5d245a4e",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler08-rebuild-1440.png",
-      "bytes": 150541,
-      "sha256": "2e0dca1299f1fedbe87e706aad6c755cb2c3e571f43fab0dc92e9c92233c95ee",
-      "destinationSha256": "2e0dca1299f1fedbe87e706aad6c755cb2c3e571f43fab0dc92e9c92233c95ee",
+      "bytes": 150593,
+      "sha256": "2fe1ed313767066666f03030a39fd381c039c7927014e4580c71ee1fb652438a",
+      "destinationSha256": "2fe1ed313767066666f03030a39fd381c039c7927014e4580c71ee1fb652438a",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler08-status-collapsed-1440.png",
-      "bytes": 143480,
-      "sha256": "ee1ee68b227223deba563d089eb344db89d981d3723c53c3f090a8b7ac59ee32",
-      "destinationSha256": "ee1ee68b227223deba563d089eb344db89d981d3723c53c3f090a8b7ac59ee32",
+      "bytes": 143527,
+      "sha256": "eaddcaec07dee67ff73e68412374e96f076702a2c9254c464acd33625dcfc2d4",
+      "destinationSha256": "eaddcaec07dee67ff73e68412374e96f076702a2c9254c464acd33625dcfc2d4",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler08-status-expanded-1440.png",
-      "bytes": 186697,
-      "sha256": "9fa1c6b6d40c20800a42bd613a5c60d69b466065f65ea867a554eadde8e6daf2",
-      "destinationSha256": "9fa1c6b6d40c20800a42bd613a5c60d69b466065f65ea867a554eadde8e6daf2",
+      "bytes": 186746,
+      "sha256": "2df31bdf685815355d29eed080a519ca95090989190c9b8c6e2578e37a4fe9e9",
+      "destinationSha256": "2df31bdf685815355d29eed080a519ca95090989190c9b8c6e2578e37a4fe9e9",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler09-ctx-collapsed-1440.png",
-      "bytes": 143583,
-      "sha256": "0196b1156ce971f3d796d81971884bf014109f5d9f2f743a3415f104d5798dc0",
-      "destinationSha256": "0196b1156ce971f3d796d81971884bf014109f5d9f2f743a3415f104d5798dc0",
+      "bytes": 143628,
+      "sha256": "155a367fd8fd875b437b1ce47b36d3b7e7d7e6a66a5f3e8b43e664faa9e588a5",
+      "destinationSha256": "155a367fd8fd875b437b1ce47b36d3b7e7d7e6a66a5f3e8b43e664faa9e588a5",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler09-ctx-expanded-1440.png",
-      "bytes": 152216,
-      "sha256": "b8a63074681b0b03bea5482b8c9c5a9f25a9359354e55eb2ab2a2a22e822406b",
-      "destinationSha256": "b8a63074681b0b03bea5482b8c9c5a9f25a9359354e55eb2ab2a2a22e822406b",
+      "bytes": 152268,
+      "sha256": "f4a5292cf3c8b91d2df6f5de6a8c3159fcb9c26f3d68ed256afe0d553490dad9",
+      "destinationSha256": "f4a5292cf3c8b91d2df6f5de6a8c3159fcb9c26f3d68ed256afe0d553490dad9",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler09-stream-live-1440.png",
-      "bytes": 145179,
-      "sha256": "df03776e8b7f72a267651fdc96e9da0b5f1eec3c5b5e5a8e675cc0e80f681588",
-      "destinationSha256": "df03776e8b7f72a267651fdc96e9da0b5f1eec3c5b5e5a8e675cc0e80f681588",
+      "bytes": 145226,
+      "sha256": "b06f3e44ddeeaca30aaad4f32081d2cfa22728dd8b2419adf7d7dc4777541184",
+      "destinationSha256": "b06f3e44ddeeaca30aaad4f32081d2cfa22728dd8b2419adf7d7dc4777541184",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler09-stream-poll-1440.png",
-      "bytes": 145244,
-      "sha256": "582aebef5aa30fd050533b8dc382689a222bf4a6ab94b4495e05988260fca235",
-      "destinationSha256": "582aebef5aa30fd050533b8dc382689a222bf4a6ab94b4495e05988260fca235",
+      "bytes": 145290,
+      "sha256": "7bbc9c72a34b6e09be06eb15cd75fd9d4881ddba074f72c475390f1f258bc131",
+      "destinationSha256": "7bbc9c72a34b6e09be06eb15cd75fd9d4881ddba074f72c475390f1f258bc131",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler09-stream-reconnect-1440.png",
-      "bytes": 147491,
-      "sha256": "dd53c81b1c01f8d1d864130c23ae415d4e84f6f8b69defb19227986f37ab9bba",
-      "destinationSha256": "dd53c81b1c01f8d1d864130c23ae415d4e84f6f8b69defb19227986f37ab9bba",
+      "bytes": 147536,
+      "sha256": "c8e7c7767a1a63166f74ea3034d67079e4e8f2d90b377095ecbaf33a9c2560c1",
+      "destinationSha256": "c8e7c7767a1a63166f74ea3034d67079e4e8f2d90b377095ecbaf33a9c2560c1",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler09-stream-settled-1440.png",
-      "bytes": 145179,
-      "sha256": "df03776e8b7f72a267651fdc96e9da0b5f1eec3c5b5e5a8e675cc0e80f681588",
-      "destinationSha256": "df03776e8b7f72a267651fdc96e9da0b5f1eec3c5b5e5a8e675cc0e80f681588",
+      "bytes": 145226,
+      "sha256": "b06f3e44ddeeaca30aaad4f32081d2cfa22728dd8b2419adf7d7dc4777541184",
+      "destinationSha256": "b06f3e44ddeeaca30aaad4f32081d2cfa22728dd8b2419adf7d7dc4777541184",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler091-narrow-1000-realclick.png",
-      "bytes": 76012,
-      "sha256": "cb3e909381e0048d729624ef30f10624a34f037d259f5c2db89b71d5d25ee7d0",
-      "destinationSha256": "cb3e909381e0048d729624ef30f10624a34f037d259f5c2db89b71d5d25ee7d0",
+      "bytes": 76003,
+      "sha256": "ea8e31676e1931d2b5015f0f89023ac7d04b90bdffef9bd46085863e97c11b5c",
+      "destinationSha256": "ea8e31676e1931d2b5015f0f89023ac7d04b90bdffef9bd46085863e97c11b5c",
       "identical": true
     },
     {
@@ -788,37 +795,37 @@
     },
     {
       "path": "tools/shots/shot-butler092-model-menu-1440.png",
-      "bytes": 156898,
-      "sha256": "4e03040d089b9af80cbfff8df574aa953a073e9721ba9954a04f5d8e8e1dbc3f",
-      "destinationSha256": "4e03040d089b9af80cbfff8df574aa953a073e9721ba9954a04f5d8e8e1dbc3f",
+      "bytes": 156860,
+      "sha256": "767e3d9abd2300c0703735b26a8a764db0e187bd6d39c857ad8dbb999222e3cd",
+      "destinationSha256": "767e3d9abd2300c0703735b26a8a764db0e187bd6d39c857ad8dbb999222e3cd",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler092-model-switched-1440.png",
-      "bytes": 149261,
-      "sha256": "f0b3d84da60b71de712fc780f4c2435c9a3f90b3baac83d3c7ec0feea375eb04",
-      "destinationSha256": "f0b3d84da60b71de712fc780f4c2435c9a3f90b3baac83d3c7ec0feea375eb04",
+      "bytes": 149235,
+      "sha256": "051a1cf0f655919619d7c71a0f705ca2a04adc7167d3bc61dab62497707f9eb2",
+      "destinationSha256": "051a1cf0f655919619d7c71a0f705ca2a04adc7167d3bc61dab62497707f9eb2",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler094-effort-empty-1440.png",
-      "bytes": 155902,
-      "sha256": "529ddb0bc2cc66665a7151024562bf324e883a01535efd6b3765e6952a8efee1",
-      "destinationSha256": "529ddb0bc2cc66665a7151024562bf324e883a01535efd6b3765e6952a8efee1",
+      "bytes": 155867,
+      "sha256": "23f4769f3adbe41f36fe1207fbd231cad2998206f1c6bedc06d75a03524deb2c",
+      "destinationSha256": "23f4769f3adbe41f36fe1207fbd231cad2998206f1c6bedc06d75a03524deb2c",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler094-effort-menu-1440.png",
-      "bytes": 156898,
-      "sha256": "4e03040d089b9af80cbfff8df574aa953a073e9721ba9954a04f5d8e8e1dbc3f",
-      "destinationSha256": "4e03040d089b9af80cbfff8df574aa953a073e9721ba9954a04f5d8e8e1dbc3f",
+      "bytes": 156860,
+      "sha256": "767e3d9abd2300c0703735b26a8a764db0e187bd6d39c857ad8dbb999222e3cd",
+      "destinationSha256": "767e3d9abd2300c0703735b26a8a764db0e187bd6d39c857ad8dbb999222e3cd",
       "identical": true
     },
     {
       "path": "tools/shots/shot-butler094-effort-switched-1440.png",
-      "bytes": 149712,
-      "sha256": "2a54bb08848668d0c5abf356d4f5774a1c9da2936b6810764314c82097baf6da",
-      "destinationSha256": "2a54bb08848668d0c5abf356d4f5774a1c9da2936b6810764314c82097baf6da",
+      "bytes": 149690,
+      "sha256": "27673016a0ec730cc459eac6f543652b26d6ea404534ad75ea21464d93b690e8",
+      "destinationSha256": "27673016a0ec730cc459eac6f543652b26d6ea404534ad75ea21464d93b690e8",
       "identical": true
     },
     {

@@ -622,6 +622,42 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   font-size:11.5px;line-height:17px;color:var(--accent);
 }
 .demo-badge .i{width:13px;height:13px}
+.demo-badge[hidden]{display:none}
+
+/* ---------- 0.9.8：轨迹视图（真实事件时间线：统计行 + 轮/段分组 + 条目） ---------- */
+.tj{display:flex;flex-direction:column;gap:10px;min-width:0}
+.tj-stats{margin:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;line-height:18px;color:var(--label-tertiary)}
+.tj-stats b{color:var(--label-secondary);font-family:var(--mono);font-size:11.5px;font-weight:600}
+.tj-stats .tj-fail b{color:var(--red)}
+.tj-note{margin:0;padding:5px 9px;border-radius:var(--radius-sm);border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.07);font-size:11.5px;line-height:17px;color:var(--amber);overflow-wrap:anywhere}
+.tj-note[hidden]{display:none}
+.tj-empty{margin:0;font-size:12.5px;line-height:20px;color:var(--label-caption)}
+.tj-groups{display:flex;flex-direction:column;gap:14px;min-width:0}
+.tj-groups[hidden]{display:none}
+.tj-group{min-width:0;display:flex;flex-direction:column;gap:6px}
+.tj-gh{display:flex;align-items:baseline;gap:8px;min-width:0;padding-bottom:4px;border-bottom:1px solid var(--border-l1);font-size:12px;line-height:18px;color:var(--label-tertiary)}
+.tj-gh b{flex:0 0 auto;font-weight:600;color:var(--label-secondary);white-space:nowrap}
+.tj-gh .tj-gm{font-family:var(--mono);font-size:10.5px;color:var(--label-caption);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tj-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;min-width:0}
+.tj-item{min-width:0;padding:6px 10px;border:1px solid var(--border-l1);border-radius:var(--radius-sm);background:var(--bg-layer-1);font-size:12.5px;line-height:19px}
+.tj-item.tj-tool{background:var(--card-fill)}
+.tj-item.fail{border-color:rgba(242,90,90,.35);background:rgba(242,90,90,.05)}
+.tj-row{display:flex;align-items:baseline;gap:8px;min-width:0}
+.tj-t{flex:0 0 auto;font-family:var(--mono);font-size:10.5px;color:var(--label-caption)}
+.tj-k{flex:0 0 auto;font-size:11px;color:var(--label-tertiary);white-space:nowrap}
+.tj-k.tool-name{font-family:var(--mono);font-size:11px;color:var(--label-primary)}
+.tj-clamp{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--label-caption)}
+.tj-val{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;white-space:pre-wrap;color:var(--label-tertiary);font:400 11px/16px var(--mono)}
+.tj-text{overflow-wrap:anywhere;color:var(--label-secondary)}
+.tj-fold>summary{display:block;min-width:0;cursor:pointer;list-style:none}
+.tj-fold>summary::-webkit-details-marker{display:none}
+.tj-fold>summary:hover .tj-clamp{color:var(--label-tertiary)}
+.tj-fold .tj-body{max-height:170px;overflow:auto;margin:4px 0 0;padding:6px 8px;border-radius:6px;background:var(--bg-layer-2);color:var(--label-tertiary);font:400 11px/16px var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.tj-fold .tj-body.dlg-text{font:400 12px/18px var(--font);color:var(--label-secondary)}
+.tj-more{flex:0 0 auto;font-size:10.5px;color:var(--label-caption)}
+.tj-res{margin-top:3px;color:var(--label-caption);font-size:11.5px}
+.tj-item .think>summary{height:20px;gap:5px;font-size:12px}
+.tj-item .think-body{font-size:12px;line-height:18px}
 
 .traj{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
 .traj li{
@@ -1077,7 +1113,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     <div class="side-foot">
       <div class="sf-1"><i class="dot run" id="sfDot"></i><span id="sfText">本机在线</span><span class="sf-dev" id="sfDev">—</span></div>
       <div class="sf-sub" id="sfSub">链路数据载入中…</div>
-      <div class="sf-ver" id="sfVer" title="驾驶舱 · 写通道 M2 · 模型/档位 · 自诊断">v0.9.7 · 驾驶舱</div>
+      <div class="sf-ver" id="sfVer" title="驾驶舱 · 写通道 M2 · 模型/档位 · 自诊断">v0.9.8 · 驾驶舱</div>
     </div>
   </aside>
 
@@ -1164,7 +1200,13 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
             <p class="dialog-empty" id="dialogEmpty">正在读取真实会话对话…</p>
           </div>
           <div id="traceTrajectory" hidden>
-            <p class="demo-badge" id="trajBadge" title="当前只提供真实对话；工具调用已折叠在对话内，不伪造轨迹"><svg class="i" aria-hidden="true"><use href="#i-info"></use></svg>轨迹视图 · M2 未接入（不伪造轨迹）</p>
+            <div class="tj" id="trajView">
+              <p class="demo-badge" id="trajBadge" hidden title="轨迹来自宿主的真实会话事件（api/butler/dialog 归一化结果），不伪造步骤"><svg class="i" aria-hidden="true"><use href="#i-info"></use></svg><span id="trajBadgeText">数据源载入中…</span></p>
+              <p class="tj-stats" id="trajStats" hidden></p>
+              <p class="tj-note" id="trajNote" hidden></p>
+              <p class="tj-empty" id="trajEmpty">正在读取真实轨迹数据（api/butler/dialog）…</p>
+              <div class="tj-groups" id="trajGroups" hidden></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1337,7 +1379,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         <section class="card" aria-labelledby="set-h">
           <div class="card-h"><span id="set-h">版本与路由</span></div>
           <ul class="kv-list">
-            <li><b>插件版本</b><span class="mono" id="setVersion">0.9.7</span></li>
+            <li><b>插件版本</b><span class="mono" id="setVersion">0.9.8</span></li>
             <li><b>页面路由</b><span class="mono">/dsh-html-panel/</span></li>
             <li><b>只读数据路由</b><span class="mono">api/cluster · api/board · api/host · api/tiers · api/alerts · api/butler/sessions · api/butler/dialog</span></li>
             <li><b>驾驶舱（只读）</b><span id="setButler">—</span></li>
@@ -2449,7 +2491,7 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     if (pillHost) pillHost.textContent = host.pill;
 
     const setVersion = $('#setVersion');
-    if (setVersion) setVersion.textContent = '0.9.7';
+    if (setVersion) setVersion.textContent = '0.9.8';
     const setButler = $('#setButler');
     if (setButler) {
       const butler = state.butler;
@@ -5099,6 +5141,324 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
   }
 
   /* =====================================================================
+   * 0.9.8 轨迹视图：把 api/butler/dialog 的真实事件归一化结果画成时间线。
+   *
+   * 页面只读 public/、不能新增 Host 路由，所以轨迹只能从页面已有的
+   * state.dialog.messages（Host 侧 normalizeDialogEvents 的产物）算出来：
+   *   user / notice / assistant(thinking? · tools[]) / tool(tools[])
+   * 每条带 seq、time；assistant 可能带 turn / step / interrupted。
+   * 诚实口径（不伪造）：
+   *   - 轮 / 步 / 工具 / 失败逐条数出来，不估算；
+   *   - 有 turn 才按轮分组；Host 没给 turn 就按用户消息分块并写「第 N 段」，
+   *     同时把降级原因写在页面上；
+   *   - 空态 / 加载中 / 不可用各给一句真话，不做任何示例轨迹。
+   * ===================================================================== */
+  const TRAJ_TEXT_MAX = 260;      // 条目正文超过这个码点数就折叠
+  const TRAJ_SUMMARY_MAX = 120;   // 折叠 summary 的码点数
+  const TRAJ_ONE_LINE_MAX = 90;   // 工具参数/结果单行摘要的码点数
+  let trajSignature = '';         // 同 0.9.1 的思路：HTML 没变不写 DOM（保住已展开的折叠）
+
+  /** 单行摘要：压空白 + 按码点截断（不切坏 surrogate pair）。 */
+  function trajOneLine(value, max) {
+    const text = String(value === null || value === undefined ? '' : value).replace(/\s+/g, ' ').trim();
+    const points = Array.from(text);
+    return points.length > max ? points.slice(0, max).join('') + '…' : text;
+  }
+  /** 时间：有就 HH:MM，没有就如实写 —。 */
+  function trajClock(value) {
+    return fmtClock(value) || '—';
+  }
+  function trajSize(text) {
+    return Array.from(typeof text === 'string' ? text : '').length;
+  }
+  /** 正文：短的直出；长的折叠（summary 一行摘要，body 全文）。 */
+  function trajTextHtml(text) {
+    const source = typeof text === 'string' ? text : '';
+    if (source === '') return '';
+    if (trajSize(source) <= TRAJ_TEXT_MAX) return '<div class="tj-text dlg-text">' + esc(source) + '</div>';
+    return '<details class="tj-fold"><summary><span class="tj-row">' +
+      '<span class="tj-clamp">' + esc(trajOneLine(source, TRAJ_SUMMARY_MAX)) + '</span>' +
+      '<span class="tj-more">展开全文（' + trajSize(source) + ' 字符）</span></span></summary>' +
+      '<div class="tj-body dlg-text">' + esc(source) + '</div></details>';
+  }
+
+  /** 真实统计：轮 = turn 去重数；步 = assistant 消息数；工具/失败逐条数。 */
+  function trajStatsOf(messages) {
+    const turns = new Set();
+    const stats = { turns: 0, steps: 0, stepNoTurn: 0, stepNoStep: 0, tools: 0, fails: 0, partial: 0, segments: 0 };
+    messages.forEach(function (message) {
+      if (!message || typeof message !== 'object') return;
+      if (message.role === 'assistant') {
+        stats.steps += 1;
+        if (Number.isFinite(message.turn)) turns.add(message.turn);
+        else stats.stepNoTurn += 1;
+        if (!Number.isFinite(message.step)) stats.stepNoStep += 1;
+      }
+      const list = Array.isArray(message.tools) ? message.tools : [];
+      stats.tools += list.length;
+      list.forEach(function (tool) {
+        if (!tool || typeof tool !== 'object') return;
+        if (tool.partial === true) stats.partial += 1;
+        if (tool.result && typeof tool.result === 'object' && tool.result.isError === true) stats.fails += 1;
+      });
+    });
+    stats.turns = turns.size;
+    return stats;
+  }
+
+  /**
+   * 分组：assistant.turn 有值才按轮分；没有 turn 的消息归到「后面第一个带 turn 的助手」那轮；
+   * 再往后没有 turn 的尾部，按用户消息切成「第 N 段」。全部没有 turn 时整页都是段。
+   * 段号是本页序号，不是会话轮次号（页面上会写明）。
+   */
+  function trajGroupsOf(messages) {
+    const list = messages.filter(function (message) {
+      return message && typeof message === 'object' && typeof message.seq === 'number';
+    }).slice().sort(function (a, b) { return a.seq - b.seq; });
+    const turnOfSeq = new Map();
+    let nextTurn = null;
+    for (let i = list.length - 1; i >= 0; i -= 1) {
+      const message = list[i];
+      if (message.role === 'assistant' && Number.isFinite(message.turn)) nextTurn = message.turn;
+      turnOfSeq.set(message.seq, nextTurn);
+    }
+    const groups = [];
+    let current = null;
+    let segmentNo = 0;
+    list.forEach(function (message) {
+      const turn = turnOfSeq.get(message.seq);
+      if (Number.isFinite(turn)) {
+        if (!current || current.kind !== 'turn' || current.turn !== turn) {
+          current = { kind: 'turn', turn: turn, segment: 0, items: [] };
+          groups.push(current);
+        }
+      } else if (!current || current.kind !== 'segment' || message.role === 'user') {
+        segmentNo += 1;
+        current = { kind: 'segment', turn: null, segment: segmentNo, items: [] };
+        groups.push(current);
+      }
+      current.items.push(message);
+    });
+    return groups;
+  }
+
+  function trajToolStateOf(tool) {
+    const result = tool && tool.result && typeof tool.result === 'object' ? tool.result : null;
+    if (result === null) {
+      return tool && tool.partial === true
+        ? { text: '部分', cls: 'unsupported' }
+        : { text: '无结果', cls: 'unsupported' };
+    }
+    return result.isError === true ? { text: '失败', cls: 'fail' } : { text: '完成', cls: 'ok' };
+  }
+
+  function trajUserHtml(message) {
+    const text = typeof message.text === 'string' ? message.text : '';
+    return '<li class="tj-item"><div class="tj-row"><span class="tj-t">' + esc(trajClock(message.time)) +
+      '</span><span class="tj-k">你</span></div>' + trajTextHtml(text) + '</li>';
+  }
+
+  /** 系统注入：一行折叠条（标签 + summary + 行数/字符），展开看真实原文。 */
+  function trajNoticeHtml(message) {
+    const view = noticeView(message);
+    const text = typeof message.text === 'string' ? message.text : '';
+    const truncated = text.length > NOTICE_TEXT_MAX;
+    const shown = truncated ? text.slice(0, NOTICE_TEXT_MAX) : text;
+    const title = trajOneLine(view.label + (view.summary ? ' · ' + view.summary : ''), TRAJ_SUMMARY_MAX);
+    return '<li class="tj-item"><details class="tj-fold"><summary><span class="tj-row">' +
+      '<span class="tj-t">' + esc(trajClock(message.time)) + '</span><span class="tj-k">注入</span>' +
+      '<span class="tj-clamp" title="' + esc(title) + '">' + esc(title) + '</span>' +
+      '<span class="tj-more">' + esc(view.lines + ' 行 · ' + view.chars + ' 字符') + '</span></span></summary>' +
+      '<div class="tj-body dlg-text">' + esc(shown) +
+      (truncated ? '<span class="ctx-trunc-note">… 已截断，共 ' + view.chars + ' 字符</span>' : '') +
+      '</div></details></li>';
+  }
+
+  /** 助手步：有 step 才显示「步骤 N」；思考折叠；正文摘要。 */
+  function trajStepHtml(message) {
+    const text = typeof message.text === 'string' ? message.text : '';
+    const thinking = typeof message.thinking === 'string' ? message.thinking : '';
+    const stepLabel = Number.isFinite(message.step) ? '步骤 ' + message.step : '助手步骤（未给 step）';
+    let html = '<li class="tj-item"><div class="tj-row"><span class="tj-t">' + esc(trajClock(message.time)) +
+      '</span><span class="tj-k">' + esc(stepLabel) + '</span>' +
+      (message.interrupted === true ? '<span class="dlg-tag">已中断</span>' : '') + '</div>';
+    if (thinking !== '') {
+      html += '<details class="think"><summary><svg class="i" aria-hidden="true"><use href="#i-brain"></use></svg>' +
+        '<span title="' + esc(trajSize(thinking) + ' 字符') + '">思考</span></summary>' +
+        '<div class="think-body dlg-text">' + esc(thinking) + '</div></details>';
+    }
+    if (text !== '') html += trajTextHtml(text);
+    else if (thinking === '') html += '<div class="tj-text muted">（这一步没有可见文本）</div>';
+    return html + '</li>';
+  }
+
+  /** 工具调用：工具名 + args 单行 + 状态徽标 + 结果首行，展开看全参数/结果。 */
+  function trajToolHtml(tool, time) {
+    const row = tool && typeof tool === 'object' ? tool : {};
+    const result = row.result && typeof row.result === 'object' ? row.result : null;
+    const state = trajToolStateOf(row);
+    const args = typeof row.args === 'string' ? row.args : '';
+    const name = typeof row.name === 'string' && row.name !== '' ? row.name : '工具';
+    const resultText = result !== null
+      ? (typeof result.summary === 'string' && result.summary !== ''
+        ? result.summary
+        : (result.isError === true ? '工具报错（无摘要）' : '完成（无摘要）'))
+      : (row.partial === true ? '结果不在当前窗口（翻页从工具中间开始，只有结果）' : '未返回结果（可能在下一页窗口）');
+    let body = '<div class="tj-body">' +
+      '<div class="tj-row tj-field"><span class="tj-k">参数</span><span class="tj-val" title="' + esc(args || '—') + '">' + esc(args || '—') + '</span></div>' +
+      '<div class="tj-row tj-field"><span class="tj-k">结果</span><span class="tj-val" title="' + esc(resultText) + '">' + esc(resultText) + '</span></div>';
+    if (result !== null && typeof result.code === 'string' && result.code !== '') {
+      body += '<div class="tj-row tj-field"><span class="tj-k">错误码</span><span class="tj-val">' + esc(result.code) + '</span></div>';
+    }
+    if (row.partial === true) body += '<div class="tj-row tj-field"><span class="tj-k">说明</span><span class="tj-val">只有结果事件，调用事件在更早的窗口里</span></div>';
+    body += '</div>';
+    return '<li class="tj-item tj-tool' + (state.cls === 'fail' ? ' fail' : '') + '"><details class="tj-fold">' +
+      '<summary><span class="tj-row"><span class="tj-t">' + esc(trajClock(time)) + '</span>' +
+      '<span class="tj-k tool-name">' + esc(name) + '</span>' +
+      '<span class="tj-clamp">' + esc(trajOneLine(args || '（无参数）', TRAJ_ONE_LINE_MAX)) + '</span>' +
+      '<span class="r-state ' + state.cls + '">' + esc(state.text) + '</span></span>' +
+      '<span class="tj-row tj-res"><span class="tj-k">结果</span><span class="tj-clamp">' +
+      esc(trajOneLine(resultText, TRAJ_ONE_LINE_MAX * 2)) + '</span></span></summary>' + body + '</details></li>';
+  }
+
+  /** 一个块内的条目：按真实 seq 排序（工具条目用 tool.seq，没有就用所属消息 seq + 小数位）。 */
+  function trajItemsOf(group) {
+    const entries = [];
+    group.items.forEach(function (message) {
+      const tools = Array.isArray(message.tools) ? message.tools : [];
+      const fallbackSeq = message.seq;
+      if (message.role === 'user') {
+        entries.push({ seq: message.seq, html: trajUserHtml(message) });
+      } else if (message.role === 'notice') {
+        entries.push({ seq: message.seq, html: trajNoticeHtml(message) });
+      } else if (message.role === 'assistant') {
+        entries.push({ seq: message.seq, html: trajStepHtml(message) });
+        tools.forEach(function (tool, index) {
+          entries.push({
+            seq: Number.isFinite(tool && tool.seq) ? tool.seq : fallbackSeq + index / 1000 + 0.5,
+            html: trajToolHtml(tool, message.time)
+          });
+        });
+      } else if (message.role === 'tool') {
+        tools.forEach(function (tool, index) {
+          entries.push({
+            seq: Number.isFinite(tool && tool.seq) ? tool.seq : fallbackSeq + index / 1000 + 0.5,
+            html: trajToolHtml(tool, message.time)
+          });
+        });
+      }
+    });
+    entries.sort(function (a, b) { return a.seq - b.seq; });
+    return entries;
+  }
+
+  function trajGroupsHtml(groups) {
+    return groups.map(function (group) {
+      const entries = trajItemsOf(group);
+      const steps = group.items.filter(function (message) { return message.role === 'assistant'; }).length;
+      const tools = group.items.reduce(function (sum, message) {
+        return sum + (Array.isArray(message.tools) ? message.tools.length : 0);
+      }, 0);
+      const meta = [];
+      if (group.kind === 'turn') meta.push(steps + ' 步');
+      else meta.push('未提供 turn · ' + steps + ' 步');
+      if (tools > 0) meta.push(tools + ' 个工具');
+      const head = group.kind === 'turn' ? '第 ' + group.turn + ' 轮' : '第 ' + group.segment + ' 段';
+      return '<section class="tj-group" data-kind="' + group.kind + '"' +
+        (group.kind === 'turn' ? ' data-turn="' + esc(group.turn) + '"' : '') + '>' +
+        '<div class="tj-gh"><b>' + esc(head) + '</b><span class="tj-gm">' + esc(meta.join(' · ')) + '</span></div>' +
+        '<ul class="tj-list">' + entries.map(function (entry) { return entry.html; }).join('') + '</ul></section>';
+    }).join('');
+  }
+
+  /** 统计行：真实计数；没有 turn 数据时把「轮」换成「段」，不冒充轮次。 */
+  function trajStatsHtmlOf(stats) {
+    const turnsKnown = stats.turns > 0;
+    return (turnsKnown
+      ? '<span>共 <b>' + stats.turns + '</b> 轮</span>'
+      : '<span>共 <b>' + stats.segments + '</b> 段</span>') +
+      '<span>·</span><span><b>' + stats.steps + '</b> 步</span>' +
+      '<span>·</span><span><b>' + stats.tools + '</b> 次工具调用</span>' +
+      '<span>·</span><span class="tj-fail"><b>' + stats.fails + '</b> 次失败</span>';
+  }
+
+  /** 轨迹视图渲染（只读 state.dialog，不发请求；HTML 没变不写 DOM）。 */
+  function renderTrajectory() {
+    const box = $('#traceTrajectory');
+    if (!box) return;
+    const badge = $('#trajBadge');
+    const badgeText = $('#trajBadgeText');
+    const statsEl = $('#trajStats');
+    const noteEl = $('#trajNote');
+    const emptyEl = $('#trajEmpty');
+    const groupsEl = $('#trajGroups');
+    if (!badge || !badgeText || !statsEl || !noteEl || !emptyEl || !groupsEl) return;
+
+    const dialog = state.dialog && typeof state.dialog === 'object' ? state.dialog : {};
+    const messages = Array.isArray(dialog.messages) ? dialog.messages : [];
+    let emptyText = '';
+    let badgeLabel = '';
+    let statsHtml = '';
+    let noteText = '';
+    let groupsHtml = '';
+
+    if (dialog.kind === 'loading') {
+      emptyText = '正在读取真实轨迹数据（api/butler/dialog）…';
+    } else if (dialog.kind === 'missing') {
+      emptyText = /404/.test(dialog.reason || '')
+        ? '轨迹不可用：真实对话路由尚未加载（HTTP 404）。Host 需重启 DSH 后才有 api/butler/dialog；本页不显示任何示例轨迹。'
+        : '轨迹不可用：' + (dialog.reason || '数据源不可用');
+    } else if (dialog.kind === 'unavailable') {
+      emptyText = '轨迹不可用：' + (dialog.reason || '宿主未给出原因');
+    } else if (messages.length === 0) {
+      const counts = dialog.data && dialog.data.counts ? dialog.data.counts : null;
+      emptyText = '本会话暂无可展示的轨迹：api/butler/dialog 返回 0 条消息' +
+        (counts && Number.isFinite(counts.events) ? '（窗口内事件 ' + counts.events + ' 条）' : '') + '。';
+    } else {
+      const stats = trajStatsOf(messages);
+      const groups = trajGroupsOf(messages);
+      stats.segments = groups.filter(function (group) { return group.kind === 'segment'; }).length;
+      if (groups.length === 0) {
+        emptyText = '本会话暂无可展示的轨迹：窗口内没有可画的对话事件。';
+      } else {
+        const binding = bindingOf();
+        const manual = !!(state.dialog.target && binding && state.dialog.target !== binding.sessionId);
+        badgeLabel = '数据源：api/butler/dialog 真实事件（按 seq 去重）· ' + (manual ? '手动选择会话（只读）' : '只读');
+        statsHtml = trajStatsHtmlOf(stats);
+        const notes = [];
+        if (stats.turns === 0) {
+          notes.push('Host 未提供 turn/step 字段：本页按真实事件顺序 + 用户消息分块，块标题「第 N 段」是页面序号，不是会话轮次号（不编造轮次）。');
+        } else {
+          if (stats.stepNoTurn > 0) notes.push('有 ' + stats.stepNoTurn + ' 个助手步骤缺 turn 字段：这些步骤不显示轮次号（不补齐、不猜测）。');
+          if (stats.stepNoStep > 0) notes.push('有 ' + stats.stepNoStep + ' 个助手步骤缺 step 字段：这些条目只写「助手步骤（未给 step）」，不编步骤号。');
+        }
+        if (stats.partial > 0) notes.push('有 ' + stats.partial + ' 个工具结果缺少对应调用（窗口从工具中间开始）：标「部分」，不冒充完整调用。');
+        if (dialog.live) notes.push('实时流式步骤尚未结算：轨迹只统计已写入 durable 事件的消息，结算后自动出现。');
+        if (dialog.data && dialog.data.degraded && dialog.data.degraded.reason) {
+          notes.push('数据缺口：' + String(dialog.data.degraded.reason).slice(0, 200));
+        }
+        if (notes.length > 0) noteText = '数据降级：' + notes.join(' ');
+        groupsHtml = trajGroupsHtml(groups);
+      }
+    }
+
+    const signature = [dialog.kind, emptyText, badgeLabel, statsHtml, noteText, groupsHtml].join('\u0000');
+    if (signature === trajSignature) return;
+    trajSignature = signature;
+    badgeText.textContent = badgeLabel;
+    badge.hidden = badgeLabel === '';
+    statsEl.innerHTML = statsHtml;
+    statsEl.hidden = statsHtml === '';
+    statsEl.title = '统计口径：轮=Host turn 去重数；步=assistant 消息数；工具调用=工具条目总数；失败=工具结果 isError 数';
+    noteEl.textContent = noteText;
+    noteEl.hidden = noteText === '';
+    emptyEl.textContent = emptyText;
+    emptyEl.hidden = emptyText === '';
+    groupsEl.innerHTML = groupsHtml;
+    groupsEl.hidden = groupsHtml === '';
+  }
+
+  /* =====================================================================
    * 0.9.1 点击修复：对话列表不再无条件整段重建。
    *
    * 旧行为（0.9.0）：renderDialog() 结尾一律 `list.innerHTML = html`，而它被
@@ -5258,6 +5618,9 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
         pill.textContent = '对话不可用';
       }
     }
+    // 0.9.8：轨迹 tab 可见时跟着对话数据一起刷新（隐藏时不白算）。
+    const trajBox = $('#traceTrajectory');
+    if (trajBox && !trajBox.hidden) renderTrajectory();
   }
 
   /* ---------- 右栏交互：折叠 / 选中上级路径 / tooltip ---------- */
@@ -5401,6 +5764,15 @@ button{font-family:inherit;color:inherit;background:transparent;border:0;padding
     const trajectory = $('#traceTrajectory');
     if (dialogue) dialogue.hidden = name === 'trajectory';
     if (trajectory) trajectory.hidden = name !== 'trajectory';
+    const thread = $('#thread');
+    if (name === 'trajectory') {
+      // 0.9.8：轨迹用页面已有数据即时渲染；进入时回到顶部（对话可能已翻到底部）。
+      renderTrajectory();
+      if (thread) thread.scrollTop = 0;
+    } else if (thread) {
+      // 切回对话：走一次 renderDialog 恢复贴底（内容没变不会重建 DOM，展开态不受影响）。
+      renderDialog();
+    }
     hideTip();
   }
   function initDialogueTabs() {

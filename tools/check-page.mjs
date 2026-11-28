@@ -194,7 +194,16 @@ check('prefers-reduced-motion 降级动画', /@media \(prefers-reduced-motion:re
 /* ---------- 8. 中栏：真实对话只读流（0.7.0，不再有示例对话） ---------- */
 check('中栏真实对话容器在', html.includes('id="dialogList"') && html.includes('id="dialogEmpty"') && html.includes('id="thread"'))
 check('页面不再有示例对话 / 静态演示', !html.includes('id="demoBadge"') && !/示例对话 · 静态演示/.test(html) && !/示例轨迹 · 静态演示/.test(html))
-check('轨迹视图诚实占位（M2 未接入，不伪造轨迹）', /轨迹视图 · M2 未接入/.test(html) && /不伪造轨迹/.test(html))
+check('轨迹视图真实渲染（容器 + 渲染函数 + 统计行 + 降级说明，不再有 M2 未接入占位）',
+  html.includes('id="traceTrajectory"') && html.includes('id="trajStats"') && html.includes('id="trajGroups"') &&
+  html.includes('id="trajEmpty"') && html.includes('id="trajNote"') &&
+  /function renderTrajectory\(/.test(html) && /function trajStatsOf\(/.test(html) &&
+  /function trajGroupsOf\(/.test(html) && /function trajItemsOf\(/.test(html) && /function trajToolHtml\(/.test(html) &&
+  /本会话暂无可展示的轨迹/.test(html) && /数据降级/.test(html) &&
+  /\.tj-item\.tj-tool\{/.test(html) && !/\.tj-item\.tool\{/.test(html) &&
+  /数据源：api\/butler\/dialog 真实事件/.test(html) && !/M2 未接入/.test(html))
+check('轨迹不伪造轮次/步骤（缺 turn 用「第 N 段」+ 失败条目标红）',
+  /不编造轮次/.test(html) && /助手步骤（未给 step）/.test(html) && /\.tj-item\.fail\{/.test(html) && /无结果/.test(html))
 check('对话/轨迹 tab 在', html.includes('id="tab-dialogue"') && html.includes('id="tab-trajectory"'))
 check('对话与轨迹两个容器在', html.includes('id="traceDialogue"') && html.includes('id="traceTrajectory"'))
 check('DSH 风格真实对话渲染（思考折叠 / 工具卡 / composer）', /class="think"/.test(html) && /function toolCardHtml\(/.test(html) && /class="tcard/.test(html) && html.includes('class="composer-card"'))
@@ -276,9 +285,9 @@ check('设备/链路列表接真实字段', /function renderClusterList\(/.test(
 /* ---------- 13. 记忆 / 设置页 ---------- */
 check('记忆页真探测入口', /id="memoryProbe"/.test(html) && /fireAction\('notes'\)/.test(html))
 check('记忆状态文案来自真实回执', /state\.memory = \{ kind: 'ok'/.test(html) && /state\.memory = \{ kind: 'fail'/.test(html))
-check('设置页版本是 0.9.7', /id="setVersion">0\.9\.7</.test(html) && /setVersion\.textContent = '0\.9\.7'/.test(html))
+check('设置页版本是 0.9.8', /id="setVersion">0\.9\.8</.test(html) && /setVersion\.textContent = '0\.9\.8'/.test(html))
 /* 0.9.5：页脚版本行精简为「v0.9.x · 驾驶舱」，副标全文移到 title（信息不丢，只是不常驻占位）。 */
-check('页脚版本是 0.9.7', /v0\.9\.7 · 驾驶舱</.test(html) && /title="驾驶舱 · 写通道 M2 · 模型\/档位 · 自诊断"/.test(html))
+check('页脚版本是 0.9.8', /v0\.9\.8 · 驾驶舱</.test(html) && /title="驾驶舱 · 写通道 M2 · 模型\/档位 · 自诊断"/.test(html))
 check('设置页列出七条只读路由', /api\/cluster · api\/board · api\/host · api\/tiers · api\/alerts · api\/butler\/sessions · api\/butler\/dialog/.test(html))
 check('设置页列出写通道路由（say/session）', /POST api\/butler\/say/.test(html) && /POST api\/butler\/session/.test(html))
 check('设置页数据源接真实字段', /id="setBoard"/.test(html) && /id="setTiersSource"/.test(html) && /id="setHost"/.test(html) && /id="setButler"/.test(html))
